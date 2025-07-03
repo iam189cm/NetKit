@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyTitle>NETKit</AssemblyTitle>
+    <Product>NETKit</Product>
+    <Description>网络工程师专用的IP地址快速配置工具</Description>
+    <Copyright>Copyright © 2025</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <!-- 应用程序清单文件 -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- 输出路径配置 -->
+    <OutputPath>..\..\output\$(Configuration)\</OutputPath>
+    <BaseOutputPath>..\..\output\</BaseOutputPath>
+  </PropertyGroup>
+
+  <!-- 单文件发布配置 -->
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <!-- 启用单文件发布 -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <!-- 自包含部署 -->
+    <SelfContained>true</SelfContained>
+    <!-- 目标运行时 -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- 包含所有内容到单文件中 -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- 启用压缩以减小文件大小 -->
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <!-- 优化代码 -->
+    <Optimize>true</Optimize>
+    <!-- 移除未使用的代码 -->
+    <PublishTrimmed>false</PublishTrimmed>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Update="UI\Controls\*.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="UI\Controls\*.Designer.cs">
+      <DependentUpon>%(Filename).cs</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
