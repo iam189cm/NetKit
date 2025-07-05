@@ -51,13 +51,16 @@ namespace NETKit.UI.Forms
             this.tabControlMain = new System.Windows.Forms.TabControl();
             this.tabPageIpConfig = new System.Windows.Forms.TabPage();
             this.tabPagePingTest = new System.Windows.Forms.TabPage();
+            this.tabPageSubnetCalc = new System.Windows.Forms.TabPage();
             this.scanControlPanel = new NETKit.UI.Controls.ScanControlPanel();
             this.scanStatisticsPanel = new NETKit.UI.Controls.ScanStatisticsPanel();
             this.ipGridControl = new NETKit.UI.Controls.IPGridControl();
+            this.subnetCalculatorPanel = new NETKit.UI.Controls.SubnetCalculatorPanel();
             this.grpAdapterInfo.SuspendLayout();
             this.tabControlMain.SuspendLayout();
             this.tabPageIpConfig.SuspendLayout();
             this.tabPagePingTest.SuspendLayout();
+            this.tabPageSubnetCalc.SuspendLayout();
             this.SuspendLayout();
             // 
             // lblNetworkAdapter
@@ -281,6 +284,7 @@ namespace NETKit.UI.Forms
             // 
             this.tabControlMain.Controls.Add(this.tabPageIpConfig);
             this.tabControlMain.Controls.Add(this.tabPagePingTest);
+            this.tabControlMain.Controls.Add(this.tabPageSubnetCalc);
             this.tabControlMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControlMain.Location = new System.Drawing.Point(0, 0);
             this.tabControlMain.Name = "tabControlMain";
@@ -355,6 +359,25 @@ namespace NETKit.UI.Forms
             this.ipGridControl.Size = new System.Drawing.Size(586, 497);
             this.ipGridControl.TabIndex = 2;
             // 
+            // tabPageSubnetCalc
+            // 
+            this.tabPageSubnetCalc.Controls.Add(this.subnetCalculatorPanel);
+            this.tabPageSubnetCalc.Location = new System.Drawing.Point(4, 24);
+            this.tabPageSubnetCalc.Name = "tabPageSubnetCalc";
+            this.tabPageSubnetCalc.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageSubnetCalc.Size = new System.Drawing.Size(592, 652);
+            this.tabPageSubnetCalc.TabIndex = 2;
+            this.tabPageSubnetCalc.Text = "子网计算";
+            this.tabPageSubnetCalc.UseVisualStyleBackColor = true;
+            // 
+            // subnetCalculatorPanel
+            // 
+            this.subnetCalculatorPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.subnetCalculatorPanel.Location = new System.Drawing.Point(3, 3);
+            this.subnetCalculatorPanel.Name = "subnetCalculatorPanel";
+            this.subnetCalculatorPanel.Size = new System.Drawing.Size(586, 646);
+            this.subnetCalculatorPanel.TabIndex = 0;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -375,6 +398,7 @@ namespace NETKit.UI.Forms
             this.tabPageIpConfig.ResumeLayout(false);
             this.tabPageIpConfig.PerformLayout();
             this.tabPagePingTest.ResumeLayout(false);
+            this.tabPageSubnetCalc.ResumeLayout(false);
             this.ResumeLayout(false);
         }
 
@@ -401,8 +425,10 @@ namespace NETKit.UI.Forms
         private System.Windows.Forms.TabControl tabControlMain;
         private System.Windows.Forms.TabPage tabPageIpConfig;
         private System.Windows.Forms.TabPage tabPagePingTest;
+        private System.Windows.Forms.TabPage tabPageSubnetCalc;
         private Controls.ScanControlPanel scanControlPanel;
         private Controls.ScanStatisticsPanel scanStatisticsPanel;
         private Controls.IPGridControl ipGridControl;
+        private Controls.SubnetCalculatorPanel subnetCalculatorPanel;
     }
 }

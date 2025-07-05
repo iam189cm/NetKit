@@ -10,8 +10,9 @@
     <Product>NETKit</Product>
     <Description>网络工程师专用的IP地址快速配置工具</Description>
     <Copyright>Copyright © 2025</Copyright>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
+    <Version>1.2.0</Version>
     <!-- 应用程序清单文件 -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- 输出路径配置 -->

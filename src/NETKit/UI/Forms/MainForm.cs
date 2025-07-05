@@ -33,6 +33,9 @@ namespace NETKit.UI.Forms
             _scanService.ScanCompleted += ScanService_ScanCompleted;
             scanControlPanel.OnStartScan += ScanControlPanel_OnStartScan;
             scanControlPanel.OnStopScan += ScanControlPanel_OnStopScan;
+
+            // 子网计算面板事件
+            subnetCalculatorPanel.StatusUpdated += OnStatusUpdated;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
