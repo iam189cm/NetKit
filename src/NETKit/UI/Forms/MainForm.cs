@@ -317,13 +317,14 @@ namespace NETKit.UI.Forms
                     // 根据DHCP状态更新UI
                     chkDhcp_CheckedChanged(this, EventArgs.Empty);
 
-                    // 如果不是DHCP，则显示当前IP配置
+                    // 如果不是DHCP，则显示当前IP配置（但不显示"未配置"文本）
                     if (!adapterInfo.IsDHCPEnabled)
                     {
-                        txtIpAddress.Text = adapterInfo.CurrentIP;
-                        txtSubnetMask.Text = adapterInfo.CurrentSubnetMask;
-                        txtGateway.Text = adapterInfo.CurrentGateway;
-                        txtDnsServer.Text = adapterInfo.DNSText;
+                        // 只有当值不是"未配置"时才填入输入框
+                        txtIpAddress.Text = adapterInfo.CurrentIP != "未配置" ? adapterInfo.CurrentIP : "";
+                        txtSubnetMask.Text = adapterInfo.CurrentSubnetMask != "未配置" ? adapterInfo.CurrentSubnetMask : "";
+                        txtGateway.Text = adapterInfo.CurrentGateway != "未配置" ? adapterInfo.CurrentGateway : "";
+                        txtDnsServer.Text = adapterInfo.DNSText != "未配置" ? adapterInfo.DNSText : "";
                     }
                     else
                     {

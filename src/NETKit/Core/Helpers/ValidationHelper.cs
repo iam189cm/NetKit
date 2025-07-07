@@ -31,12 +31,22 @@ namespace NETKit.Core.Helpers
         }
 
         /// <summary>
-        /// 验证子网掩码格式
+        /// 验证子网掩码格式（支持点分十进制和CIDR位数）
         /// </summary>
         /// <param name="subnetMask">子网掩码字符串</param>
         /// <returns>是否为有效的子网掩码</returns>
         public static bool IsValidSubnetMask(string subnetMask)
         {
+            if (string.IsNullOrWhiteSpace(subnetMask))
+                return false;
+
+            // 检查是否为CIDR位数格式（如 /24 或 24）
+            if (TryParseCIDR(subnetMask, out int cidrBits))
+            {
+                return cidrBits >= 0 && cidrBits <= 32;
+            }
+
+            // 检查是否为点分十进制格式
             if (!IsValidIPAddress(subnetMask))
                 return false;
 
@@ -62,6 +72,111 @@ namespace NETKit.Core.Helpers
             // 反转位，检查是否为连续的1后跟连续的0
             uint inverted = ~maskValue;
             return (inverted & (inverted + 1)) == 0;
+        }
+
+        /// <summary>
+        /// 尝试解析CIDR位数格式
+        /// </summary>
+        /// <param name="input">输入字符串</param>
+        /// <param name="cidrBits">解析出的CIDR位数</param>
+        /// <returns>是否解析成功</returns>
+        private static bool TryParseCIDR(string input, out int cidrBits)
+        {
+            cidrBits = 0;
+            
+            if (string.IsNullOrWhiteSpace(input))
+                return false;
+
+            string trimmed = input.Trim();
+            
+            // 移除可能的前缀斜杠
+            if (trimmed.StartsWith("/"))
+                trimmed = trimmed.Substring(1);
+
+            return int.TryParse(trimmed, out cidrBits);
+        }
+
+        /// <summary>
+        /// 将CIDR位数转换为点分十进制子网掩码
+        /// </summary>
+        /// <param name="cidrBits">CIDR位数</param>
+        /// <returns>点分十进制子网掩码</returns>
+        public static string CIDRToSubnetMask(int cidrBits)
+        {
+            if (cidrBits < 0 || cidrBits > 32)
+                throw new ArgumentOutOfRangeException(nameof(cidrBits), "CIDR位数必须在0-32之间");
+
+            uint mask = 0;
+            if (cidrBits > 0)
+            {
+                mask = 0xFFFFFFFF << (32 - cidrBits);
+            }
+
+            byte[] bytes = new byte[4];
+            bytes[0] = (byte)(mask >> 24);
+            bytes[1] = (byte)(mask >> 16);
+            bytes[2] = (byte)(mask >> 8);
+            bytes[3] = (byte)mask;
+
+            return new IPAddress(bytes).ToString();
+        }
+
+        /// <summary>
+        /// 将点分十进制子网掩码转换为CIDR位数
+        /// </summary>
+        /// <param name="subnetMask">点分十进制子网掩码</param>
+        /// <returns>CIDR位数，失败返回-1</returns>
+        public static int SubnetMaskToCIDR(string subnetMask)
+        {
+            if (!IPAddress.TryParse(subnetMask, out IPAddress mask))
+                return -1;
+
+            byte[] bytes = mask.GetAddressBytes();
+            uint maskValue = (uint)(bytes[0] << 24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3]);
+
+            // 检查是否为有效的子网掩码
+            if (!IsValidSubnetMaskValue(maskValue))
+                return -1;
+
+            // 计算连续的1的个数
+            int cidrBits = 0;
+            for (int i = 31; i >= 0; i--)
+            {
+                if ((maskValue & (1u << i)) != 0)
+                    cidrBits++;
+                else
+                    break;
+            }
+
+            return cidrBits;
+        }
+
+        /// <summary>
+        /// 标准化子网掩码输入（将CIDR格式转换为点分十进制）
+        /// </summary>
+        /// <param name="subnetMask">子网掩码输入</param>
+        /// <returns>标准化的点分十进制子网掩码</returns>
+        public static string NormalizeSubnetMask(string subnetMask)
+        {
+            if (string.IsNullOrWhiteSpace(subnetMask))
+                return string.Empty;
+
+            // 如果是CIDR格式，转换为点分十进制
+            if (TryParseCIDR(subnetMask, out int cidrBits))
+            {
+                if (cidrBits >= 0 && cidrBits <= 32)
+                {
+                    return CIDRToSubnetMask(cidrBits);
+                }
+            }
+
+            // 如果已经是点分十进制格式，直接返回
+            if (IsValidIPAddress(subnetMask))
+            {
+                return subnetMask;
+            }
+
+            return string.Empty;
         }
 
         /// <summary>
@@ -111,10 +226,17 @@ namespace NETKit.Core.Helpers
                 return ValidationResult.Failure("DNS服务器地址格式不正确");
             }
 
+            // 标准化子网掩码为点分十进制格式进行后续验证
+            string normalizedSubnetMask = NormalizeSubnetMask(subnetMask);
+            if (string.IsNullOrEmpty(normalizedSubnetMask))
+            {
+                return ValidationResult.Failure("子网掩码格式不正确");
+            }
+
             // 检查IP地址是否在子网范围内
             if (!string.IsNullOrWhiteSpace(gateway))
             {
-                if (!IsIPInSameSubnet(ipAddress, gateway, subnetMask))
+                if (!IsIPInSameSubnet(ipAddress, gateway, normalizedSubnetMask))
                 {
                     return ValidationResult.Failure("网关地址与IP地址不在同一子网内");
                 }

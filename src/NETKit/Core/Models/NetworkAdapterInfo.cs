@@ -91,8 +91,7 @@ namespace NETKit.Core.Models
                    $"IP地址: {CurrentIP}\r\n" +
                    $"子网掩码: {CurrentSubnetMask}\r\n" +
                    $"默认网关: {CurrentGateway}\r\n" +
-                   $"DNS服务器: {DNSText}\r\n" +
-                   $"DHCP: {(IsDHCPEnabled ? "已启用" : "已禁用")}";
+                   $"DNS服务器: {DNSText}";
         }
 
         /// <summary>

@@ -163,7 +163,7 @@ namespace NETKit.UI.Forms
             this.txtSubnetMask.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.txtSubnetMask.Location = new System.Drawing.Point(130, 297);
             this.txtSubnetMask.Name = "txtSubnetMask";
-            this.txtSubnetMask.PlaceholderText = "例如: 255.255.255.0";
+            this.txtSubnetMask.PlaceholderText = "例如: 255.255.255.0 或 24";
             this.txtSubnetMask.Size = new System.Drawing.Size(320, 23);
             this.txtSubnetMask.TabIndex = 5;
             // 

@@ -6,13 +6,13 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyTitle>NETKit</AssemblyTitle>
-    <Product>NETKit</Product>
+    <AssemblyTitle>NETKit v1.3</AssemblyTitle>
+    <Product>NETKit v1.3</Product>
     <Description>网络工程师专用的IP地址快速配置工具</Description>
     <Copyright>Copyright © 2025</Copyright>
-    <AssemblyVersion>1.2.0.0</AssemblyVersion>
-    <FileVersion>1.2.0.0</FileVersion>
-    <Version>1.2.0</Version>
+    <AssemblyVersion>1.3.0.0</AssemblyVersion>
+    <FileVersion>1.3.0.0</FileVersion>
+    <Version>1.3.0</Version>
     <!-- 应用程序清单文件 -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- 输出路径配置 -->

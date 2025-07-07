@@ -70,8 +70,22 @@ namespace NETKit.Core.Services
                     return false;
                 }
 
-                // 创建配置对象
-                var config = NetworkConfiguration.CreateStaticConfig(adapterName, ipAddress, subnetMask, gateway ?? "", dnsServer ?? "");
+                // 标准化子网掩码（将CIDR格式转换为点分十进制）
+                string normalizedSubnetMask = ValidationHelper.NormalizeSubnetMask(subnetMask);
+                if (string.IsNullOrEmpty(normalizedSubnetMask))
+                {
+                    OnStatusUpdated("子网掩码格式不正确", true);
+                    return false;
+                }
+
+                // 如果用户输入的是CIDR格式，显示转换信息
+                if (subnetMask != normalizedSubnetMask)
+                {
+                    OnStatusUpdated($"子网掩码已转换: {subnetMask} -> {normalizedSubnetMask}", false);
+                }
+
+                // 创建配置对象（使用标准化的子网掩码）
+                var config = NetworkConfiguration.CreateStaticConfig(adapterName, ipAddress, normalizedSubnetMask, gateway ?? "", dnsServer ?? "");
                 
                 // 验证配置
                 var validationResult = ValidationHelper.ValidateNetworkConfiguration(config);
