@@ -34,12 +34,16 @@ namespace NETKit.UI.Forms
             this.cmbNetworkAdapters = new System.Windows.Forms.ComboBox();
             this.lblIpAddress = new System.Windows.Forms.Label();
             this.txtIpAddress = new System.Windows.Forms.TextBox();
+            this.lblIpError = new System.Windows.Forms.Label();
             this.lblSubnetMask = new System.Windows.Forms.Label();
             this.txtSubnetMask = new System.Windows.Forms.TextBox();
+            this.lblSubnetError = new System.Windows.Forms.Label();
             this.lblGateway = new System.Windows.Forms.Label();
             this.txtGateway = new System.Windows.Forms.TextBox();
+            this.lblGatewayError = new System.Windows.Forms.Label();
             this.lblDnsServer = new System.Windows.Forms.Label();
             this.txtDnsServer = new System.Windows.Forms.TextBox();
+            this.lblDnsError = new System.Windows.Forms.Label();
             this.btnApplyConfig = new System.Windows.Forms.Button();
             this.btnRefreshAdapters = new System.Windows.Forms.Button();
             this.lblStatus = new System.Windows.Forms.Label();
@@ -106,7 +110,7 @@ namespace NETKit.UI.Forms
             this.txtAdapterInfoContent.Name = "txtAdapterInfoContent";
             this.txtAdapterInfoContent.ReadOnly = true;
             this.txtAdapterInfoContent.ShortcutsEnabled = true;
-            this.txtAdapterInfoContent.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.txtAdapterInfoContent.ScrollBars = System.Windows.Forms.ScrollBars.None;
             this.txtAdapterInfoContent.Size = new System.Drawing.Size(485, 125);
             this.txtAdapterInfoContent.TabIndex = 0;
             this.txtAdapterInfoContent.Text = "请选择网络适配器";
@@ -131,6 +135,17 @@ namespace NETKit.UI.Forms
             this.txtIpAddress.PlaceholderText = "例如: 192.168.1.100";
             this.txtIpAddress.Size = new System.Drawing.Size(320, 23);
             this.txtIpAddress.TabIndex = 3;
+            // 
+            // lblIpError
+            // 
+            this.lblIpError.AutoSize = true;
+            this.lblIpError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblIpError.ForeColor = System.Drawing.Color.Red;
+            this.lblIpError.Location = new System.Drawing.Point(130, 283);
+            this.lblIpError.Name = "lblIpError";
+            this.lblIpError.Size = new System.Drawing.Size(0, 16);
+            this.lblIpError.TabIndex = 18;
+            this.lblIpError.Visible = false;
             // 
             // chkDhcp
             // 
@@ -167,6 +182,17 @@ namespace NETKit.UI.Forms
             this.txtSubnetMask.Size = new System.Drawing.Size(320, 23);
             this.txtSubnetMask.TabIndex = 5;
             // 
+            // lblSubnetError
+            // 
+            this.lblSubnetError.AutoSize = true;
+            this.lblSubnetError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblSubnetError.ForeColor = System.Drawing.Color.Red;
+            this.lblSubnetError.Location = new System.Drawing.Point(130, 323);
+            this.lblSubnetError.Name = "lblSubnetError";
+            this.lblSubnetError.Size = new System.Drawing.Size(0, 16);
+            this.lblSubnetError.TabIndex = 19;
+            this.lblSubnetError.Visible = false;
+            // 
             // lblGateway
             // 
             this.lblGateway.AutoSize = true;
@@ -188,6 +214,17 @@ namespace NETKit.UI.Forms
             this.txtGateway.Size = new System.Drawing.Size(320, 23);
             this.txtGateway.TabIndex = 7;
             // 
+            // lblGatewayError
+            // 
+            this.lblGatewayError.AutoSize = true;
+            this.lblGatewayError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblGatewayError.ForeColor = System.Drawing.Color.Red;
+            this.lblGatewayError.Location = new System.Drawing.Point(130, 363);
+            this.lblGatewayError.Name = "lblGatewayError";
+            this.lblGatewayError.Size = new System.Drawing.Size(0, 16);
+            this.lblGatewayError.TabIndex = 20;
+            this.lblGatewayError.Visible = false;
+            // 
             // lblDnsServer
             // 
             this.lblDnsServer.AutoSize = true;
@@ -208,6 +245,17 @@ namespace NETKit.UI.Forms
             this.txtDnsServer.PlaceholderText = "例如: 8.8.8.8";
             this.txtDnsServer.Size = new System.Drawing.Size(320, 23);
             this.txtDnsServer.TabIndex = 9;
+            // 
+            // lblDnsError
+            // 
+            this.lblDnsError.AutoSize = true;
+            this.lblDnsError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblDnsError.ForeColor = System.Drawing.Color.Red;
+            this.lblDnsError.Location = new System.Drawing.Point(130, 403);
+            this.lblDnsError.Name = "lblDnsError";
+            this.lblDnsError.Size = new System.Drawing.Size(0, 16);
+            this.lblDnsError.TabIndex = 21;
+            this.lblDnsError.Visible = false;
             // 
             // btnApplyConfig
             // 
@@ -297,13 +345,17 @@ namespace NETKit.UI.Forms
             this.tabPageIpConfig.Controls.Add(this.lblStatus);
             this.tabPageIpConfig.Controls.Add(this.btnRefreshAdapters);
             this.tabPageIpConfig.Controls.Add(this.btnApplyConfig);
+            this.tabPageIpConfig.Controls.Add(this.lblDnsError);
             this.tabPageIpConfig.Controls.Add(this.txtDnsServer);
             this.tabPageIpConfig.Controls.Add(this.lblDnsServer);
+            this.tabPageIpConfig.Controls.Add(this.lblGatewayError);
             this.tabPageIpConfig.Controls.Add(this.txtGateway);
             this.tabPageIpConfig.Controls.Add(this.lblGateway);
+            this.tabPageIpConfig.Controls.Add(this.lblSubnetError);
             this.tabPageIpConfig.Controls.Add(this.txtSubnetMask);
             this.tabPageIpConfig.Controls.Add(this.lblSubnetMask);
             this.tabPageIpConfig.Controls.Add(this.chkDhcp);
+            this.tabPageIpConfig.Controls.Add(this.lblIpError);
             this.tabPageIpConfig.Controls.Add(this.txtIpAddress);
             this.tabPageIpConfig.Controls.Add(this.lblIpAddress);
             this.tabPageIpConfig.Controls.Add(this.grpAdapterInfo);
@@ -406,12 +458,16 @@ namespace NETKit.UI.Forms
         private System.Windows.Forms.ComboBox cmbNetworkAdapters;
         private System.Windows.Forms.Label lblIpAddress;
         private System.Windows.Forms.TextBox txtIpAddress;
+        private System.Windows.Forms.Label lblIpError;
         private System.Windows.Forms.Label lblSubnetMask;
         private System.Windows.Forms.TextBox txtSubnetMask;
+        private System.Windows.Forms.Label lblSubnetError;
         private System.Windows.Forms.Label lblGateway;
         private System.Windows.Forms.TextBox txtGateway;
+        private System.Windows.Forms.Label lblGatewayError;
         private System.Windows.Forms.Label lblDnsServer;
         private System.Windows.Forms.TextBox txtDnsServer;
+        private System.Windows.Forms.Label lblDnsError;
         private System.Windows.Forms.Button btnApplyConfig;
         private System.Windows.Forms.Button btnRefreshAdapters;
         private System.Windows.Forms.Label lblStatus;

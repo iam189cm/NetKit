@@ -6,6 +6,26 @@ using NETKit.Common;
 namespace NETKit.Core.Helpers
 {
     /// <summary>
+    /// IP验证结果级别
+    /// </summary>
+    public enum ValidationLevel
+    {
+        Success,
+        Warning,
+        Error
+    }
+
+    /// <summary>
+    /// IP验证详细结果
+    /// </summary>
+    public class IPValidationResult
+    {
+        public ValidationLevel Level { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public bool IsValid => Level != ValidationLevel.Error;
+    }
+
+    /// <summary>
     /// 验证辅助类 - 负责输入验证逻辑
     /// </summary>
     public static class ValidationHelper
@@ -28,6 +48,146 @@ namespace NETKit.Core.Helpers
                 return false;
 
             return IPAddress.TryParse(ipAddress, out _) && IPAddressRegex.IsMatch(ipAddress);
+        }
+
+        /// <summary>
+        /// 详细验证IP地址格式，返回验证结果和提示信息
+        /// </summary>
+        /// <param name="ipAddress">IP地址字符串</param>
+        /// <returns>详细验证结果</returns>
+        public static IPValidationResult ValidateIPAddressWithDetails(string ipAddress)
+        {
+            if (string.IsNullOrWhiteSpace(ipAddress))
+            {
+                return new IPValidationResult { Level = ValidationLevel.Error, Message = "" };
+            }
+
+            string trimmed = ipAddress.Trim();
+
+            // 检查基本格式
+            if (!IPAddressRegex.IsMatch(trimmed))
+            {
+                // 检查是否包含非法字符
+                if (trimmed.Any(c => !char.IsDigit(c) && c != '.'))
+                {
+                    return new IPValidationResult { Level = ValidationLevel.Error, Message = "只能包含数字和点" };
+                }
+
+                // 检查点的数量
+                int dotCount = trimmed.Count(c => c == '.');
+                if (dotCount != 3)
+                {
+                    return new IPValidationResult { Level = ValidationLevel.Error, Message = "IP地址格式不完整" };
+                }
+
+                // 检查是否有空段
+                string[] parts = trimmed.Split('.');
+                if (parts.Any(string.IsNullOrEmpty))
+                {
+                    return new IPValidationResult { Level = ValidationLevel.Error, Message = "IP地址段不能为空" };
+                }
+
+                // 检查每段是否为数字
+                foreach (string part in parts)
+                {
+                    if (!int.TryParse(part, out int value))
+                    {
+                        return new IPValidationResult { Level = ValidationLevel.Error, Message = "IP地址段必须为数字" };
+                    }
+                    if (value > 255)
+                    {
+                        return new IPValidationResult { Level = ValidationLevel.Error, Message = "IP段不能超过255" };
+                    }
+                }
+
+                return new IPValidationResult { Level = ValidationLevel.Error, Message = "IP地址格式不正确" };
+            }
+
+            // 基本格式正确，进行详细检查
+            if (!IPAddress.TryParse(trimmed, out IPAddress addr))
+            {
+                return new IPValidationResult { Level = ValidationLevel.Error, Message = "无效的IP地址" };
+            }
+
+            byte[] bytes = addr.GetAddressBytes();
+
+            // 检查特殊IP地址
+            if (bytes[0] == 0)
+            {
+                if (trimmed == "0.0.0.0")
+                {
+                    return new IPValidationResult { Level = ValidationLevel.Warning, Message = "这是默认路由地址" };
+                }
+                return new IPValidationResult { Level = ValidationLevel.Error, Message = "无效的IP地址" };
+            }
+
+            if (bytes[0] == 127)
+            {
+                return new IPValidationResult { Level = ValidationLevel.Warning, Message = "这是回环地址" };
+            }
+
+            if (bytes[0] >= 224 && bytes[0] <= 239)
+            {
+                return new IPValidationResult { Level = ValidationLevel.Warning, Message = "这是组播地址" };
+            }
+
+            if (bytes[0] >= 240)
+            {
+                return new IPValidationResult { Level = ValidationLevel.Error, Message = "这是保留地址" };
+            }
+
+            if (trimmed == "255.255.255.255")
+            {
+                return new IPValidationResult { Level = ValidationLevel.Warning, Message = "这是广播地址" };
+            }
+
+            // 移除私有IP地址检查警告
+            return new IPValidationResult { Level = ValidationLevel.Success, Message = "IP地址有效" };
+        }
+
+        /// <summary>
+        /// 详细验证子网掩码格式
+        /// </summary>
+        /// <param name="subnetMask">子网掩码字符串</param>
+        /// <returns>详细验证结果</returns>
+        public static IPValidationResult ValidateSubnetMaskWithDetails(string subnetMask)
+        {
+            if (string.IsNullOrWhiteSpace(subnetMask))
+            {
+                return new IPValidationResult { Level = ValidationLevel.Error, Message = "" };
+            }
+
+            string trimmed = subnetMask.Trim();
+
+            // 检查是否为CIDR格式
+            if (TryParseCIDR(trimmed, out int cidrBits))
+            {
+                if (cidrBits < 0 || cidrBits > 32)
+                {
+                    return new IPValidationResult { Level = ValidationLevel.Error, Message = "CIDR位数必须在0-32之间" };
+                }
+                return new IPValidationResult { Level = ValidationLevel.Success, Message = "子网掩码有效" };
+            }
+
+            // 检查点分十进制格式 - 只检查基本IP格式，不使用详细验证
+            if (!IsValidIPAddress(trimmed))
+            {
+                return new IPValidationResult { Level = ValidationLevel.Error, Message = "子网掩码格式不正确" };
+            }
+
+            // 验证是否为有效的子网掩码
+            if (IPAddress.TryParse(trimmed, out IPAddress mask))
+            {
+                byte[] bytes = mask.GetAddressBytes();
+                uint maskValue = (uint)(bytes[0] << 24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3]);
+                
+                if (!IsValidSubnetMaskValue(maskValue))
+                {
+                    return new IPValidationResult { Level = ValidationLevel.Error, Message = "不是有效的子网掩码" };
+                }
+            }
+
+            return new IPValidationResult { Level = ValidationLevel.Success, Message = "子网掩码有效" };
         }
 
         /// <summary>
