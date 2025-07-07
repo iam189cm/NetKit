@@ -41,7 +41,6 @@ namespace NETKit.UI.Forms
             this.lblDnsServer = new System.Windows.Forms.Label();
             this.txtDnsServer = new System.Windows.Forms.TextBox();
             this.btnApplyConfig = new System.Windows.Forms.Button();
-            this.btnSetDhcp = new System.Windows.Forms.Button();
             this.btnRefreshAdapters = new System.Windows.Forms.Button();
             this.lblStatus = new System.Windows.Forms.Label();
             this.txtStatus = new System.Windows.Forms.TextBox();
@@ -133,6 +132,20 @@ namespace NETKit.UI.Forms
             this.txtIpAddress.Size = new System.Drawing.Size(320, 23);
             this.txtIpAddress.TabIndex = 3;
             // 
+            // chkDhcp
+            // 
+            this.chkDhcp = new System.Windows.Forms.CheckBox();
+            this.chkDhcp.AutoSize = true;
+            this.chkDhcp.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.chkDhcp.ForeColor = Constants.Colors.TextPrimary;
+            this.chkDhcp.Location = new System.Drawing.Point(460, 259);
+            this.chkDhcp.Name = "chkDhcp";
+            this.chkDhcp.Size = new System.Drawing.Size(63, 21);
+            this.chkDhcp.TabIndex = 4;
+            this.chkDhcp.Text = "DHCP";
+            this.chkDhcp.UseVisualStyleBackColor = true;
+            this.chkDhcp.CheckedChanged += new System.EventHandler(this.chkDhcp_CheckedChanged);
+            // 
             // lblSubnetMask
             // 
             this.lblSubnetMask.AutoSize = true;
@@ -211,21 +224,6 @@ namespace NETKit.UI.Forms
             this.btnApplyConfig.UseVisualStyleBackColor = false;
             this.btnApplyConfig.Click += new System.EventHandler(this.btnApplyConfig_Click);
             // 
-            // btnSetDhcp
-            // 
-            this.btnSetDhcp.BackColor = Constants.Colors.PrimaryBlue;
-            this.btnSetDhcp.FlatAppearance.BorderSize = 0;
-            this.btnSetDhcp.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnSetDhcp.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btnSetDhcp.ForeColor = System.Drawing.Color.White;
-            this.btnSetDhcp.Location = new System.Drawing.Point(310, 420);
-            this.btnSetDhcp.Name = "btnSetDhcp";
-            this.btnSetDhcp.Size = new System.Drawing.Size(100, 38);
-            this.btnSetDhcp.TabIndex = 11;
-            this.btnSetDhcp.Text = "设置DHCP";
-            this.btnSetDhcp.UseVisualStyleBackColor = false;
-            this.btnSetDhcp.Click += new System.EventHandler(this.btnSetDhcp_Click);
-            // 
             // btnRefreshAdapters
             // 
             this.btnRefreshAdapters.BackColor = Constants.Colors.PrimaryBlue;
@@ -298,7 +296,6 @@ namespace NETKit.UI.Forms
             this.tabPageIpConfig.Controls.Add(this.txtStatus);
             this.tabPageIpConfig.Controls.Add(this.lblStatus);
             this.tabPageIpConfig.Controls.Add(this.btnRefreshAdapters);
-            this.tabPageIpConfig.Controls.Add(this.btnSetDhcp);
             this.tabPageIpConfig.Controls.Add(this.btnApplyConfig);
             this.tabPageIpConfig.Controls.Add(this.txtDnsServer);
             this.tabPageIpConfig.Controls.Add(this.lblDnsServer);
@@ -306,6 +303,7 @@ namespace NETKit.UI.Forms
             this.tabPageIpConfig.Controls.Add(this.lblGateway);
             this.tabPageIpConfig.Controls.Add(this.txtSubnetMask);
             this.tabPageIpConfig.Controls.Add(this.lblSubnetMask);
+            this.tabPageIpConfig.Controls.Add(this.chkDhcp);
             this.tabPageIpConfig.Controls.Add(this.txtIpAddress);
             this.tabPageIpConfig.Controls.Add(this.lblIpAddress);
             this.tabPageIpConfig.Controls.Add(this.grpAdapterInfo);
@@ -415,7 +413,6 @@ namespace NETKit.UI.Forms
         private System.Windows.Forms.Label lblDnsServer;
         private System.Windows.Forms.TextBox txtDnsServer;
         private System.Windows.Forms.Button btnApplyConfig;
-        private System.Windows.Forms.Button btnSetDhcp;
         private System.Windows.Forms.Button btnRefreshAdapters;
         private System.Windows.Forms.Label lblStatus;
         private System.Windows.Forms.TextBox txtStatus;
@@ -430,5 +427,6 @@ namespace NETKit.UI.Forms
         private Controls.ScanStatisticsPanel scanStatisticsPanel;
         private Controls.IPGridControl ipGridControl;
         private Controls.SubnetCalculatorPanel subnetCalculatorPanel;
+        private System.Windows.Forms.CheckBox chkDhcp;
     }
 }

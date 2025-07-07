@@ -151,6 +151,14 @@ namespace NETKit.Core.Services
                     return false;
                 }
 
+                // 检查DHCP是否已启用
+                var adapterDetails = GetAdapterDetails(adapterName);
+                if (adapterDetails != null && adapterDetails.IsDHCPEnabled)
+                {
+                    OnStatusUpdated($"接口 {adapterName} 的DHCP已经启用。", false);
+                    return true; // 已经处于目标状态，操作成功
+                }
+
                 var config = NetworkConfiguration.CreateDHCPConfig(adapterName);
                 return await SetDHCPConfigurationAsync(config);
             }

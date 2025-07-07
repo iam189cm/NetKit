@@ -55,7 +55,6 @@ namespace NETKit.UI.Forms
                 
                 // 禁用修改按钮
                 btnApplyConfig.Enabled = false;
-                btnSetDhcp.Enabled = false;
             }
             else
             {
@@ -63,7 +62,6 @@ namespace NETKit.UI.Forms
                 
                 // 启用所有功能按钮
                 btnApplyConfig.Enabled = true;
-                btnSetDhcp.Enabled = true;
             }
 
             // 加载网络适配器
@@ -107,48 +105,6 @@ namespace NETKit.UI.Forms
         private async void btnApplyConfig_Click(object sender, EventArgs e)
         {
             var selectedAdapter = cmbNetworkAdapters.SelectedItem as NetworkAdapterItem;
-            var validation = ValidationHelper.ValidateNetworkConfig(
-                selectedAdapter?.Name,
-                txtIpAddress.Text,
-                txtSubnetMask.Text,
-                txtGateway.Text,
-                txtDnsServer.Text
-            );
-
-            if (!validation.IsValid)
-            {
-                UpdateStatus($"错误: {validation.Message}", true);
-                return;
-            }
-
-            // 禁用按钮防止重复点击
-            SetButtonsEnabled(false);
-
-            try
-            {
-                bool success = await _networkService.ApplyStaticIPConfigurationAsync(
-                    selectedAdapter!.Name,
-                    txtIpAddress.Text,
-                    txtSubnetMask.Text,
-                    txtGateway.Text,
-                    txtDnsServer.Text
-                );
-                
-                if (success)
-                {
-                    // 刷新网卡信息显示
-                    UpdateAdapterInfo();
-                }
-            }
-            finally
-            {
-                SetButtonsEnabled(true);
-            }
-        }
-
-        private async void btnSetDhcp_Click(object sender, EventArgs e)
-        {
-            var selectedAdapter = cmbNetworkAdapters.SelectedItem as NetworkAdapterItem;
             if (selectedAdapter == null)
             {
                 UpdateStatus("错误: 请选择网络适配器", true);
@@ -160,12 +116,40 @@ namespace NETKit.UI.Forms
 
             try
             {
-                bool success = await _networkService.SetDHCPConfigurationAsync(selectedAdapter.Name);
+                bool success;
+                if (chkDhcp.Checked)
+                {
+                    // 设置为DHCP
+                    success = await _networkService.SetDHCPConfigurationAsync(selectedAdapter.Name);
+                }
+                else
+                {
+                    // 设置为静态IP
+                    var validation = ValidationHelper.ValidateNetworkConfig(
+                        selectedAdapter.Name,
+                        txtIpAddress.Text,
+                        txtSubnetMask.Text,
+                        txtGateway.Text,
+                        txtDnsServer.Text
+                    );
+
+                    if (!validation.IsValid)
+                    {
+                        UpdateStatus($"错误: {validation.Message}", true);
+                        return;
+                    }
+
+                    success = await _networkService.ApplyStaticIPConfigurationAsync(
+                        selectedAdapter.Name,
+                        txtIpAddress.Text,
+                        txtSubnetMask.Text,
+                        txtGateway.Text,
+                        txtDnsServer.Text
+                    );
+                }
+
                 if (success)
                 {
-                    // 清空输入框
-                    ClearInputFields();
-                    
                     // 刷新网卡信息显示
                     UpdateAdapterInfo();
                 }
@@ -175,6 +159,7 @@ namespace NETKit.UI.Forms
                 SetButtonsEnabled(true);
             }
         }
+
 
         private void btnRefreshAdapters_Click(object sender, EventArgs e)
         {
@@ -194,6 +179,24 @@ namespace NETKit.UI.Forms
             }
         }
 
+        private void chkDhcp_CheckedChanged(object sender, EventArgs e)
+        {
+            bool isDhcp = chkDhcp.Checked;
+
+            txtIpAddress.Enabled = !isDhcp;
+            txtSubnetMask.Enabled = !isDhcp;
+            txtGateway.Enabled = !isDhcp;
+            // txtDnsServer 保持启用
+
+            if (isDhcp)
+            {
+                // 如果勾选了DHCP，可以清空静态IP的输入框
+                txtIpAddress.Clear();
+                txtSubnetMask.Clear();
+                txtGateway.Clear();
+            }
+        }
+
 
         private void SetButtonsEnabled(bool enabled)
         {
@@ -201,7 +204,6 @@ namespace NETKit.UI.Forms
             if (SecurityHelper.IsRunAsAdministrator())
             {
                 btnApplyConfig.Enabled = enabled;
-                btnSetDhcp.Enabled = enabled;
             }
             
             btnRefreshAdapters.Enabled = enabled;
@@ -257,7 +259,6 @@ namespace NETKit.UI.Forms
         {
             // 为每个按钮添加悬停效果
             SetupButtonHover(btnApplyConfig, Constants.Colors.PrimaryBlue, Constants.Colors.PrimaryBlueHover);
-            SetupButtonHover(btnSetDhcp, Constants.Colors.PrimaryBlue, Constants.Colors.PrimaryBlueHover);
             SetupButtonHover(btnRefreshAdapters, Constants.Colors.PrimaryBlue, Constants.Colors.PrimaryBlueHover);
         }
 
@@ -310,8 +311,24 @@ namespace NETKit.UI.Forms
                     // 设置网卡信息文本（现在可以复制）
                     txtAdapterInfoContent.Text = adapterInfo.GetFullInfoText();
 
-                    // 不再自动填充当前网卡配置到输入框
-                    // 保持输入框为空，让用户手动输入配置
+                    // 更新DHCP复选框的状态以反映当前网卡配置
+                    chkDhcp.Checked = adapterInfo.IsDHCPEnabled;
+
+                    // 根据DHCP状态更新UI
+                    chkDhcp_CheckedChanged(this, EventArgs.Empty);
+
+                    // 如果不是DHCP，则显示当前IP配置
+                    if (!adapterInfo.IsDHCPEnabled)
+                    {
+                        txtIpAddress.Text = adapterInfo.CurrentIP;
+                        txtSubnetMask.Text = adapterInfo.CurrentSubnetMask;
+                        txtGateway.Text = adapterInfo.CurrentGateway;
+                        txtDnsServer.Text = adapterInfo.DNSText;
+                    }
+                    else
+                    {
+                        ClearInputFields();
+                    }
                 }
                 else
                 {
