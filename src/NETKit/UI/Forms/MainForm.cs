@@ -131,7 +131,7 @@ namespace NETKit.UI.Forms
                 }
                 else
                 {
-                    // 设置为静态IP
+                    // 设置为静态IP - 现在支持备DNS
                     var validation = ValidationHelper.ValidateNetworkConfig(
                         selectedAdapter.Name,
                         txtIpAddress.Text,
@@ -146,13 +146,19 @@ namespace NETKit.UI.Forms
                         return;
                     }
 
-                    success = await _networkService.ApplyStaticIPConfigurationAsync(
-                        selectedAdapter.Name,
-                        txtIpAddress.Text,
-                        txtSubnetMask.Text,
-                        txtGateway.Text,
-                        txtDnsServer.Text
-                    );
+                    // 创建网络配置对象，包含主DNS和备DNS
+                    var config = new NetworkConfiguration
+                    {
+                        AdapterName = selectedAdapter.Name,
+                        IPAddress = txtIpAddress.Text,
+                        SubnetMask = txtSubnetMask.Text,
+                        Gateway = txtGateway.Text,
+                        PrimaryDNS = txtDnsServer.Text,
+                        SecondaryDNS = txtSecondaryDnsServer.Text,
+                        UseDHCP = false
+                    };
+
+                    success = await _networkService.ApplyStaticIPConfigurationAsync(config);
                 }
 
                 if (success)
@@ -166,7 +172,6 @@ namespace NETKit.UI.Forms
                 SetButtonsEnabled(true);
             }
         }
-
 
         private void btnRefreshAdapters_Click(object sender, EventArgs e)
         {
@@ -193,7 +198,7 @@ namespace NETKit.UI.Forms
             txtIpAddress.Enabled = !isDhcp;
             txtSubnetMask.Enabled = !isDhcp;
             txtGateway.Enabled = !isDhcp;
-            // txtDnsServer 保持启用
+            // DNS服务器保持启用，允许用户设置自定义DNS
 
             if (isDhcp)
             {
@@ -203,7 +208,6 @@ namespace NETKit.UI.Forms
                 txtGateway.Clear();
             }
         }
-
 
         private void SetButtonsEnabled(bool enabled)
         {
@@ -222,6 +226,7 @@ namespace NETKit.UI.Forms
             txtSubnetMask.Clear();
             txtGateway.Clear();
             txtDnsServer.Clear();
+            txtSecondaryDnsServer.Clear();
         }
 
         private void OnStatusUpdated(string message, bool isError)
@@ -331,7 +336,19 @@ namespace NETKit.UI.Forms
                         txtIpAddress.Text = adapterInfo.CurrentIP != "未配置" ? adapterInfo.CurrentIP : "";
                         txtSubnetMask.Text = adapterInfo.CurrentSubnetMask != "未配置" ? adapterInfo.CurrentSubnetMask : "";
                         txtGateway.Text = adapterInfo.CurrentGateway != "未配置" ? adapterInfo.CurrentGateway : "";
-                        txtDnsServer.Text = adapterInfo.DNSText != "未配置" ? adapterInfo.DNSText : "";
+                        
+                        // 处理DNS显示 - 分离主DNS和备DNS
+                        if (adapterInfo.DNSText != "未配置" && !string.IsNullOrEmpty(adapterInfo.DNSText))
+                        {
+                            var dnsServers = adapterInfo.DNSText.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                            txtDnsServer.Text = dnsServers.Length > 0 ? dnsServers[0].Trim() : "";
+                            txtSecondaryDnsServer.Text = dnsServers.Length > 1 ? dnsServers[1].Trim() : "";
+                        }
+                        else
+                        {
+                            txtDnsServer.Text = "";
+                            txtSecondaryDnsServer.Text = "";
+                        }
                     }
                     else
                     {
@@ -478,6 +495,11 @@ namespace NETKit.UI.Forms
             txtDnsServer.KeyPress += IpTextBox_KeyPress;
             txtDnsServer.TextChanged += DnsTextBox_TextChanged;
             txtDnsServer.Leave += DnsTextBox_Leave;
+
+            // 为备DNS服务器输入框添加事件
+            txtSecondaryDnsServer.KeyPress += IpTextBox_KeyPress;
+            txtSecondaryDnsServer.TextChanged += SecondaryDnsTextBox_TextChanged;
+            txtSecondaryDnsServer.Leave += SecondaryDnsTextBox_Leave;
         }
 
         /// <summary>
@@ -533,6 +555,16 @@ namespace NETKit.UI.Forms
         }
 
         /// <summary>
+        /// 备DNS输入框文本变化事件
+        /// </summary>
+        private void SecondaryDnsTextBox_TextChanged(object sender, EventArgs e)
+        {
+            _lastChangedTextBox = sender as TextBox;
+            _validationTimer.Stop();
+            _validationTimer.Start();
+        }
+
+        /// <summary>
         /// 验证定时器事件
         /// </summary>
         private void ValidationTimer_Tick(object sender, EventArgs e)
@@ -578,6 +610,14 @@ namespace NETKit.UI.Forms
         }
 
         /// <summary>
+        /// 备DNS输入框失去焦点事件
+        /// </summary>
+        private void SecondaryDnsTextBox_Leave(object sender, EventArgs e)
+        {
+            ValidateTextBox(sender as TextBox);
+        }
+
+        /// <summary>
         /// 验证文本框输入
         /// </summary>
         private void ValidateTextBox(TextBox textBox)
@@ -595,7 +635,15 @@ namespace NETKit.UI.Forms
             }
             else
             {
-                result = ValidationHelper.ValidateIPAddressWithDetails(textBox.Text);
+                // 对于备DNS，允许为空
+                if (textBox == txtSecondaryDnsServer && string.IsNullOrWhiteSpace(textBox.Text))
+                {
+                    result = new IPValidationResult { Level = ValidationLevel.Success, Message = "" };
+                }
+                else
+                {
+                    result = ValidationHelper.ValidateIPAddressWithDetails(textBox.Text);
+                }
             }
 
             ShowValidationResult(errorLabel, result);
@@ -610,6 +658,7 @@ namespace NETKit.UI.Forms
             if (textBox == txtSubnetMask) return lblSubnetError;
             if (textBox == txtGateway) return lblGatewayError;
             if (textBox == txtDnsServer) return lblDnsError;
+            if (textBox == txtSecondaryDnsServer) return lblSecondaryDnsError;
             return null;
         }
 

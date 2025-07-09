@@ -107,6 +107,18 @@ namespace NETKit.Core.Services
         }
 
         /// <summary>
+        /// 构建添加备DNS的netsh命令
+        /// </summary>
+        /// <param name="adapterName">适配器名称</param>
+        /// <param name="dnsServer">备DNS服务器地址</param>
+        /// <returns>netsh命令字符串</returns>
+        public string BuildAddDNSCommand(string adapterName, string dnsServer)
+        {
+            string escapedName = EscapeAdapterName(adapterName);
+            return $"netsh interface ip add dns {escapedName} {dnsServer} index=2";
+        }
+
+        /// <summary>
         /// 构建设置DHCP的netsh命令
         /// </summary>
         /// <param name="adapterName">适配器名称</param>

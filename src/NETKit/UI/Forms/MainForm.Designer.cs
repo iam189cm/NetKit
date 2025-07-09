@@ -44,6 +44,9 @@ namespace NETKit.UI.Forms
             this.lblDnsServer = new System.Windows.Forms.Label();
             this.txtDnsServer = new System.Windows.Forms.TextBox();
             this.lblDnsError = new System.Windows.Forms.Label();
+            this.lblSecondaryDnsServer = new System.Windows.Forms.Label();
+            this.txtSecondaryDnsServer = new System.Windows.Forms.TextBox();
+            this.lblSecondaryDnsError = new System.Windows.Forms.Label();
             this.btnApplyConfig = new System.Windows.Forms.Button();
             this.btnRefreshAdapters = new System.Windows.Forms.Button();
             this.lblStatus = new System.Windows.Forms.Label();
@@ -141,7 +144,7 @@ namespace NETKit.UI.Forms
             this.lblIpError.AutoSize = true;
             this.lblIpError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblIpError.ForeColor = System.Drawing.Color.Red;
-            this.lblIpError.Location = new System.Drawing.Point(130, 283);
+            this.lblIpError.Location = new System.Drawing.Point(130, 282);
             this.lblIpError.Name = "lblIpError";
             this.lblIpError.Size = new System.Drawing.Size(0, 16);
             this.lblIpError.TabIndex = 18;
@@ -187,7 +190,7 @@ namespace NETKit.UI.Forms
             this.lblSubnetError.AutoSize = true;
             this.lblSubnetError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblSubnetError.ForeColor = System.Drawing.Color.Red;
-            this.lblSubnetError.Location = new System.Drawing.Point(130, 323);
+            this.lblSubnetError.Location = new System.Drawing.Point(130, 322);
             this.lblSubnetError.Name = "lblSubnetError";
             this.lblSubnetError.Size = new System.Drawing.Size(0, 16);
             this.lblSubnetError.TabIndex = 19;
@@ -219,7 +222,7 @@ namespace NETKit.UI.Forms
             this.lblGatewayError.AutoSize = true;
             this.lblGatewayError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblGatewayError.ForeColor = System.Drawing.Color.Red;
-            this.lblGatewayError.Location = new System.Drawing.Point(130, 363);
+            this.lblGatewayError.Location = new System.Drawing.Point(130, 362);
             this.lblGatewayError.Name = "lblGatewayError";
             this.lblGatewayError.Size = new System.Drawing.Size(0, 16);
             this.lblGatewayError.TabIndex = 20;
@@ -234,7 +237,7 @@ namespace NETKit.UI.Forms
             this.lblDnsServer.Name = "lblDnsServer";
             this.lblDnsServer.Size = new System.Drawing.Size(80, 17);
             this.lblDnsServer.TabIndex = 8;
-            this.lblDnsServer.Text = "DNS服务器:";
+            this.lblDnsServer.Text = "主DNS服务器:";
             // 
             // txtDnsServer
             // 
@@ -251,11 +254,43 @@ namespace NETKit.UI.Forms
             this.lblDnsError.AutoSize = true;
             this.lblDnsError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblDnsError.ForeColor = System.Drawing.Color.Red;
-            this.lblDnsError.Location = new System.Drawing.Point(130, 403);
+            this.lblDnsError.Location = new System.Drawing.Point(130, 402);
             this.lblDnsError.Name = "lblDnsError";
             this.lblDnsError.Size = new System.Drawing.Size(0, 16);
             this.lblDnsError.TabIndex = 21;
             this.lblDnsError.Visible = false;
+            // 
+            // lblSecondaryDnsServer
+            // 
+            this.lblSecondaryDnsServer.AutoSize = true;
+            this.lblSecondaryDnsServer.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblSecondaryDnsServer.ForeColor = Constants.Colors.TextPrimary;
+            this.lblSecondaryDnsServer.Location = new System.Drawing.Point(35, 420);
+            this.lblSecondaryDnsServer.Name = "lblSecondaryDnsServer";
+            this.lblSecondaryDnsServer.Size = new System.Drawing.Size(92, 17);
+            this.lblSecondaryDnsServer.TabIndex = 22;
+            this.lblSecondaryDnsServer.Text = "备DNS服务器:";
+            // 
+            // txtSecondaryDnsServer
+            // 
+            this.txtSecondaryDnsServer.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtSecondaryDnsServer.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.txtSecondaryDnsServer.Location = new System.Drawing.Point(130, 417);
+            this.txtSecondaryDnsServer.Name = "txtSecondaryDnsServer";
+            this.txtSecondaryDnsServer.PlaceholderText = "例如: 8.8.4.4 (可选)";
+            this.txtSecondaryDnsServer.Size = new System.Drawing.Size(320, 23);
+            this.txtSecondaryDnsServer.TabIndex = 23;
+            // 
+            // lblSecondaryDnsError
+            // 
+            this.lblSecondaryDnsError.AutoSize = true;
+            this.lblSecondaryDnsError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.lblSecondaryDnsError.ForeColor = System.Drawing.Color.Red;
+            this.lblSecondaryDnsError.Location = new System.Drawing.Point(130, 442);
+            this.lblSecondaryDnsError.Name = "lblSecondaryDnsError";
+            this.lblSecondaryDnsError.Size = new System.Drawing.Size(0, 16);
+            this.lblSecondaryDnsError.TabIndex = 24;
+            this.lblSecondaryDnsError.Visible = false;
             // 
             // btnApplyConfig
             // 
@@ -264,7 +299,7 @@ namespace NETKit.UI.Forms
             this.btnApplyConfig.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnApplyConfig.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.btnApplyConfig.ForeColor = System.Drawing.Color.White;
-            this.btnApplyConfig.Location = new System.Drawing.Point(190, 420);
+            this.btnApplyConfig.Location = new System.Drawing.Point(246, 460);
             this.btnApplyConfig.Name = "btnApplyConfig";
             this.btnApplyConfig.Size = new System.Drawing.Size(100, 38);
             this.btnApplyConfig.TabIndex = 10;
@@ -292,7 +327,7 @@ namespace NETKit.UI.Forms
             this.lblStatus.AutoSize = true;
             this.lblStatus.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblStatus.ForeColor = Constants.Colors.TextPrimary;
-            this.lblStatus.Location = new System.Drawing.Point(35, 480);
+            this.lblStatus.Location = new System.Drawing.Point(35, 520);
             this.lblStatus.Name = "lblStatus";
             this.lblStatus.Size = new System.Drawing.Size(44, 17);
             this.lblStatus.TabIndex = 13;
@@ -304,7 +339,7 @@ namespace NETKit.UI.Forms
             this.txtStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtStatus.Font = new System.Drawing.Font("Microsoft YaHei UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.txtStatus.ForeColor = Constants.Colors.TextSecondary;
-            this.txtStatus.Location = new System.Drawing.Point(35, 500);
+            this.txtStatus.Location = new System.Drawing.Point(35, 540);
             this.txtStatus.Multiline = true;
             this.txtStatus.Name = "txtStatus";
             this.txtStatus.ReadOnly = true;
@@ -345,6 +380,9 @@ namespace NETKit.UI.Forms
             this.tabPageIpConfig.Controls.Add(this.lblStatus);
             this.tabPageIpConfig.Controls.Add(this.btnRefreshAdapters);
             this.tabPageIpConfig.Controls.Add(this.btnApplyConfig);
+            this.tabPageIpConfig.Controls.Add(this.lblSecondaryDnsError);
+            this.tabPageIpConfig.Controls.Add(this.txtSecondaryDnsServer);
+            this.tabPageIpConfig.Controls.Add(this.lblSecondaryDnsServer);
             this.tabPageIpConfig.Controls.Add(this.lblDnsError);
             this.tabPageIpConfig.Controls.Add(this.txtDnsServer);
             this.tabPageIpConfig.Controls.Add(this.lblDnsServer);
@@ -468,6 +506,9 @@ namespace NETKit.UI.Forms
         private System.Windows.Forms.Label lblDnsServer;
         private System.Windows.Forms.TextBox txtDnsServer;
         private System.Windows.Forms.Label lblDnsError;
+        private System.Windows.Forms.Label lblSecondaryDnsServer;
+        private System.Windows.Forms.TextBox txtSecondaryDnsServer;
+        private System.Windows.Forms.Label lblSecondaryDnsError;
         private System.Windows.Forms.Button btnApplyConfig;
         private System.Windows.Forms.Button btnRefreshAdapters;
         private System.Windows.Forms.Label lblStatus;

@@ -124,6 +124,13 @@ namespace NETKit.Core.Services
                 {
                     string setDNSCommand = _commandService.BuildSetDNSCommand(config.AdapterName, config.PrimaryDNS);
                     await _commandService.ExecuteNetshCommandAsync(setDNSCommand);
+                    
+                    // 设置备DNS服务器
+                    if (!string.IsNullOrWhiteSpace(config.SecondaryDNS))
+                    {
+                        string setSecondaryDNSCommand = _commandService.BuildAddDNSCommand(config.AdapterName, config.SecondaryDNS);
+                        await _commandService.ExecuteNetshCommandAsync(setSecondaryDNSCommand);
+                    }
                 }
 
                 if (success)
