@@ -14,35 +14,60 @@ namespace NETKit.UI.Forms
     /// </summary>
     public partial class MainForm : Form
     {
+        #region 私有字段
+
         private readonly NetworkConfigService _networkService;
         private readonly NetworkScanService _scanService;
-        private CancellationTokenSource _cancellationTokenSource;
+        private CancellationTokenSource? _cancellationTokenSource;
         
         // 实时验证定时器
-        private System.Windows.Forms.Timer _validationTimer;
-        private TextBox _lastChangedTextBox;
+        private System.Windows.Forms.Timer? _validationTimer;
+        private TextBox? _lastChangedTextBox;
+
+        #endregion
+
+        #region 构造函数和初始化
 
         public MainForm()
         {
             InitializeComponent();
-
-            // IP配置服务
+            
+            // 在构造函数中初始化readonly字段
             _networkService = new NetworkConfigService();
-            _networkService.StatusUpdated += OnStatusUpdated;
-            cmbNetworkAdapters.SelectedIndexChanged += CmbNetworkAdapters_SelectedIndexChanged;
-
-            // Ping测试服务
             _scanService = new NetworkScanService(new PingExecutionService());
+            
+            InitializeServices();
+            InitializeEventHandlers();
+            InitializeInputValidation();
+        }
+
+        /// <summary>
+        /// 初始化服务
+        /// </summary>
+        private void InitializeServices()
+        {
+            // IP配置服务事件绑定
+            _networkService.StatusUpdated += OnStatusUpdated;
+
+            // Ping测试服务事件绑定
             _scanService.ProgressUpdated += ScanService_ProgressUpdated;
             _scanService.ScanCompleted += ScanService_ScanCompleted;
+        }
+
+        /// <summary>
+        /// 初始化事件处理器
+        /// </summary>
+        private void InitializeEventHandlers()
+        {
+            // 网络适配器相关事件
+            cmbNetworkAdapters.SelectedIndexChanged += CmbNetworkAdapters_SelectedIndexChanged;
+
+            // 扫描控制面板事件
             scanControlPanel.OnStartScan += ScanControlPanel_OnStartScan;
             scanControlPanel.OnStopScan += ScanControlPanel_OnStopScan;
 
             // 子网计算面板事件
             subnetCalculatorPanel.StatusUpdated += OnStatusUpdated;
-            
-            // 初始化输入限制和验证
-            InitializeInputValidation();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -50,188 +75,54 @@ namespace NETKit.UI.Forms
             InitializeForm();
         }
 
+        /// <summary>
+        /// 初始化窗体
+        /// </summary>
         private void InitializeForm()
+        {
+            CheckAdministratorPrivileges();
+            LoadNetworkAdapters();
+            SetDefaultValues();
+            SetupButtonHoverEffects();
+        }
+
+        /// <summary>
+        /// 检查管理员权限
+        /// </summary>
+        private void CheckAdministratorPrivileges()
         {
             bool isAdmin = SecurityHelper.IsRunAsAdministrator();
             
-            // 检查管理员权限
             if (!isAdmin)
             {
-                // 如果程序配置了自动管理员权限但仍然没有权限，说明用户拒绝了UAC
                 UpdateStatus("程序需要管理员权限才能正常工作。请重新启动程序并允许UAC权限提升。", true);
-                
-                // 禁用修改按钮
                 btnApplyConfig.Enabled = false;
             }
             else
             {
                 UpdateStatus("程序已以管理员权限启动，所有功能可正常使用。", false);
-                
-                // 启用所有功能按钮
                 btnApplyConfig.Enabled = true;
             }
-
-            // 加载网络适配器
-            LoadNetworkAdapters();
-            // 设置默认值
-            SetDefaultValues();
-            
-            // 添加按钮悬停效果
-            SetupButtonHoverEffects();
         }
 
+        /// <summary>
+        /// 设置默认值
+        /// </summary>
         private void SetDefaultValues()
         {
             // 不设置任何默认值，保持输入框为空
             // 用户可以看到占位符提示文本
         }
 
-        private void LoadNetworkAdapters()
-        {
-            try
-            {
-                cmbNetworkAdapters.Items.Clear();
-                var adapters = _networkService.GetNetworkAdapters(chkShowAllAdapters.Checked);
+        #endregion
 
-                foreach (var adapter in adapters)
-                {
-                    cmbNetworkAdapters.Items.Add(adapter);
-                }
+        #region UI状态管理
 
-                if (cmbNetworkAdapters.Items.Count > 0)
-                {
-                    cmbNetworkAdapters.SelectedIndex = 0;
-                }
-            }
-            catch (Exception ex)
-            {
-                UpdateStatus($"加载网络适配器时发生错误: {ex.Message}", true);
-            }
-        }
-
-        private async void btnApplyConfig_Click(object sender, EventArgs e)
-        {
-            var selectedAdapter = cmbNetworkAdapters.SelectedItem as NetworkAdapterItem;
-            if (selectedAdapter == null)
-            {
-                UpdateStatus("错误: 请选择网络适配器", true);
-                return;
-            }
-
-            // 禁用按钮防止重复点击
-            SetButtonsEnabled(false);
-
-            try
-            {
-                bool success;
-                if (chkDhcp.Checked)
-                {
-                    // 设置为DHCP
-                    success = await _networkService.SetDHCPConfigurationAsync(selectedAdapter.Name);
-                }
-                else
-                {
-                    // 设置为静态IP - 现在支持备DNS
-                    var validation = ValidationHelper.ValidateNetworkConfig(
-                        selectedAdapter.Name,
-                        txtIpAddress.Text,
-                        txtSubnetMask.Text,
-                        txtGateway.Text,
-                        txtDnsServer.Text
-                    );
-
-                    if (!validation.IsValid)
-                    {
-                        UpdateStatus($"错误: {validation.Message}", true);
-                        return;
-                    }
-
-                    // 创建网络配置对象，包含主DNS和备DNS
-                    var config = new NetworkConfiguration
-                    {
-                        AdapterName = selectedAdapter.Name,
-                        IPAddress = txtIpAddress.Text,
-                        SubnetMask = txtSubnetMask.Text,
-                        Gateway = txtGateway.Text,
-                        PrimaryDNS = txtDnsServer.Text,
-                        SecondaryDNS = txtSecondaryDnsServer.Text,
-                        UseDHCP = false
-                    };
-
-                    success = await _networkService.ApplyStaticIPConfigurationAsync(config);
-                }
-
-                if (success)
-                {
-                    // 刷新网卡信息显示
-                    UpdateAdapterInfo();
-                }
-            }
-            finally
-            {
-                SetButtonsEnabled(true);
-            }
-        }
-
-        private void btnRefreshAdapters_Click(object sender, EventArgs e)
-        {
-            LoadNetworkAdapters();
-        }
-
-        private void chkShowAllAdapters_CheckedChanged(object sender, EventArgs e)
-        {
-            LoadNetworkAdapters();
-            if (chkShowAllAdapters.Checked)
-            {
-                UpdateStatus("已显示所有网络适配器，包括虚拟适配器", false);
-            }
-            else
-            {
-                UpdateStatus("已过滤显示，仅显示物理网络适配器", false);
-            }
-        }
-
-        private void chkDhcp_CheckedChanged(object sender, EventArgs e)
-        {
-            bool isDhcp = chkDhcp.Checked;
-
-            txtIpAddress.Enabled = !isDhcp;
-            txtSubnetMask.Enabled = !isDhcp;
-            txtGateway.Enabled = !isDhcp;
-            // DNS服务器保持启用，允许用户设置自定义DNS
-
-            if (isDhcp)
-            {
-                // 如果勾选了DHCP，可以清空静态IP的输入框
-                txtIpAddress.Clear();
-                txtSubnetMask.Clear();
-                txtGateway.Clear();
-            }
-        }
-
-        private void SetButtonsEnabled(bool enabled)
-        {
-            // 只有在管理员模式下才启用修改按钮
-            if (SecurityHelper.IsRunAsAdministrator())
-            {
-                btnApplyConfig.Enabled = enabled;
-            }
-            
-            btnRefreshAdapters.Enabled = enabled;
-        }
-
-        private void ClearInputFields()
-        {
-            txtIpAddress.Clear();
-            txtSubnetMask.Clear();
-            txtGateway.Clear();
-            txtDnsServer.Clear();
-            txtSecondaryDnsServer.Clear();
-        }
-
+        /// <summary>
+        /// 更新状态信息
+        /// </summary>
         private void OnStatusUpdated(string message, bool isError)
         {
-            // 确保在UI线程中更新
             if (InvokeRequired)
             {
                 Invoke(new Action<string, bool>(UpdateStatus), message, isError);
@@ -242,6 +133,9 @@ namespace NETKit.UI.Forms
             }
         }
 
+        /// <summary>
+        /// 更新状态显示
+        /// </summary>
         private void UpdateStatus(string message, bool isError)
         {
             string timestamp = DateTime.Now.ToString("HH:mm:ss");
@@ -267,13 +161,32 @@ namespace NETKit.UI.Forms
             }
         }
 
+        /// <summary>
+        /// 设置按钮启用状态
+        /// </summary>
+        private void SetButtonsEnabled(bool enabled)
+        {
+            // 只有在管理员模式下才启用修改按钮
+            if (SecurityHelper.IsRunAsAdministrator())
+            {
+                btnApplyConfig.Enabled = enabled;
+            }
+            
+            btnRefreshAdapters.Enabled = enabled;
+        }
+
+        /// <summary>
+        /// 设置按钮悬停效果
+        /// </summary>
         private void SetupButtonHoverEffects()
         {
-            // 为每个按钮添加悬停效果
             SetupButtonHover(btnApplyConfig, Constants.Colors.PrimaryBlue, Constants.Colors.PrimaryBlueHover);
             SetupButtonHover(btnRefreshAdapters, Constants.Colors.PrimaryBlue, Constants.Colors.PrimaryBlueHover);
         }
 
+        /// <summary>
+        /// 为单个按钮设置悬停效果
+        /// </summary>
         private void SetupButtonHover(Button button, Color normalColor, Color hoverColor)
         {
             button.MouseEnter += (s, e) =>
@@ -295,77 +208,9 @@ namespace NETKit.UI.Forms
             };
         }
 
-        /// <summary>
-        /// 网卡选择变化事件处理
-        /// </summary>
-        private void CmbNetworkAdapters_SelectedIndexChanged(object? sender, EventArgs e)
-        {
-            UpdateAdapterInfo();
-        }
+        #endregion
 
-        /// <summary>
-        /// 更新网卡信息显示
-        /// </summary>
-        private void UpdateAdapterInfo()
-        {
-            var selectedAdapter = cmbNetworkAdapters.SelectedItem as NetworkAdapterItem;
-            if (selectedAdapter == null)
-            {
-                txtAdapterInfoContent.Text = "请选择网络适配器";
-                return;
-            }
-
-            try
-            {
-                var adapterInfo = _networkService.GetAdapterDetails(selectedAdapter.Name);
-                if (adapterInfo != null)
-                {
-                    // 设置网卡信息文本（现在可以复制）
-                    txtAdapterInfoContent.Text = adapterInfo.GetFullInfoText();
-
-                    // 更新DHCP复选框的状态以反映当前网卡配置
-                    chkDhcp.Checked = adapterInfo.IsDHCPEnabled;
-
-                    // 根据DHCP状态更新UI
-                    chkDhcp_CheckedChanged(this, EventArgs.Empty);
-
-                    // 如果不是DHCP，则显示当前IP配置（但不显示"未配置"文本）
-                    if (!adapterInfo.IsDHCPEnabled)
-                    {
-                        // 只有当值不是"未配置"时才填入输入框
-                        txtIpAddress.Text = adapterInfo.CurrentIP != "未配置" ? adapterInfo.CurrentIP : "";
-                        txtSubnetMask.Text = adapterInfo.CurrentSubnetMask != "未配置" ? adapterInfo.CurrentSubnetMask : "";
-                        txtGateway.Text = adapterInfo.CurrentGateway != "未配置" ? adapterInfo.CurrentGateway : "";
-                        
-                        // 处理DNS显示 - 分离主DNS和备DNS
-                        if (adapterInfo.DNSText != "未配置" && !string.IsNullOrEmpty(adapterInfo.DNSText))
-                        {
-                            var dnsServers = adapterInfo.DNSText.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                            txtDnsServer.Text = dnsServers.Length > 0 ? dnsServers[0].Trim() : "";
-                            txtSecondaryDnsServer.Text = dnsServers.Length > 1 ? dnsServers[1].Trim() : "";
-                        }
-                        else
-                        {
-                            txtDnsServer.Text = "";
-                            txtSecondaryDnsServer.Text = "";
-                        }
-                    }
-                    else
-                    {
-                        ClearInputFields();
-                    }
-                }
-                else
-                {
-                    txtAdapterInfoContent.Text = "无法获取网卡详细信息";
-                }
-            }
-            catch (Exception ex)
-            {
-                txtAdapterInfoContent.Text = $"获取网卡信息时发生错误: {ex.Message}";
-                UpdateStatus($"获取网卡信息失败: {ex.Message}", true);
-            }
-        }
+        #region 资源清理
 
         /// <summary>
         /// 窗体关闭时的清理
@@ -376,349 +221,6 @@ namespace NETKit.UI.Forms
             _networkService?.Dispose();
             _validationTimer?.Dispose();
             base.OnFormClosed(e);
-        }
-
-        #region Ping Test Logic
-
-        private async void ScanControlPanel_OnStartScan(ScanConfiguration config)
-        {
-            _cancellationTokenSource = new CancellationTokenSource();
-            scanControlPanel.SetScanInProgress(true);
-            scanStatisticsPanel.Reset();
-
-            var ipList = GetIpRange(config.StartAddress, config.EndAddress)
-                .Select(ip => new IPScanItem(ip))
-                .ToList();
-            
-            ipGridControl.SetScanItems(ipList);
-            scanStatisticsPanel.StartScan(ipList.Count);
-
-            try
-            {
-                await _scanService.StartScanAsync(config, _cancellationTokenSource.Token, ipList);
-            }
-            catch (TaskCanceledException)
-            {
-                UpdateStatus("扫描已由用户取消。", false);
-            }
-            catch (Exception ex)
-            {
-                UpdateStatus($"扫描时发生未知错误: {ex.Message}", true);
-            }
-            finally
-            {
-                scanControlPanel.SetScanInProgress(false);
-            }
-        }
-
-        private void ScanControlPanel_OnStopScan()
-        {
-            _cancellationTokenSource?.Cancel();
-        }
-
-        private void ScanService_ProgressUpdated(IPScanItem item)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => {
-                    ipGridControl.UpdateScanItem(item);
-                    scanStatisticsPanel.UpdateProgress(item);
-                }));
-            }
-            else
-            {
-                ipGridControl.UpdateScanItem(item);
-                scanStatisticsPanel.UpdateProgress(item);
-            }
-        }
-
-        private void ScanService_ScanCompleted(NetworkScanResult result)
-        {
-            if (InvokeRequired)
-            {
-                Invoke(new Action(() => scanStatisticsPanel.CompleteScan(result)));
-            }
-            else
-            {
-                scanStatisticsPanel.CompleteScan(result);
-            }
-            UpdateStatus("扫描完成。", false);
-        }
-
-        private IEnumerable<System.Net.IPAddress> GetIpRange(System.Net.IPAddress start, System.Net.IPAddress end)
-        {
-            var startBytes = start.GetAddressBytes();
-            var endBytes = end.GetAddressBytes();
-            Array.Reverse(startBytes);
-            Array.Reverse(endBytes);
-            var startNum = BitConverter.ToUInt32(startBytes, 0);
-            var endNum = BitConverter.ToUInt32(endBytes, 0);
-
-            for (var i = startNum; i <= endNum; i++)
-            {
-                var bytes = BitConverter.GetBytes(i);
-                Array.Reverse(bytes);
-                yield return new System.Net.IPAddress(bytes);
-            }
-        }
-
-        #endregion
-
-        #region IP Input Validation
-
-        /// <summary>
-        /// 初始化输入验证
-        /// </summary>
-        private void InitializeInputValidation()
-        {
-            // 初始化验证定时器
-            _validationTimer = new System.Windows.Forms.Timer();
-            _validationTimer.Interval = 500; // 500ms延迟验证
-            _validationTimer.Tick += ValidationTimer_Tick;
-
-            // 为IP地址输入框添加事件
-            txtIpAddress.KeyPress += IpTextBox_KeyPress;
-            txtIpAddress.TextChanged += IpTextBox_TextChanged;
-            txtIpAddress.Leave += IpTextBox_Leave;
-
-            // 为子网掩码输入框添加事件
-            txtSubnetMask.KeyPress += IpTextBox_KeyPress;
-            txtSubnetMask.TextChanged += SubnetTextBox_TextChanged;
-            txtSubnetMask.Leave += SubnetTextBox_Leave;
-
-            // 为网关输入框添加事件
-            txtGateway.KeyPress += IpTextBox_KeyPress;
-            txtGateway.TextChanged += GatewayTextBox_TextChanged;
-            txtGateway.Leave += GatewayTextBox_Leave;
-
-            // 为DNS服务器输入框添加事件
-            txtDnsServer.KeyPress += IpTextBox_KeyPress;
-            txtDnsServer.TextChanged += DnsTextBox_TextChanged;
-            txtDnsServer.Leave += DnsTextBox_Leave;
-
-            // 为备DNS服务器输入框添加事件
-            txtSecondaryDnsServer.KeyPress += IpTextBox_KeyPress;
-            txtSecondaryDnsServer.TextChanged += SecondaryDnsTextBox_TextChanged;
-            txtSecondaryDnsServer.Leave += SecondaryDnsTextBox_Leave;
-        }
-
-        /// <summary>
-        /// IP地址输入框按键事件 - 限制只能输入数字和点
-        /// </summary>
-        private void IpTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            // 允许数字、点、控制字符（退格、删除等）
-            if (!char.IsDigit(e.KeyChar) && e.KeyChar != '.' && !char.IsControl(e.KeyChar))
-            {
-                e.Handled = true;
-            }
-        }
-
-        /// <summary>
-        /// IP地址输入框文本变化事件
-        /// </summary>
-        private void IpTextBox_TextChanged(object sender, EventArgs e)
-        {
-            _lastChangedTextBox = sender as TextBox;
-            _validationTimer.Stop();
-            _validationTimer.Start();
-        }
-
-        /// <summary>
-        /// 子网掩码输入框文本变化事件
-        /// </summary>
-        private void SubnetTextBox_TextChanged(object sender, EventArgs e)
-        {
-            _lastChangedTextBox = sender as TextBox;
-            _validationTimer.Stop();
-            _validationTimer.Start();
-        }
-
-        /// <summary>
-        /// 网关输入框文本变化事件
-        /// </summary>
-        private void GatewayTextBox_TextChanged(object sender, EventArgs e)
-        {
-            _lastChangedTextBox = sender as TextBox;
-            _validationTimer.Stop();
-            _validationTimer.Start();
-        }
-
-        /// <summary>
-        /// DNS输入框文本变化事件
-        /// </summary>
-        private void DnsTextBox_TextChanged(object sender, EventArgs e)
-        {
-            _lastChangedTextBox = sender as TextBox;
-            _validationTimer.Stop();
-            _validationTimer.Start();
-        }
-
-        /// <summary>
-        /// 备DNS输入框文本变化事件
-        /// </summary>
-        private void SecondaryDnsTextBox_TextChanged(object sender, EventArgs e)
-        {
-            _lastChangedTextBox = sender as TextBox;
-            _validationTimer.Stop();
-            _validationTimer.Start();
-        }
-
-        /// <summary>
-        /// 验证定时器事件
-        /// </summary>
-        private void ValidationTimer_Tick(object sender, EventArgs e)
-        {
-            _validationTimer.Stop();
-            
-            if (_lastChangedTextBox != null)
-            {
-                ValidateTextBox(_lastChangedTextBox);
-            }
-        }
-
-        /// <summary>
-        /// IP地址输入框失去焦点事件
-        /// </summary>
-        private void IpTextBox_Leave(object sender, EventArgs e)
-        {
-            ValidateTextBox(sender as TextBox);
-        }
-
-        /// <summary>
-        /// 子网掩码输入框失去焦点事件
-        /// </summary>
-        private void SubnetTextBox_Leave(object sender, EventArgs e)
-        {
-            ValidateTextBox(sender as TextBox);
-        }
-
-        /// <summary>
-        /// 网关输入框失去焦点事件
-        /// </summary>
-        private void GatewayTextBox_Leave(object sender, EventArgs e)
-        {
-            ValidateTextBox(sender as TextBox);
-        }
-
-        /// <summary>
-        /// DNS输入框失去焦点事件
-        /// </summary>
-        private void DnsTextBox_Leave(object sender, EventArgs e)
-        {
-            ValidateTextBox(sender as TextBox);
-        }
-
-        /// <summary>
-        /// 备DNS输入框失去焦点事件
-        /// </summary>
-        private void SecondaryDnsTextBox_Leave(object sender, EventArgs e)
-        {
-            ValidateTextBox(sender as TextBox);
-        }
-
-        /// <summary>
-        /// 验证文本框输入
-        /// </summary>
-        private void ValidateTextBox(TextBox textBox)
-        {
-            if (textBox == null) return;
-
-            Label errorLabel = GetErrorLabel(textBox);
-            if (errorLabel == null) return;
-
-            IPValidationResult result;
-
-            if (textBox == txtSubnetMask)
-            {
-                result = ValidationHelper.ValidateSubnetMaskWithDetails(textBox.Text);
-            }
-            else
-            {
-                // 对于备DNS，允许为空
-                if (textBox == txtSecondaryDnsServer && string.IsNullOrWhiteSpace(textBox.Text))
-                {
-                    result = new IPValidationResult { Level = ValidationLevel.Success, Message = "" };
-                }
-                else
-                {
-                    result = ValidationHelper.ValidateIPAddressWithDetails(textBox.Text);
-                }
-            }
-
-            ShowValidationResult(errorLabel, result);
-        }
-
-        /// <summary>
-        /// 获取对应的错误提示Label
-        /// </summary>
-        private Label GetErrorLabel(TextBox textBox)
-        {
-            if (textBox == txtIpAddress) return lblIpError;
-            if (textBox == txtSubnetMask) return lblSubnetError;
-            if (textBox == txtGateway) return lblGatewayError;
-            if (textBox == txtDnsServer) return lblDnsError;
-            if (textBox == txtSecondaryDnsServer) return lblSecondaryDnsError;
-            return null;
-        }
-
-        /// <summary>
-        /// 显示验证结果
-        /// </summary>
-        private void ShowValidationResult(Label errorLabel, IPValidationResult result)
-        {
-            switch (result.Level)
-            {
-                case ValidationLevel.Error:
-                    ShowError(errorLabel, result.Message);
-                    break;
-                case ValidationLevel.Warning:
-                    ShowWarning(errorLabel, result.Message);
-                    break;
-                case ValidationLevel.Success:
-                    HideError(errorLabel);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 显示错误信息
-        /// </summary>
-        private void ShowError(Label errorLabel, string message)
-        {
-            if (string.IsNullOrEmpty(message))
-            {
-                errorLabel.Visible = false;
-                return;
-            }
-
-            errorLabel.Text = message;
-            errorLabel.ForeColor = Color.Red;
-            errorLabel.Visible = true;
-        }
-
-        /// <summary>
-        /// 显示警告信息
-        /// </summary>
-        private void ShowWarning(Label errorLabel, string message)
-        {
-            if (string.IsNullOrEmpty(message))
-            {
-                errorLabel.Visible = false;
-                return;
-            }
-
-            errorLabel.Text = message;
-            errorLabel.ForeColor = Color.Orange;
-            errorLabel.Visible = true;
-        }
-
-        /// <summary>
-        /// 隐藏错误信息
-        /// </summary>
-        private void HideError(Label errorLabel)
-        {
-            errorLabel.Visible = false;
         }
 
         #endregion

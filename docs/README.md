@@ -1,11 +1,11 @@
-# NETKit v1.2
+# NETKit v1.4
 
 **网络工程师专业工具箱** - 集成IP配置、网络扫描、子网计算于一体的专业网络管理工具
 
 [![.NET](https://img.shields.io/badge/.NET-9.0-blue.svg)](https://dotnet.microsoft.com/)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.2.0-orange.svg)](docs/版本管理.md)
+[![Version](https://img.shields.io/badge/Version-1.4.0-orange.svg)](docs/版本管理.md)
 
 ## 🚀 功能特性
 
@@ -36,7 +36,7 @@
 ### 主界面 - IP配置
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ NETKit v1.2 - 网络工程师工具箱                            │
+│ NETKit v1.4 - 网络工程师工具箱                            │
 ├─────────────────────────────────────────────────────────┤
 │ [IP配置] [Ping测试] [子网计算]                           │
 ├─────────────────────────────────────────────────────────┤
@@ -119,9 +119,7 @@
 ```
 NETKit/
 ├── 📁 docs/                          # 项目文档
-│   ├── README.md                     # 项目说明文档
-│   ├── 版本管理.md                    # 版本管理规范
-│   └── 子网计算.md                    # 子网计算功能文档
+│   └── README.md                     # 项目说明文档
 ├── 📁 src/NETKit/                    # 源代码目录
 │   ├── 📁 Common/                    # 公共组件
 │   │   ├── Constants.cs              # 应用常量
@@ -129,31 +127,41 @@ NETKit/
 │   ├── 📁 Core/                      # 核心业务层
 │   │   ├── 📁 Models/                # 数据模型
 │   │   │   ├── NetworkAdapterInfo.cs    # 网络适配器信息
+│   │   │   ├── NetworkAdapterItem.cs    # 网络适配器项目
+│   │   │   ├── NetworkConfiguration.cs  # 网络配置
 │   │   │   ├── NetworkScanResult.cs     # 网络扫描结果
+│   │   │   ├── ScanConfiguration.cs     # 扫描配置
 │   │   │   ├── SubnetCalculationResult.cs # 子网计算结果
 │   │   │   ├── SubnetInfo.cs             # 子网信息
 │   │   │   ├── VLSMRequirement.cs        # VLSM需求
-│   │   │   └── ...                       # 其他模型
+│   │   │   └── IPScanItem.cs             # IP扫描项目
 │   │   ├── 📁 Services/              # 业务服务
 │   │   │   ├── NetworkConfigService.cs      # 网络配置服务
+│   │   │   ├── NetworkAdapterService.cs     # 网络适配器服务
 │   │   │   ├── NetworkScanService.cs        # 网络扫描服务
 │   │   │   ├── SubnetCalculationService.cs  # 子网计算服务
 │   │   │   ├── PingExecutionService.cs      # Ping执行服务
-│   │   │   └── ...                          # 其他服务
+│   │   │   └── CommandExecutionService.cs   # 命令执行服务
 │   │   └── 📁 Helpers/               # 辅助工具
 │   │       ├── SecurityHelper.cs        # 权限管理
 │   │       └── ValidationHelper.cs      # 输入验证
-│   └── 📁 UI/                        # 用户界面层
-│       ├── 📁 Forms/                 # 窗体
-│       │   ├── MainForm.cs               # 主窗体
-│       │   └── MainForm.Designer.cs      # 窗体设计器
-│       └── 📁 Controls/              # 自定义控件
-│           ├── IPGridControl.cs          # IP网格控件
-│           ├── ScanControlPanel.cs       # 扫描控制面板
-│           ├── ScanStatisticsPanel.cs    # 扫描统计面板
-│           └── SubnetCalculatorPanel.cs  # 子网计算面板
+│   ├── 📁 UI/                        # 用户界面层
+│   │   ├── 📁 Forms/                 # 窗体
+│   │   │   ├── MainForm.cs               # 主窗体
+│   │   │   ├── MainForm.Designer.cs      # 窗体设计器
+│   │   │   └── MainForm.resx             # 窗体资源
+│   │   └── 📁 Controls/              # 自定义控件
+│   │       ├── IPGridControl.cs          # IP网格控件
+│   │       ├── ScanControlPanel.cs       # 扫描控制面板
+│   │       ├── ScanStatisticsPanel.cs    # 扫描统计面板
+│   │       └── SubnetCalculatorPanel.cs  # 子网计算面板
+│   ├── 📄 Program.cs                 # 程序入口
+│   ├── 📄 NETKit.csproj             # 项目配置文件
+│   └── 📄 app.manifest              # 应用程序清单
 ├── 📁 output/                        # 编译输出
-└── 📄 build-release.bat              # 发布构建脚本
+├── 📄 build-release.bat              # 发布构建脚本
+├── 📄 NETKit.sln                    # 解决方案文件
+└── 📄 .gitignore                    # Git忽略文件
 ```
 
 ### 核心设计模式
@@ -173,6 +181,11 @@ NetworkConfigService
 ├── ApplyStaticIPConfiguration()   # 应用静态IP配置
 ├── SetDHCPConfiguration()         # 设置DHCP配置
 └── GetAdapterDetails()            # 获取适配器详细信息
+
+NetworkAdapterService
+├── GetAllAdapters()               # 获取所有适配器
+├── GetActiveAdapters()            # 获取活动适配器
+└── RefreshAdapterList()           # 刷新适配器列表
 ```
 
 **特性**:
@@ -186,9 +199,15 @@ NetworkConfigService
 // 扫描服务架构
 NetworkScanService
 ├── StartScanAsync()               # 异步启动扫描
+├── StopScan()                     # 停止扫描
 ├── 并发Ping执行                    # 多线程并发处理
 ├── 实时进度更新                    # 事件驱动状态通知
 └── 结果统计分析                    # 扫描结果汇总
+
+PingExecutionService
+├── PingAsync()                    # 异步Ping执行
+├── BatchPingAsync()               # 批量Ping执行
+└── GetPingStatistics()            # 获取Ping统计
 ```
 
 **性能指标**:
@@ -205,7 +224,8 @@ SubnetCalculationService
 ├── CalculateSubnetFromCIDR()      # CIDR格式计算
 ├── SubdivideNetwork()             # 子网划分
 ├── CalculateVLSM()                # VLSM计算
-└── IsIPInSubnet()                 # IP包含检查
+├── IsIPInSubnet()                 # IP包含检查
+└── GetSubnetInfo()                # 获取子网详细信息
 ```
 
 **支持功能**:
@@ -310,7 +330,20 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 
 ## 🔄 版本历史
 
-### v1.2.0 (当前版本) - 2025年1月
+### v1.4.0 (当前版本) - 2025年7月
+**新增功能**:
+- ✅ 增强的网络适配器管理服务
+- ✅ 优化的命令执行服务架构
+- ✅ 改进的用户界面响应性能
+- ✅ 完善的错误处理和日志记录
+
+**技术改进**:
+- ✅ 代码结构优化和模块化重构
+- ✅ 性能优化和内存管理改进
+- ✅ 更稳定的网络操作处理
+- ✅ 增强的安全性和权限管理
+
+### v1.3.0 - 2025年6月
 **新增功能**:
 - ✅ 完整的子网计算器功能
 - ✅ VLSM可变长子网掩码支持
@@ -370,6 +403,6 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 
 ---
 
-**NETKit v1.2** - 让网络管理更简单、更高效！
+**NETKit v1.4** - 让网络管理更简单、更高效！
 
-*最后更新: 2025年1月5日*
+*最后更新: 2025年7月9日*

@@ -10,11 +10,11 @@ namespace NETKit.Common
         /// </summary>
         public static class Application
         {
-            public const string Name = "NETKit v1.3";
-            public const string DisplayName = "NETKit v1.3";
+            public const string Name = "NETKit v1.4";
+            public const string DisplayName = "NETKit v1.4";
             public const string ShortName = "NETKit";
-            public const string Version = "1.3";
-            public const string FullTitle = "NETKit v1.3";
+            public const string Version = "1.4";
+            public const string FullTitle = "NETKit v1.4";
         }
 
         /// <summary>
