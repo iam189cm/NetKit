@@ -108,13 +108,16 @@ namespace NETKit.Core.Models
                 return $"计算失败: {ErrorMessage}";
             }
 
+            // 移除地址类型中的"| 单播地址"部分
+            string cleanAddressType = AddressType?.Replace("| 单播地址", "").Trim() ?? "";
+
             return $@"网络地址: {NetworkAddress}
 广播地址: {BroadcastAddress}
 子网掩码: {SubnetMask} (/{PrefixLength})
 可用主机: {UsableHostCount:N0} 个
 主机范围: {FirstUsableIP} - {LastUsableIP}
 网络类别: {NetworkClass}
-地址类型: {AddressType}";
+地址类型: {cleanAddressType}";
         }
 
         /// <summary>

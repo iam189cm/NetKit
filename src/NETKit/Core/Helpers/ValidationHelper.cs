@@ -159,17 +159,7 @@ namespace NETKit.Core.Helpers
 
             string trimmed = subnetMask.Trim();
 
-            // 检查是否为CIDR格式
-            if (TryParseCIDR(trimmed, out int cidrBits))
-            {
-                if (cidrBits < 0 || cidrBits > 32)
-                {
-                    return new IPValidationResult { Level = ValidationLevel.Error, Message = "CIDR位数必须在0-32之间" };
-                }
-                return new IPValidationResult { Level = ValidationLevel.Success, Message = "子网掩码有效" };
-            }
-
-            // 检查点分十进制格式 - 只检查基本IP格式，不使用详细验证
+            // 只检查点分十进制格式 - 不支持CIDR格式
             if (!IsValidIPAddress(trimmed))
             {
                 return new IPValidationResult { Level = ValidationLevel.Error, Message = "子网掩码格式不正确" };

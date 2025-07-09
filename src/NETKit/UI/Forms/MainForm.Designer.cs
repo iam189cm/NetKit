@@ -97,7 +97,7 @@ namespace NETKit.UI.Forms
             this.grpAdapterInfo.ForeColor = Constants.Colors.TextPrimary;
             this.grpAdapterInfo.Location = new System.Drawing.Point(35, 90);
             this.grpAdapterInfo.Name = "grpAdapterInfo";
-            this.grpAdapterInfo.Size = new System.Drawing.Size(515, 160);
+            this.grpAdapterInfo.Size = new System.Drawing.Size(515, 180);
             this.grpAdapterInfo.TabIndex = 17;
             this.grpAdapterInfo.TabStop = false;
             this.grpAdapterInfo.Text = "当前网卡信息";
@@ -106,7 +106,7 @@ namespace NETKit.UI.Forms
             // 
             this.txtAdapterInfoContent.BackColor = Constants.Colors.PanelBackground;
             this.txtAdapterInfoContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.txtAdapterInfoContent.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.txtAdapterInfoContent.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.txtAdapterInfoContent.ForeColor = Constants.Colors.TextSecondary;
             this.txtAdapterInfoContent.Location = new System.Drawing.Point(15, 25);
             this.txtAdapterInfoContent.Multiline = true;
@@ -114,7 +114,7 @@ namespace NETKit.UI.Forms
             this.txtAdapterInfoContent.ReadOnly = true;
             this.txtAdapterInfoContent.ShortcutsEnabled = true;
             this.txtAdapterInfoContent.ScrollBars = System.Windows.Forms.ScrollBars.None;
-            this.txtAdapterInfoContent.Size = new System.Drawing.Size(485, 125);
+            this.txtAdapterInfoContent.Size = new System.Drawing.Size(485, 145);
             this.txtAdapterInfoContent.TabIndex = 0;
             this.txtAdapterInfoContent.Text = "请选择网络适配器";
             // 
@@ -123,7 +123,7 @@ namespace NETKit.UI.Forms
             this.lblIpAddress.AutoSize = true;
             this.lblIpAddress.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblIpAddress.ForeColor = Constants.Colors.TextPrimary;
-            this.lblIpAddress.Location = new System.Drawing.Point(35, 260);
+            this.lblIpAddress.Location = new System.Drawing.Point(35, 290);
             this.lblIpAddress.Name = "lblIpAddress";
             this.lblIpAddress.Size = new System.Drawing.Size(56, 17);
             this.lblIpAddress.TabIndex = 2;
@@ -133,7 +133,7 @@ namespace NETKit.UI.Forms
             // 
             this.txtIpAddress.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtIpAddress.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtIpAddress.Location = new System.Drawing.Point(130, 257);
+            this.txtIpAddress.Location = new System.Drawing.Point(130, 287);
             this.txtIpAddress.Name = "txtIpAddress";
             this.txtIpAddress.PlaceholderText = "例如: 192.168.1.100";
             this.txtIpAddress.Size = new System.Drawing.Size(320, 23);
@@ -144,7 +144,7 @@ namespace NETKit.UI.Forms
             this.lblIpError.AutoSize = true;
             this.lblIpError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblIpError.ForeColor = System.Drawing.Color.Red;
-            this.lblIpError.Location = new System.Drawing.Point(130, 282);
+            this.lblIpError.Location = new System.Drawing.Point(130, 310);
             this.lblIpError.Name = "lblIpError";
             this.lblIpError.Size = new System.Drawing.Size(0, 16);
             this.lblIpError.TabIndex = 18;
@@ -156,7 +156,7 @@ namespace NETKit.UI.Forms
             this.chkDhcp.AutoSize = true;
             this.chkDhcp.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.chkDhcp.ForeColor = Constants.Colors.TextPrimary;
-            this.chkDhcp.Location = new System.Drawing.Point(460, 259);
+            this.chkDhcp.Location = new System.Drawing.Point(460, 289);
             this.chkDhcp.Name = "chkDhcp";
             this.chkDhcp.Size = new System.Drawing.Size(63, 21);
             this.chkDhcp.TabIndex = 4;
@@ -169,7 +169,7 @@ namespace NETKit.UI.Forms
             this.lblSubnetMask.AutoSize = true;
             this.lblSubnetMask.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblSubnetMask.ForeColor = Constants.Colors.TextPrimary;
-            this.lblSubnetMask.Location = new System.Drawing.Point(35, 300);
+            this.lblSubnetMask.Location = new System.Drawing.Point(35, 330);
             this.lblSubnetMask.Name = "lblSubnetMask";
             this.lblSubnetMask.Size = new System.Drawing.Size(68, 17);
             this.lblSubnetMask.TabIndex = 4;
@@ -179,9 +179,9 @@ namespace NETKit.UI.Forms
             // 
             this.txtSubnetMask.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtSubnetMask.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtSubnetMask.Location = new System.Drawing.Point(130, 297);
+            this.txtSubnetMask.Location = new System.Drawing.Point(130, 327);
             this.txtSubnetMask.Name = "txtSubnetMask";
-            this.txtSubnetMask.PlaceholderText = "例如: 255.255.255.0 或 24";
+            this.txtSubnetMask.PlaceholderText = "例如: 255.255.255.0";
             this.txtSubnetMask.Size = new System.Drawing.Size(320, 23);
             this.txtSubnetMask.TabIndex = 5;
             // 
@@ -190,7 +190,7 @@ namespace NETKit.UI.Forms
             this.lblSubnetError.AutoSize = true;
             this.lblSubnetError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblSubnetError.ForeColor = System.Drawing.Color.Red;
-            this.lblSubnetError.Location = new System.Drawing.Point(130, 322);
+            this.lblSubnetError.Location = new System.Drawing.Point(130, 350);
             this.lblSubnetError.Name = "lblSubnetError";
             this.lblSubnetError.Size = new System.Drawing.Size(0, 16);
             this.lblSubnetError.TabIndex = 19;
@@ -201,7 +201,7 @@ namespace NETKit.UI.Forms
             this.lblGateway.AutoSize = true;
             this.lblGateway.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblGateway.ForeColor = Constants.Colors.TextPrimary;
-            this.lblGateway.Location = new System.Drawing.Point(35, 340);
+            this.lblGateway.Location = new System.Drawing.Point(35, 370);
             this.lblGateway.Name = "lblGateway";
             this.lblGateway.Size = new System.Drawing.Size(68, 17);
             this.lblGateway.TabIndex = 6;
@@ -211,7 +211,7 @@ namespace NETKit.UI.Forms
             // 
             this.txtGateway.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtGateway.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtGateway.Location = new System.Drawing.Point(130, 337);
+            this.txtGateway.Location = new System.Drawing.Point(130, 367);
             this.txtGateway.Name = "txtGateway";
             this.txtGateway.PlaceholderText = "例如: 192.168.1.1";
             this.txtGateway.Size = new System.Drawing.Size(320, 23);
@@ -222,7 +222,7 @@ namespace NETKit.UI.Forms
             this.lblGatewayError.AutoSize = true;
             this.lblGatewayError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblGatewayError.ForeColor = System.Drawing.Color.Red;
-            this.lblGatewayError.Location = new System.Drawing.Point(130, 362);
+            this.lblGatewayError.Location = new System.Drawing.Point(130, 390);
             this.lblGatewayError.Name = "lblGatewayError";
             this.lblGatewayError.Size = new System.Drawing.Size(0, 16);
             this.lblGatewayError.TabIndex = 20;
@@ -233,7 +233,7 @@ namespace NETKit.UI.Forms
             this.lblDnsServer.AutoSize = true;
             this.lblDnsServer.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblDnsServer.ForeColor = Constants.Colors.TextPrimary;
-            this.lblDnsServer.Location = new System.Drawing.Point(35, 380);
+            this.lblDnsServer.Location = new System.Drawing.Point(35, 410);
             this.lblDnsServer.Name = "lblDnsServer";
             this.lblDnsServer.Size = new System.Drawing.Size(80, 17);
             this.lblDnsServer.TabIndex = 8;
@@ -243,7 +243,7 @@ namespace NETKit.UI.Forms
             // 
             this.txtDnsServer.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtDnsServer.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtDnsServer.Location = new System.Drawing.Point(130, 377);
+            this.txtDnsServer.Location = new System.Drawing.Point(130, 407);
             this.txtDnsServer.Name = "txtDnsServer";
             this.txtDnsServer.PlaceholderText = "例如: 8.8.8.8";
             this.txtDnsServer.Size = new System.Drawing.Size(320, 23);
@@ -254,7 +254,7 @@ namespace NETKit.UI.Forms
             this.lblDnsError.AutoSize = true;
             this.lblDnsError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblDnsError.ForeColor = System.Drawing.Color.Red;
-            this.lblDnsError.Location = new System.Drawing.Point(130, 402);
+            this.lblDnsError.Location = new System.Drawing.Point(130, 430);
             this.lblDnsError.Name = "lblDnsError";
             this.lblDnsError.Size = new System.Drawing.Size(0, 16);
             this.lblDnsError.TabIndex = 21;
@@ -265,7 +265,7 @@ namespace NETKit.UI.Forms
             this.lblSecondaryDnsServer.AutoSize = true;
             this.lblSecondaryDnsServer.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblSecondaryDnsServer.ForeColor = Constants.Colors.TextPrimary;
-            this.lblSecondaryDnsServer.Location = new System.Drawing.Point(35, 420);
+            this.lblSecondaryDnsServer.Location = new System.Drawing.Point(35, 450);
             this.lblSecondaryDnsServer.Name = "lblSecondaryDnsServer";
             this.lblSecondaryDnsServer.Size = new System.Drawing.Size(92, 17);
             this.lblSecondaryDnsServer.TabIndex = 22;
@@ -275,7 +275,7 @@ namespace NETKit.UI.Forms
             // 
             this.txtSecondaryDnsServer.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtSecondaryDnsServer.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtSecondaryDnsServer.Location = new System.Drawing.Point(130, 417);
+            this.txtSecondaryDnsServer.Location = new System.Drawing.Point(130, 447);
             this.txtSecondaryDnsServer.Name = "txtSecondaryDnsServer";
             this.txtSecondaryDnsServer.PlaceholderText = "例如: 8.8.4.4 (可选)";
             this.txtSecondaryDnsServer.Size = new System.Drawing.Size(320, 23);
@@ -286,7 +286,7 @@ namespace NETKit.UI.Forms
             this.lblSecondaryDnsError.AutoSize = true;
             this.lblSecondaryDnsError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.lblSecondaryDnsError.ForeColor = System.Drawing.Color.Red;
-            this.lblSecondaryDnsError.Location = new System.Drawing.Point(130, 442);
+            this.lblSecondaryDnsError.Location = new System.Drawing.Point(130, 470);
             this.lblSecondaryDnsError.Name = "lblSecondaryDnsError";
             this.lblSecondaryDnsError.Size = new System.Drawing.Size(0, 16);
             this.lblSecondaryDnsError.TabIndex = 24;
@@ -299,9 +299,9 @@ namespace NETKit.UI.Forms
             this.btnApplyConfig.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnApplyConfig.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.btnApplyConfig.ForeColor = System.Drawing.Color.White;
-            this.btnApplyConfig.Location = new System.Drawing.Point(246, 460);
+            this.btnApplyConfig.Location = new System.Drawing.Point(246, 480);
             this.btnApplyConfig.Name = "btnApplyConfig";
-            this.btnApplyConfig.Size = new System.Drawing.Size(100, 38);
+            this.btnApplyConfig.Size = new System.Drawing.Size(80, 28);
             this.btnApplyConfig.TabIndex = 10;
             this.btnApplyConfig.Text = "应用配置";
             this.btnApplyConfig.UseVisualStyleBackColor = false;
@@ -314,9 +314,9 @@ namespace NETKit.UI.Forms
             this.btnRefreshAdapters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRefreshAdapters.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.btnRefreshAdapters.ForeColor = System.Drawing.Color.White;
-            this.btnRefreshAdapters.Location = new System.Drawing.Point(260, 60);
+            this.btnRefreshAdapters.Location = new System.Drawing.Point(356, 60);
             this.btnRefreshAdapters.Name = "btnRefreshAdapters";
-            this.btnRefreshAdapters.Size = new System.Drawing.Size(90, 28);
+            this.btnRefreshAdapters.Size = new System.Drawing.Size(80, 28);
             this.btnRefreshAdapters.TabIndex = 12;
             this.btnRefreshAdapters.Text = "刷新网卡";
             this.btnRefreshAdapters.UseVisualStyleBackColor = false;

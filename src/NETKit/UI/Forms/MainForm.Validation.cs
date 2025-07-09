@@ -26,7 +26,7 @@ namespace NETKit.UI.Forms
             txtIpAddress.Leave += IpTextBox_Leave;
 
             // 为子网掩码输入框添加事件
-            txtSubnetMask.KeyPress += IpTextBox_KeyPress;
+            txtSubnetMask.KeyPress += SubnetMaskTextBox_KeyPress;
             txtSubnetMask.TextChanged += SubnetTextBox_TextChanged;
             txtSubnetMask.Leave += SubnetTextBox_Leave;
 
@@ -54,6 +54,18 @@ namespace NETKit.UI.Forms
         /// IP地址输入框按键事件 - 限制只能输入数字和点
         /// </summary>
         private void IpTextBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // 允许数字、点、控制字符（退格、删除等）
+            if (!char.IsDigit(e.KeyChar) && e.KeyChar != '.' && !char.IsControl(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
+
+        /// <summary>
+        /// 子网掩码输入框按键事件 - 只允许点分十进制格式
+        /// </summary>
+        private void SubnetMaskTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             // 允许数字、点、控制字符（退格、删除等）
             if (!char.IsDigit(e.KeyChar) && e.KeyChar != '.' && !char.IsControl(e.KeyChar))
