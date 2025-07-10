@@ -16,8 +16,8 @@ namespace NETKit.UI.Controls
         private readonly SubnetCalculationService _calculationService;
         private SubnetCalculationResult _currentResult;
 
-        // 事件
-        public event Action<string, bool> StatusUpdated;
+        // 移除对外的状态事件，改为内部状态处理
+        // public event Action<string, bool> StatusUpdated;  // 已删除，让状态独立
 
         public SubnetCalculatorPanel()
         {
@@ -312,19 +312,21 @@ namespace NETKit.UI.Controls
                     _currentResult = result;
                     DisplayResult(result);
                     
-                    if (result.IsValid)
-                    {
-                        OnStatusUpdated("计算完成", false);
-                    }
-                    else
-                    {
-                        OnStatusUpdated($"计算失败: {result.ErrorMessage}", true);
-                    }
+                    // 移除对外的状态事件，改为内部状态处理
+                    // if (result.IsValid)
+                    // {
+                    //     OnStatusUpdated("计算完成", false);
+                    // }
+                    // else
+                    // {
+                    //     OnStatusUpdated($"计算失败: {result.ErrorMessage}", true);
+                    // }
                 }
             }
             catch (Exception ex)
             {
-                OnStatusUpdated($"计算时发生错误: {ex.Message}", true);
+                // 移除对外的状态事件，改为内部状态处理
+                // OnStatusUpdated($"计算时发生错误: {ex.Message}", true);
             }
         }
 
@@ -479,10 +481,11 @@ namespace NETKit.UI.Controls
             return prefixLength;
         }
 
-        protected virtual void OnStatusUpdated(string message, bool isError)
-        {
-            StatusUpdated?.Invoke(message, isError);
-        }
+        // 移除对外的状态事件，改为内部状态处理
+        // protected virtual void OnStatusUpdated(string message, bool isError)
+        // {
+        //     StatusUpdated?.Invoke(message, isError);
+        // }
 
         // 控件声明
         private TextBox txtIPAddress;

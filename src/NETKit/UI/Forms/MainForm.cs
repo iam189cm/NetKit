@@ -66,11 +66,9 @@ namespace NETKit.UI.Forms
             scanControlPanel.OnStartScan += ScanControlPanel_OnStartScan;
             scanControlPanel.OnStopScan += ScanControlPanel_OnStopScan;
 
-            // 子网计算面板事件
-            subnetCalculatorPanel.StatusUpdated += OnStatusUpdated;
-
-            // 路由跟踪面板事件
-            traceRoutePanel.StatusUpdated += OnStatusUpdated;
+            // 移除子网计算和路由跟踪面板的状态事件绑定，让它们独立处理状态
+            // subnetCalculatorPanel.StatusUpdated += OnStatusUpdated;  // 已删除
+            // traceRoutePanel.StatusUpdated += OnStatusUpdated;        // 已删除
         }
 
         private void MainForm_Load(object sender, EventArgs e)

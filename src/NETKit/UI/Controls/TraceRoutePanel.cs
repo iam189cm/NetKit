@@ -23,9 +23,9 @@ namespace NETKit.UI.Controls
         #region 事件
 
         /// <summary>
-        /// 状态更新事件
+        /// 移除对外的状态更新事件，改为内部状态处理
         /// </summary>
-        public event Action<string, bool>? StatusUpdated;
+        // public event Action<string, bool>? StatusUpdated;  // 已删除，让状态独立
 
         #endregion
 
@@ -95,12 +95,12 @@ namespace NETKit.UI.Controls
             // 添加列
             dgvResults.Columns.Clear();
             
-            // 跳数列
+            // 跳数列 - 调整宽度，避免换行
             dgvResults.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "HopNumber",
                 HeaderText = "跳数",
-                Width = 50,
+                Width = 100,
                 DataPropertyName = "HopNumber",
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
@@ -109,12 +109,12 @@ namespace NETKit.UI.Controls
                 }
             });
             
-            // IP地址列
+            // IP地址列 - 增加宽度，确保IP地址显示完整
             dgvResults.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "IpAddress",
                 HeaderText = "IP地址",
-                Width = 130,
+                Width = 150,
                 DataPropertyName = "DisplayAddress",
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
@@ -123,12 +123,12 @@ namespace NETKit.UI.Controls
                 }
             });
             
-            // 延迟1列
+            // 延迟1列 - 调整宽度和标题，避免换行
             dgvResults.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "Delay1",
                 HeaderText = "延迟1",
-                Width = 65,
+                Width = 120,
                 DataPropertyName = "Delay1Display",
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
@@ -137,12 +137,12 @@ namespace NETKit.UI.Controls
                 }
             });
             
-            // 延迟2列
+            // 延迟2列 - 调整宽度和标题，避免换行
             dgvResults.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "Delay2",
                 HeaderText = "延迟2",
-                Width = 65,
+                Width = 120,
                 DataPropertyName = "Delay2Display",
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
@@ -151,12 +151,12 @@ namespace NETKit.UI.Controls
                 }
             });
             
-            // 延迟3列
+            // 延迟3列 - 调整宽度和标题，避免换行
             dgvResults.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "Delay3",
                 HeaderText = "延迟3",
-                Width = 65,
+                Width = 120,
                 DataPropertyName = "Delay3Display",
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
@@ -165,7 +165,7 @@ namespace NETKit.UI.Controls
                 }
             });
             
-            // 主机名列
+            // 主机名列 - 调整宽度，剩余空间自动填充
             dgvResults.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "HostName",
@@ -195,7 +195,7 @@ namespace NETKit.UI.Controls
         {
             if (string.IsNullOrWhiteSpace(txtTargetAddress.Text))
             {
-                StatusUpdated?.Invoke("请输入目标地址", true);
+                // StatusUpdated?.Invoke("请输入目标地址", true); // 移除对外状态更新
                 return;
             }
 
@@ -222,7 +222,7 @@ namespace NETKit.UI.Controls
             }
             catch (Exception ex)
             {
-                StatusUpdated?.Invoke($"跟踪失败: {ex.Message}", true);
+                // StatusUpdated?.Invoke($"跟踪失败: {ex.Message}", true); // 移除对外状态更新
             }
             finally
             {
@@ -246,7 +246,7 @@ namespace NETKit.UI.Controls
             btnStart.Enabled = true;
             btnStop.Enabled = false;
             
-            StatusUpdated?.Invoke("跟踪已停止", false);
+            // StatusUpdated?.Invoke("跟踪已停止", false); // 移除对外状态更新
         }
 
         /// <summary>
@@ -325,7 +325,7 @@ namespace NETKit.UI.Controls
             }
 
             lblStatus.Text = message;
-            StatusUpdated?.Invoke(message, false);
+            // StatusUpdated?.Invoke(message, false); // 移除对外状态更新
         }
 
         #endregion
