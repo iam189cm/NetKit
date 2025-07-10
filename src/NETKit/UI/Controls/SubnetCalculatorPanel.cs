@@ -16,9 +16,6 @@ namespace NETKit.UI.Controls
         private readonly SubnetCalculationService _calculationService;
         private SubnetCalculationResult _currentResult;
 
-        // 移除对外的状态事件，改为内部状态处理
-        // public event Action<string, bool> StatusUpdated;  // 已删除，让状态独立
-
         public SubnetCalculatorPanel()
         {
             _calculationService = new SubnetCalculationService();
@@ -27,235 +24,8 @@ namespace NETKit.UI.Controls
             LoadCIDROptions();
         }
 
-        private void InitializeComponent()
-        {
-            this.SuspendLayout();
-
-            // 输入区域
-            var grpInput = new GroupBox
-            {
-                Text = "输入参数",
-                Font = new Font("Microsoft YaHei UI", 9F),
-                ForeColor = Constants.Colors.TextPrimary,
-                Location = new Point(10, 10),
-                Size = new Size(560, 80),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
-            };
-
-            var lblIP = new Label
-            {
-                Text = "IP地址/网络:",
-                Font = new Font("Microsoft YaHei UI", 9F),
-                ForeColor = Constants.Colors.TextPrimary,
-                Location = new Point(15, 25),
-                Size = new Size(85, 17),
-                TextAlign = ContentAlignment.MiddleLeft
-            };
-
-            txtIPAddress = new TextBox
-            {
-                Font = new Font("Microsoft YaHei UI", 9F),
-                Location = new Point(105, 22),
-                Size = new Size(150, 23),
-                PlaceholderText = "192.168.1.0"
-            };
-
-            var lblCIDR = new Label
-            {
-                Text = "CIDR:",
-                Font = new Font("Microsoft YaHei UI", 9F),
-                ForeColor = Constants.Colors.TextPrimary,
-                Location = new Point(270, 25),
-                Size = new Size(40, 17),
-                TextAlign = ContentAlignment.MiddleLeft
-            };
-
-            cmbCIDR = new ComboBox
-            {
-                Font = new Font("Microsoft YaHei UI", 9F),
-                Location = new Point(315, 22),
-                Size = new Size(60, 25),
-                DropDownStyle = ComboBoxStyle.DropDown
-            };
-
-            var lblMask = new Label
-            {
-                Text = "子网掩码:",
-                Font = new Font("Microsoft YaHei UI", 9F),
-                ForeColor = Constants.Colors.TextPrimary,
-                Location = new Point(15, 50),
-                Size = new Size(85, 17),
-                TextAlign = ContentAlignment.MiddleLeft
-            };
-
-            txtSubnetMask = new TextBox
-            {
-                Font = new Font("Microsoft YaHei UI", 9F),
-                Location = new Point(105, 47),
-                Size = new Size(150, 23),
-                PlaceholderText = "255.255.255.0"
-            };
-
-            btnCalculate = new Button
-            {
-                Text = "计算",
-                Font = new Font("Microsoft YaHei UI", 9F),
-                ForeColor = Color.White,
-                BackColor = Constants.Colors.PrimaryBlue,
-                FlatStyle = FlatStyle.Flat,
-                Location = new Point(390, 22),
-                Size = new Size(70, 28)
-            };
-            btnCalculate.FlatAppearance.BorderSize = 0;
-
-            btnClear = new Button
-            {
-                Text = "清空",
-                Font = new Font("Microsoft YaHei UI", 9F),
-                ForeColor = Color.White,
-                BackColor = Constants.Colors.SecondaryGray,
-                FlatStyle = FlatStyle.Flat,
-                Location = new Point(470, 22),
-                Size = new Size(70, 28)
-            };
-            btnClear.FlatAppearance.BorderSize = 0;
-
-            grpInput.Controls.AddRange(new Control[] { lblIP, txtIPAddress, lblCIDR, cmbCIDR, lblMask, txtSubnetMask, btnCalculate, btnClear });
-
-            // 基础结果显示区域
-            var grpResult = new GroupBox
-            {
-                Text = "计算结果",
-                Font = new Font("Microsoft YaHei UI", 9F),
-                ForeColor = Constants.Colors.TextPrimary,
-                Location = new Point(10, 100),
-                Size = new Size(560, 160),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
-            };
-
-            txtResult = new TextBox
-            {
-                Font = new Font("Microsoft YaHei UI", 9F),
-                ForeColor = Constants.Colors.TextSecondary,
-                BackColor = Constants.Colors.PanelBackground,
-                Location = new Point(15, 25),
-                Size = new Size(530, 120),
-                Multiline = true,
-                ReadOnly = true,
-                ScrollBars = ScrollBars.Vertical,
-                Text = "请输入IP地址和子网掩码进行计算",
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
-            };
-
-            grpResult.Controls.Add(txtResult);
-
-            // 高级功能Tab控件
-            tabAdvanced = new TabControl
-            {
-                Font = new Font("Microsoft YaHei UI", 9F),
-                Location = new Point(10, 270),
-                Size = new Size(560, 280),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
-            };
-
-            // Tab 1: 子网划分
-            var tabSubdivision = new TabPage("子网划分");
-            CreateSubdivisionTab(tabSubdivision);
-
-            tabAdvanced.TabPages.Add(tabSubdivision);
-
-            // 添加所有控件到主面板
-            this.Controls.AddRange(new Control[] { grpInput, grpResult, tabAdvanced });
-
-            this.Size = new Size(580, 560);
-            this.ResumeLayout(false);
-        }
-
-        private void CreateSubdivisionTab(TabPage tab)
-        {
-            var grpSubdivision = new GroupBox
-            {
-                Text = "子网划分参数",
-                Font = new Font("Microsoft YaHei UI", 9F),
-                ForeColor = Constants.Colors.TextPrimary,
-                Location = new Point(10, 10),
-                Size = new Size(530, 80)
-            };
-
-            var lblSubnetCount = new Label
-            {
-                Text = "子网数量:",
-                Font = new Font("Microsoft YaHei UI", 9F),
-                ForeColor = Constants.Colors.TextPrimary,
-                Location = new Point(15, 25),
-                Size = new Size(70, 17)
-            };
-
-            txtSubnetCount = new TextBox
-            {
-                Font = new Font("Microsoft YaHei UI", 9F),
-                Location = new Point(90, 22),
-                Size = new Size(80, 23),
-                PlaceholderText = "4"
-            };
-
-            var lblHostsPerSubnet = new Label
-            {
-                Text = "每子网主机数:",
-                Font = new Font("Microsoft YaHei UI", 9F),
-                ForeColor = Constants.Colors.TextPrimary,
-                Location = new Point(200, 25),
-                Size = new Size(90, 17)
-            };
-
-            txtHostsPerSubnet = new TextBox
-            {
-                Font = new Font("Microsoft YaHei UI", 9F),
-                Location = new Point(295, 22),
-                Size = new Size(80, 23),
-                PlaceholderText = "60"
-            };
-
-            btnSubdivide = new Button
-            {
-                Text = "计算划分",
-                Font = new Font("Microsoft YaHei UI", 9F),
-                ForeColor = Color.White,
-                BackColor = Constants.Colors.PrimaryBlue,
-                FlatStyle = FlatStyle.Flat,
-                Location = new Point(400, 20),
-                Size = new Size(80, 28)
-            };
-            btnSubdivide.FlatAppearance.BorderSize = 0;
-
-            grpSubdivision.Controls.AddRange(new Control[] { lblSubnetCount, txtSubnetCount, lblHostsPerSubnet, txtHostsPerSubnet, btnSubdivide });
-
-            txtSubdivisionResult = new TextBox
-            {
-                Font = new Font("Microsoft YaHei UI", 9F),
-                ForeColor = Constants.Colors.TextSecondary,
-                BackColor = Constants.Colors.PanelBackground,
-                Location = new Point(10, 100),
-                Size = new Size(530, 140),
-                Multiline = true,
-                ReadOnly = true,
-                ScrollBars = ScrollBars.Vertical,
-                Text = "请先进行基础子网计算，然后设置划分参数"
-            };
-
-            tab.Controls.AddRange(new Control[] { grpSubdivision, txtSubdivisionResult });
-        }
-
-
         private void SetupEventHandlers()
         {
-            btnCalculate.Click += BtnCalculate_Click;
-            btnClear.Click += BtnClear_Click;
-            btnSubdivide.Click += BtnSubdivide_Click;
-            
-            cmbCIDR.SelectedIndexChanged += CmbCIDR_SelectedIndexChanged;
-            txtSubnetMask.TextChanged += TxtSubnetMask_TextChanged;
-            
             // 实时计算
             txtIPAddress.TextChanged += (s, e) => PerformCalculation();
             txtSubnetMask.TextChanged += (s, e) => PerformCalculation();
@@ -311,22 +81,11 @@ namespace NETKit.UI.Controls
                 {
                     _currentResult = result;
                     DisplayResult(result);
-                    
-                    // 移除对外的状态事件，改为内部状态处理
-                    // if (result.IsValid)
-                    // {
-                    //     OnStatusUpdated("计算完成", false);
-                    // }
-                    // else
-                    // {
-                    //     OnStatusUpdated($"计算失败: {result.ErrorMessage}", true);
-                    // }
                 }
             }
             catch (Exception ex)
             {
-                // 移除对外的状态事件，改为内部状态处理
-                // OnStatusUpdated($"计算时发生错误: {ex.Message}", true);
+                txtResult.Text = $"计算时发生错误: {ex.Message}";
             }
         }
 
@@ -462,7 +221,6 @@ namespace NETKit.UI.Controls
             }
         }
 
-
         private int SubnetMaskToPrefixLength(System.Net.IPAddress mask)
         {
             var bytes = mask.GetAddressBytes();
@@ -480,24 +238,5 @@ namespace NETKit.UI.Controls
             
             return prefixLength;
         }
-
-        // 移除对外的状态事件，改为内部状态处理
-        // protected virtual void OnStatusUpdated(string message, bool isError)
-        // {
-        //     StatusUpdated?.Invoke(message, isError);
-        // }
-
-        // 控件声明
-        private TextBox txtIPAddress;
-        private ComboBox cmbCIDR;
-        private TextBox txtSubnetMask;
-        private Button btnCalculate;
-        private Button btnClear;
-        private TextBox txtResult;
-        private TabControl tabAdvanced;
-        private TextBox txtSubnetCount;
-        private TextBox txtHostsPerSubnet;
-        private Button btnSubdivide;
-        private TextBox txtSubdivisionResult;
     }
 }

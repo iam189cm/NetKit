@@ -324,6 +324,109 @@ namespace NETKit.Core.Services
         }
 
         /// <summary>
+        /// 执行route命令
+        /// </summary>
+        /// <param name="command">route命令参数</param>
+        /// <returns>执行结果</returns>
+        public async Task<RouteCommandResult> ExecuteRouteCommandAsync(string command)
+        {
+            try
+            {
+                string fullCommand = $"route {command}";
+                OnStatusUpdated($"正在执行路由命令: {fullCommand}", false);
+                
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c chcp 65001 >nul && {fullCommand}",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = System.Text.Encoding.UTF8,
+                    StandardErrorEncoding = System.Text.Encoding.UTF8
+                };
+
+                using (Process process = Process.Start(startInfo)!)
+                {
+                    await process.WaitForExitAsync();
+                    
+                    string output = await process.StandardOutput.ReadToEndAsync();
+                    string error = await process.StandardError.ReadToEndAsync();
+
+                    var result = new RouteCommandResult
+                    {
+                        Success = process.ExitCode == 0,
+                        Output = output,
+                        Error = error,
+                        Command = fullCommand,
+                        ExitCode = process.ExitCode
+                    };
+
+                    if (result.Success)
+                    {
+                        OnStatusUpdated($"路由命令执行成功", false);
+                    }
+                    else
+                    {
+                        string errorMessage = !string.IsNullOrWhiteSpace(error) ? error.Trim() : "未知错误";
+                        OnStatusUpdated($"路由命令执行失败: {errorMessage}", true);
+                    }
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                OnStatusUpdated($"执行路由命令时发生错误: {ex.Message}", true);
+                return new RouteCommandResult
+                {
+                    Success = false,
+                    Error = ex.Message,
+                    Command = command
+                };
+            }
+        }
+
+        /// <summary>
+        /// 构建添加路由的命令
+        /// </summary>
+        /// <param name="routeRule">路由规则</param>
+        /// <returns>route命令字符串</returns>
+        public string BuildAddRouteCommand(RouteRule routeRule)
+        {
+            return routeRule.ToRouteCommand();
+        }
+
+        /// <summary>
+        /// 构建删除路由的命令
+        /// </summary>
+        /// <param name="destination">目标网络</param>
+        /// <param name="mask">子网掩码</param>
+        /// <param name="gateway">网关（可选）</param>
+        /// <returns>route命令字符串</returns>
+        public string BuildDeleteRouteCommand(string destination, string mask, string? gateway = null)
+        {
+            if (string.IsNullOrEmpty(gateway))
+            {
+                return $"delete {destination} mask {mask}";
+            }
+            else
+            {
+                return $"delete {destination} mask {mask} {gateway}";
+            }
+        }
+
+        /// <summary>
+        /// 构建查看路由表的命令
+        /// </summary>
+        /// <returns>route命令字符串</returns>
+        public string BuildPrintRouteCommand()
+        {
+            return "print";
+        }
+
+        /// <summary>
         /// 触发状态更新事件
         /// </summary>
         /// <param name="message">状态消息</param>
@@ -349,6 +452,23 @@ namespace NETKit.Core.Services
         public override string ToString()
         {
             return Success ? $"Ping {Target} 成功" : $"Ping {Target} 失败: {Error}";
+        }
+    }
+
+    /// <summary>
+    /// Route命令结果类
+    /// </summary>
+    public class RouteCommandResult
+    {
+        public bool Success { get; set; }
+        public string Output { get; set; } = string.Empty;
+        public string Error { get; set; } = string.Empty;
+        public string Command { get; set; } = string.Empty;
+        public int ExitCode { get; set; }
+
+        public override string ToString()
+        {
+            return Success ? $"路由命令执行成功: {Command}" : $"路由命令执行失败: {Error}";
         }
     }
 }

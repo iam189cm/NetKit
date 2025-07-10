@@ -30,488 +30,552 @@ namespace NETKit.UI.Forms
         /// </summary>
         private void InitializeComponent()
         {
-            this.lblNetworkAdapter = new System.Windows.Forms.Label();
-            this.cmbNetworkAdapters = new System.Windows.Forms.ComboBox();
-            this.lblIpAddress = new System.Windows.Forms.Label();
-            this.txtIpAddress = new System.Windows.Forms.TextBox();
-            this.lblIpError = new System.Windows.Forms.Label();
-            this.lblSubnetMask = new System.Windows.Forms.Label();
-            this.txtSubnetMask = new System.Windows.Forms.TextBox();
-            this.lblSubnetError = new System.Windows.Forms.Label();
-            this.lblGateway = new System.Windows.Forms.Label();
-            this.txtGateway = new System.Windows.Forms.TextBox();
-            this.lblGatewayError = new System.Windows.Forms.Label();
-            this.lblDnsServer = new System.Windows.Forms.Label();
-            this.txtDnsServer = new System.Windows.Forms.TextBox();
-            this.lblDnsError = new System.Windows.Forms.Label();
-            this.lblSecondaryDnsServer = new System.Windows.Forms.Label();
-            this.txtSecondaryDnsServer = new System.Windows.Forms.TextBox();
-            this.lblSecondaryDnsError = new System.Windows.Forms.Label();
-            this.btnApplyConfig = new System.Windows.Forms.Button();
-            this.btnRefreshAdapters = new System.Windows.Forms.Button();
-            this.lblStatus = new System.Windows.Forms.Label();
-            this.txtStatus = new System.Windows.Forms.TextBox();
-            this.chkShowAllAdapters = new System.Windows.Forms.CheckBox();
-            this.grpAdapterInfo = new System.Windows.Forms.GroupBox();
-            this.txtAdapterInfoContent = new System.Windows.Forms.TextBox();
-            this.tabControlMain = new System.Windows.Forms.TabControl();
-            this.tabPageIpConfig = new System.Windows.Forms.TabPage();
-            this.tabPagePingTest = new System.Windows.Forms.TabPage();
-            this.tabPageSubnetCalc = new System.Windows.Forms.TabPage();
-            this.tabPageTraceRoute = new System.Windows.Forms.TabPage();
-            this.scanControlPanel = new NETKit.UI.Controls.ScanControlPanel();
-            this.scanStatisticsPanel = new NETKit.UI.Controls.ScanStatisticsPanel();
-            this.ipGridControl = new NETKit.UI.Controls.IPGridControl();
-            this.subnetCalculatorPanel = new NETKit.UI.Controls.SubnetCalculatorPanel();
-            this.traceRoutePanel = new NETKit.UI.Controls.TraceRoutePanel();
-            this.grpAdapterInfo.SuspendLayout();
-            this.tabControlMain.SuspendLayout();
-            this.tabPageIpConfig.SuspendLayout();
-            this.tabPagePingTest.SuspendLayout();
-            this.tabPageSubnetCalc.SuspendLayout();
-            this.tabPageTraceRoute.SuspendLayout();
-            this.SuspendLayout();
+            lblNetworkAdapter = new Label();
+            cmbNetworkAdapters = new ComboBox();
+            lblIpAddress = new Label();
+            txtIpAddress = new TextBox();
+            lblIpError = new Label();
+            lblSubnetMask = new Label();
+            txtSubnetMask = new TextBox();
+            lblSubnetError = new Label();
+            lblGateway = new Label();
+            txtGateway = new TextBox();
+            lblGatewayError = new Label();
+            lblDnsServer = new Label();
+            txtDnsServer = new TextBox();
+            lblDnsError = new Label();
+            lblSecondaryDnsServer = new Label();
+            txtSecondaryDnsServer = new TextBox();
+            lblSecondaryDnsError = new Label();
+            btnApplyConfig = new Button();
+            btnRefreshAdapters = new Button();
+            lblStatus = new Label();
+            txtStatus = new TextBox();
+            chkShowAllAdapters = new CheckBox();
+            grpAdapterInfo = new GroupBox();
+            txtAdapterInfoContent = new TextBox();
+            tabControlMain = new TabControl();
+            tabPageIpConfig = new TabPage();
+            chkDhcp = new CheckBox();
+            tabPagePingTest = new TabPage();
+            ipGridControl = new NETKit.UI.Controls.IPGridControl();
+            scanStatisticsPanel = new NETKit.UI.Controls.ScanStatisticsPanel();
+            scanControlPanel = new NETKit.UI.Controls.ScanControlPanel();
+            tabPageSubnetCalc = new TabPage();
+            subnetCalculatorPanel = new NETKit.UI.Controls.SubnetCalculatorPanel();
+            tabPageTraceRoute = new TabPage();
+            traceRoutePanel = new NETKit.UI.Controls.TraceRoutePanel();
+            tabPageRouteManagement = new TabPage();
+            routeManagementPanel = new NETKit.UI.Controls.RouteManagementPanel();
+            grpAdapterInfo.SuspendLayout();
+            tabControlMain.SuspendLayout();
+            tabPageIpConfig.SuspendLayout();
+            tabPagePingTest.SuspendLayout();
+            tabPageSubnetCalc.SuspendLayout();
+            tabPageTraceRoute.SuspendLayout();
+            tabPageRouteManagement.SuspendLayout();
+            SuspendLayout();
             // 
             // lblNetworkAdapter
             // 
-            this.lblNetworkAdapter.AutoSize = true;
-            this.lblNetworkAdapter.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblNetworkAdapter.ForeColor = Constants.Colors.TextPrimary;
-            this.lblNetworkAdapter.Location = new System.Drawing.Point(35, 35);
-            this.lblNetworkAdapter.Name = "lblNetworkAdapter";
-            this.lblNetworkAdapter.Size = new System.Drawing.Size(68, 17);
-            this.lblNetworkAdapter.TabIndex = 0;
-            this.lblNetworkAdapter.Text = "网卡选择:";
+            lblNetworkAdapter.AutoSize = true;
+            lblNetworkAdapter.Font = new Font("Microsoft YaHei UI", 9F);
+            lblNetworkAdapter.ForeColor = Color.FromArgb(51, 51, 51);
+            lblNetworkAdapter.Location = new Point(65, 65);
+            lblNetworkAdapter.Margin = new Padding(6, 0, 6, 0);
+            lblNetworkAdapter.Name = "lblNetworkAdapter";
+            lblNetworkAdapter.Size = new Size(101, 28);
+            lblNetworkAdapter.TabIndex = 0;
+            lblNetworkAdapter.Text = "网卡选择:";
             // 
             // cmbNetworkAdapters
             // 
-            this.cmbNetworkAdapters.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbNetworkAdapters.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.cmbNetworkAdapters.FormattingEnabled = true;
-            this.cmbNetworkAdapters.Location = new System.Drawing.Point(130, 32);
-            this.cmbNetworkAdapters.Name = "cmbNetworkAdapters";
-            this.cmbNetworkAdapters.Size = new System.Drawing.Size(420, 25);
-            this.cmbNetworkAdapters.TabIndex = 1;
-            // 
-            // grpAdapterInfo
-            // 
-            this.grpAdapterInfo.Controls.Add(this.txtAdapterInfoContent);
-            this.grpAdapterInfo.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.grpAdapterInfo.ForeColor = Constants.Colors.TextPrimary;
-            this.grpAdapterInfo.Location = new System.Drawing.Point(35, 90);
-            this.grpAdapterInfo.Name = "grpAdapterInfo";
-            this.grpAdapterInfo.Size = new System.Drawing.Size(515, 180);
-            this.grpAdapterInfo.TabIndex = 17;
-            this.grpAdapterInfo.TabStop = false;
-            this.grpAdapterInfo.Text = "当前网卡信息";
-            // 
-            // txtAdapterInfoContent
-            // 
-            this.txtAdapterInfoContent.BackColor = Constants.Colors.PanelBackground;
-            this.txtAdapterInfoContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.txtAdapterInfoContent.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtAdapterInfoContent.ForeColor = Constants.Colors.TextSecondary;
-            this.txtAdapterInfoContent.Location = new System.Drawing.Point(15, 25);
-            this.txtAdapterInfoContent.Multiline = true;
-            this.txtAdapterInfoContent.Name = "txtAdapterInfoContent";
-            this.txtAdapterInfoContent.ReadOnly = true;
-            this.txtAdapterInfoContent.ShortcutsEnabled = true;
-            this.txtAdapterInfoContent.ScrollBars = System.Windows.Forms.ScrollBars.None;
-            this.txtAdapterInfoContent.Size = new System.Drawing.Size(485, 145);
-            this.txtAdapterInfoContent.TabIndex = 0;
-            this.txtAdapterInfoContent.Text = "请选择网络适配器";
+            cmbNetworkAdapters.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbNetworkAdapters.Font = new Font("Microsoft YaHei UI", 9F);
+            cmbNetworkAdapters.FormattingEnabled = true;
+            cmbNetworkAdapters.Location = new Point(241, 60);
+            cmbNetworkAdapters.Margin = new Padding(6);
+            cmbNetworkAdapters.Name = "cmbNetworkAdapters";
+            cmbNetworkAdapters.Size = new Size(777, 36);
+            cmbNetworkAdapters.TabIndex = 1;
             // 
             // lblIpAddress
             // 
-            this.lblIpAddress.AutoSize = true;
-            this.lblIpAddress.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblIpAddress.ForeColor = Constants.Colors.TextPrimary;
-            this.lblIpAddress.Location = new System.Drawing.Point(35, 290);
-            this.lblIpAddress.Name = "lblIpAddress";
-            this.lblIpAddress.Size = new System.Drawing.Size(56, 17);
-            this.lblIpAddress.TabIndex = 2;
-            this.lblIpAddress.Text = "IP地址:";
+            lblIpAddress.AutoSize = true;
+            lblIpAddress.Font = new Font("Microsoft YaHei UI", 9F);
+            lblIpAddress.ForeColor = Color.FromArgb(51, 51, 51);
+            lblIpAddress.Location = new Point(65, 541);
+            lblIpAddress.Margin = new Padding(6, 0, 6, 0);
+            lblIpAddress.Name = "lblIpAddress";
+            lblIpAddress.Size = new Size(78, 28);
+            lblIpAddress.TabIndex = 2;
+            lblIpAddress.Text = "IP地址:";
             // 
             // txtIpAddress
             // 
-            this.txtIpAddress.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtIpAddress.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtIpAddress.Location = new System.Drawing.Point(130, 287);
-            this.txtIpAddress.Name = "txtIpAddress";
-            this.txtIpAddress.PlaceholderText = "例如: 192.168.1.100";
-            this.txtIpAddress.Size = new System.Drawing.Size(320, 23);
-            this.txtIpAddress.TabIndex = 3;
+            txtIpAddress.BorderStyle = BorderStyle.FixedSingle;
+            txtIpAddress.Font = new Font("Microsoft YaHei UI", 9F);
+            txtIpAddress.Location = new Point(241, 536);
+            txtIpAddress.Margin = new Padding(6);
+            txtIpAddress.Name = "txtIpAddress";
+            txtIpAddress.PlaceholderText = "例如: 192.168.1.100";
+            txtIpAddress.Size = new Size(593, 34);
+            txtIpAddress.TabIndex = 3;
             // 
             // lblIpError
             // 
-            this.lblIpError.AutoSize = true;
-            this.lblIpError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblIpError.ForeColor = System.Drawing.Color.Red;
-            this.lblIpError.Location = new System.Drawing.Point(130, 310);
-            this.lblIpError.Name = "lblIpError";
-            this.lblIpError.Size = new System.Drawing.Size(0, 16);
-            this.lblIpError.TabIndex = 18;
-            this.lblIpError.Visible = false;
-            // 
-            // chkDhcp
-            // 
-            this.chkDhcp = new System.Windows.Forms.CheckBox();
-            this.chkDhcp.AutoSize = true;
-            this.chkDhcp.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.chkDhcp.ForeColor = Constants.Colors.TextPrimary;
-            this.chkDhcp.Location = new System.Drawing.Point(460, 289);
-            this.chkDhcp.Name = "chkDhcp";
-            this.chkDhcp.Size = new System.Drawing.Size(63, 21);
-            this.chkDhcp.TabIndex = 4;
-            this.chkDhcp.Text = "DHCP";
-            this.chkDhcp.UseVisualStyleBackColor = true;
-            this.chkDhcp.CheckedChanged += new System.EventHandler(this.chkDhcp_CheckedChanged);
+            lblIpError.AutoSize = true;
+            lblIpError.Font = new Font("Microsoft YaHei UI", 8F);
+            lblIpError.ForeColor = Color.Red;
+            lblIpError.Location = new Point(241, 579);
+            lblIpError.Margin = new Padding(6, 0, 6, 0);
+            lblIpError.Name = "lblIpError";
+            lblIpError.Size = new Size(0, 25);
+            lblIpError.TabIndex = 18;
+            lblIpError.Visible = false;
             // 
             // lblSubnetMask
             // 
-            this.lblSubnetMask.AutoSize = true;
-            this.lblSubnetMask.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblSubnetMask.ForeColor = Constants.Colors.TextPrimary;
-            this.lblSubnetMask.Location = new System.Drawing.Point(35, 330);
-            this.lblSubnetMask.Name = "lblSubnetMask";
-            this.lblSubnetMask.Size = new System.Drawing.Size(68, 17);
-            this.lblSubnetMask.TabIndex = 4;
-            this.lblSubnetMask.Text = "子网掩码:";
+            lblSubnetMask.AutoSize = true;
+            lblSubnetMask.Font = new Font("Microsoft YaHei UI", 9F);
+            lblSubnetMask.ForeColor = Color.FromArgb(51, 51, 51);
+            lblSubnetMask.Location = new Point(65, 616);
+            lblSubnetMask.Margin = new Padding(6, 0, 6, 0);
+            lblSubnetMask.Name = "lblSubnetMask";
+            lblSubnetMask.Size = new Size(101, 28);
+            lblSubnetMask.TabIndex = 4;
+            lblSubnetMask.Text = "子网掩码:";
             // 
             // txtSubnetMask
             // 
-            this.txtSubnetMask.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtSubnetMask.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtSubnetMask.Location = new System.Drawing.Point(130, 327);
-            this.txtSubnetMask.Name = "txtSubnetMask";
-            this.txtSubnetMask.PlaceholderText = "例如: 255.255.255.0";
-            this.txtSubnetMask.Size = new System.Drawing.Size(320, 23);
-            this.txtSubnetMask.TabIndex = 5;
+            txtSubnetMask.BorderStyle = BorderStyle.FixedSingle;
+            txtSubnetMask.Font = new Font("Microsoft YaHei UI", 9F);
+            txtSubnetMask.Location = new Point(241, 610);
+            txtSubnetMask.Margin = new Padding(6);
+            txtSubnetMask.Name = "txtSubnetMask";
+            txtSubnetMask.PlaceholderText = "例如: 255.255.255.0";
+            txtSubnetMask.Size = new Size(593, 34);
+            txtSubnetMask.TabIndex = 5;
             // 
             // lblSubnetError
             // 
-            this.lblSubnetError.AutoSize = true;
-            this.lblSubnetError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblSubnetError.ForeColor = System.Drawing.Color.Red;
-            this.lblSubnetError.Location = new System.Drawing.Point(130, 350);
-            this.lblSubnetError.Name = "lblSubnetError";
-            this.lblSubnetError.Size = new System.Drawing.Size(0, 16);
-            this.lblSubnetError.TabIndex = 19;
-            this.lblSubnetError.Visible = false;
+            lblSubnetError.AutoSize = true;
+            lblSubnetError.Font = new Font("Microsoft YaHei UI", 8F);
+            lblSubnetError.ForeColor = Color.Red;
+            lblSubnetError.Location = new Point(241, 653);
+            lblSubnetError.Margin = new Padding(6, 0, 6, 0);
+            lblSubnetError.Name = "lblSubnetError";
+            lblSubnetError.Size = new Size(0, 25);
+            lblSubnetError.TabIndex = 19;
+            lblSubnetError.Visible = false;
             // 
             // lblGateway
             // 
-            this.lblGateway.AutoSize = true;
-            this.lblGateway.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblGateway.ForeColor = Constants.Colors.TextPrimary;
-            this.lblGateway.Location = new System.Drawing.Point(35, 370);
-            this.lblGateway.Name = "lblGateway";
-            this.lblGateway.Size = new System.Drawing.Size(68, 17);
-            this.lblGateway.TabIndex = 6;
-            this.lblGateway.Text = "默认网关:";
+            lblGateway.AutoSize = true;
+            lblGateway.Font = new Font("Microsoft YaHei UI", 9F);
+            lblGateway.ForeColor = Color.FromArgb(51, 51, 51);
+            lblGateway.Location = new Point(65, 691);
+            lblGateway.Margin = new Padding(6, 0, 6, 0);
+            lblGateway.Name = "lblGateway";
+            lblGateway.Size = new Size(101, 28);
+            lblGateway.TabIndex = 6;
+            lblGateway.Text = "默认网关:";
             // 
             // txtGateway
             // 
-            this.txtGateway.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtGateway.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtGateway.Location = new System.Drawing.Point(130, 367);
-            this.txtGateway.Name = "txtGateway";
-            this.txtGateway.PlaceholderText = "例如: 192.168.1.1";
-            this.txtGateway.Size = new System.Drawing.Size(320, 23);
-            this.txtGateway.TabIndex = 7;
+            txtGateway.BorderStyle = BorderStyle.FixedSingle;
+            txtGateway.Font = new Font("Microsoft YaHei UI", 9F);
+            txtGateway.Location = new Point(241, 685);
+            txtGateway.Margin = new Padding(6);
+            txtGateway.Name = "txtGateway";
+            txtGateway.PlaceholderText = "例如: 192.168.1.1";
+            txtGateway.Size = new Size(593, 34);
+            txtGateway.TabIndex = 7;
             // 
             // lblGatewayError
             // 
-            this.lblGatewayError.AutoSize = true;
-            this.lblGatewayError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblGatewayError.ForeColor = System.Drawing.Color.Red;
-            this.lblGatewayError.Location = new System.Drawing.Point(130, 390);
-            this.lblGatewayError.Name = "lblGatewayError";
-            this.lblGatewayError.Size = new System.Drawing.Size(0, 16);
-            this.lblGatewayError.TabIndex = 20;
-            this.lblGatewayError.Visible = false;
+            lblGatewayError.AutoSize = true;
+            lblGatewayError.Font = new Font("Microsoft YaHei UI", 8F);
+            lblGatewayError.ForeColor = Color.Red;
+            lblGatewayError.Location = new Point(241, 728);
+            lblGatewayError.Margin = new Padding(6, 0, 6, 0);
+            lblGatewayError.Name = "lblGatewayError";
+            lblGatewayError.Size = new Size(0, 25);
+            lblGatewayError.TabIndex = 20;
+            lblGatewayError.Visible = false;
             // 
             // lblDnsServer
             // 
-            this.lblDnsServer.AutoSize = true;
-            this.lblDnsServer.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblDnsServer.ForeColor = Constants.Colors.TextPrimary;
-            this.lblDnsServer.Location = new System.Drawing.Point(35, 410);
-            this.lblDnsServer.Name = "lblDnsServer";
-            this.lblDnsServer.Size = new System.Drawing.Size(80, 17);
-            this.lblDnsServer.TabIndex = 8;
-            this.lblDnsServer.Text = "主DNS服务器:";
+            lblDnsServer.AutoSize = true;
+            lblDnsServer.Font = new Font("Microsoft YaHei UI", 9F);
+            lblDnsServer.ForeColor = Color.FromArgb(51, 51, 51);
+            lblDnsServer.Location = new Point(65, 765);
+            lblDnsServer.Margin = new Padding(6, 0, 6, 0);
+            lblDnsServer.Name = "lblDnsServer";
+            lblDnsServer.Size = new Size(146, 28);
+            lblDnsServer.TabIndex = 8;
+            lblDnsServer.Text = "主DNS服务器:";
             // 
             // txtDnsServer
             // 
-            this.txtDnsServer.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtDnsServer.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtDnsServer.Location = new System.Drawing.Point(130, 407);
-            this.txtDnsServer.Name = "txtDnsServer";
-            this.txtDnsServer.PlaceholderText = "例如: 8.8.8.8";
-            this.txtDnsServer.Size = new System.Drawing.Size(320, 23);
-            this.txtDnsServer.TabIndex = 9;
+            txtDnsServer.BorderStyle = BorderStyle.FixedSingle;
+            txtDnsServer.Font = new Font("Microsoft YaHei UI", 9F);
+            txtDnsServer.Location = new Point(241, 760);
+            txtDnsServer.Margin = new Padding(6);
+            txtDnsServer.Name = "txtDnsServer";
+            txtDnsServer.PlaceholderText = "例如: 8.8.8.8";
+            txtDnsServer.Size = new Size(593, 34);
+            txtDnsServer.TabIndex = 9;
             // 
             // lblDnsError
             // 
-            this.lblDnsError.AutoSize = true;
-            this.lblDnsError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblDnsError.ForeColor = System.Drawing.Color.Red;
-            this.lblDnsError.Location = new System.Drawing.Point(130, 430);
-            this.lblDnsError.Name = "lblDnsError";
-            this.lblDnsError.Size = new System.Drawing.Size(0, 16);
-            this.lblDnsError.TabIndex = 21;
-            this.lblDnsError.Visible = false;
+            lblDnsError.AutoSize = true;
+            lblDnsError.Font = new Font("Microsoft YaHei UI", 8F);
+            lblDnsError.ForeColor = Color.Red;
+            lblDnsError.Location = new Point(241, 803);
+            lblDnsError.Margin = new Padding(6, 0, 6, 0);
+            lblDnsError.Name = "lblDnsError";
+            lblDnsError.Size = new Size(0, 25);
+            lblDnsError.TabIndex = 21;
+            lblDnsError.Visible = false;
             // 
             // lblSecondaryDnsServer
             // 
-            this.lblSecondaryDnsServer.AutoSize = true;
-            this.lblSecondaryDnsServer.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblSecondaryDnsServer.ForeColor = Constants.Colors.TextPrimary;
-            this.lblSecondaryDnsServer.Location = new System.Drawing.Point(35, 450);
-            this.lblSecondaryDnsServer.Name = "lblSecondaryDnsServer";
-            this.lblSecondaryDnsServer.Size = new System.Drawing.Size(92, 17);
-            this.lblSecondaryDnsServer.TabIndex = 22;
-            this.lblSecondaryDnsServer.Text = "备DNS服务器:";
+            lblSecondaryDnsServer.AutoSize = true;
+            lblSecondaryDnsServer.Font = new Font("Microsoft YaHei UI", 9F);
+            lblSecondaryDnsServer.ForeColor = Color.FromArgb(51, 51, 51);
+            lblSecondaryDnsServer.Location = new Point(65, 840);
+            lblSecondaryDnsServer.Margin = new Padding(6, 0, 6, 0);
+            lblSecondaryDnsServer.Name = "lblSecondaryDnsServer";
+            lblSecondaryDnsServer.Size = new Size(146, 28);
+            lblSecondaryDnsServer.TabIndex = 22;
+            lblSecondaryDnsServer.Text = "备DNS服务器:";
             // 
             // txtSecondaryDnsServer
             // 
-            this.txtSecondaryDnsServer.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtSecondaryDnsServer.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtSecondaryDnsServer.Location = new System.Drawing.Point(130, 447);
-            this.txtSecondaryDnsServer.Name = "txtSecondaryDnsServer";
-            this.txtSecondaryDnsServer.PlaceholderText = "例如: 8.8.4.4 (可选)";
-            this.txtSecondaryDnsServer.Size = new System.Drawing.Size(320, 23);
-            this.txtSecondaryDnsServer.TabIndex = 23;
+            txtSecondaryDnsServer.BorderStyle = BorderStyle.FixedSingle;
+            txtSecondaryDnsServer.Font = new Font("Microsoft YaHei UI", 9F);
+            txtSecondaryDnsServer.Location = new Point(241, 834);
+            txtSecondaryDnsServer.Margin = new Padding(6);
+            txtSecondaryDnsServer.Name = "txtSecondaryDnsServer";
+            txtSecondaryDnsServer.PlaceholderText = "例如: 8.8.4.4 (可选)";
+            txtSecondaryDnsServer.Size = new Size(593, 34);
+            txtSecondaryDnsServer.TabIndex = 23;
             // 
             // lblSecondaryDnsError
             // 
-            this.lblSecondaryDnsError.AutoSize = true;
-            this.lblSecondaryDnsError.Font = new System.Drawing.Font("Microsoft YaHei UI", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblSecondaryDnsError.ForeColor = System.Drawing.Color.Red;
-            this.lblSecondaryDnsError.Location = new System.Drawing.Point(130, 470);
-            this.lblSecondaryDnsError.Name = "lblSecondaryDnsError";
-            this.lblSecondaryDnsError.Size = new System.Drawing.Size(0, 16);
-            this.lblSecondaryDnsError.TabIndex = 24;
-            this.lblSecondaryDnsError.Visible = false;
+            lblSecondaryDnsError.AutoSize = true;
+            lblSecondaryDnsError.Font = new Font("Microsoft YaHei UI", 8F);
+            lblSecondaryDnsError.ForeColor = Color.Red;
+            lblSecondaryDnsError.Location = new Point(241, 877);
+            lblSecondaryDnsError.Margin = new Padding(6, 0, 6, 0);
+            lblSecondaryDnsError.Name = "lblSecondaryDnsError";
+            lblSecondaryDnsError.Size = new Size(0, 25);
+            lblSecondaryDnsError.TabIndex = 24;
+            lblSecondaryDnsError.Visible = false;
             // 
             // btnApplyConfig
             // 
-            this.btnApplyConfig.BackColor = Constants.Colors.PrimaryBlue;
-            this.btnApplyConfig.FlatAppearance.BorderSize = 0;
-            this.btnApplyConfig.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnApplyConfig.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btnApplyConfig.ForeColor = System.Drawing.Color.White;
-            this.btnApplyConfig.Location = new System.Drawing.Point(246, 480);
-            this.btnApplyConfig.Name = "btnApplyConfig";
-            this.btnApplyConfig.Size = new System.Drawing.Size(80, 28);
-            this.btnApplyConfig.TabIndex = 10;
-            this.btnApplyConfig.Text = "应用配置";
-            this.btnApplyConfig.UseVisualStyleBackColor = false;
-            this.btnApplyConfig.Click += new System.EventHandler(this.btnApplyConfig_Click);
+            btnApplyConfig.BackColor = Color.FromArgb(74, 144, 226);
+            btnApplyConfig.FlatAppearance.BorderSize = 0;
+            btnApplyConfig.FlatStyle = FlatStyle.Flat;
+            btnApplyConfig.Font = new Font("Microsoft YaHei UI", 9F);
+            btnApplyConfig.ForeColor = Color.White;
+            btnApplyConfig.Location = new Point(457, 896);
+            btnApplyConfig.Margin = new Padding(6);
+            btnApplyConfig.Name = "btnApplyConfig";
+            btnApplyConfig.Size = new Size(149, 52);
+            btnApplyConfig.TabIndex = 10;
+            btnApplyConfig.Text = "应用配置";
+            btnApplyConfig.UseVisualStyleBackColor = false;
+            btnApplyConfig.Click += btnApplyConfig_Click;
             // 
             // btnRefreshAdapters
             // 
-            this.btnRefreshAdapters.BackColor = Constants.Colors.PrimaryBlue;
-            this.btnRefreshAdapters.FlatAppearance.BorderSize = 0;
-            this.btnRefreshAdapters.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnRefreshAdapters.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btnRefreshAdapters.ForeColor = System.Drawing.Color.White;
-            this.btnRefreshAdapters.Location = new System.Drawing.Point(356, 60);
-            this.btnRefreshAdapters.Name = "btnRefreshAdapters";
-            this.btnRefreshAdapters.Size = new System.Drawing.Size(80, 28);
-            this.btnRefreshAdapters.TabIndex = 12;
-            this.btnRefreshAdapters.Text = "刷新网卡";
-            this.btnRefreshAdapters.UseVisualStyleBackColor = false;
-            this.btnRefreshAdapters.Click += new System.EventHandler(this.btnRefreshAdapters_Click);
+            btnRefreshAdapters.BackColor = Color.FromArgb(74, 144, 226);
+            btnRefreshAdapters.FlatAppearance.BorderSize = 0;
+            btnRefreshAdapters.FlatStyle = FlatStyle.Flat;
+            btnRefreshAdapters.Font = new Font("Microsoft YaHei UI", 9F);
+            btnRefreshAdapters.ForeColor = Color.White;
+            btnRefreshAdapters.Location = new Point(661, 112);
+            btnRefreshAdapters.Margin = new Padding(6);
+            btnRefreshAdapters.Name = "btnRefreshAdapters";
+            btnRefreshAdapters.Size = new Size(149, 52);
+            btnRefreshAdapters.TabIndex = 12;
+            btnRefreshAdapters.Text = "刷新网卡";
+            btnRefreshAdapters.UseVisualStyleBackColor = false;
+            btnRefreshAdapters.Click += btnRefreshAdapters_Click;
             // 
             // lblStatus
             // 
-            this.lblStatus.AutoSize = true;
-            this.lblStatus.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.lblStatus.ForeColor = Constants.Colors.TextPrimary;
-            this.lblStatus.Location = new System.Drawing.Point(35, 520);
-            this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(44, 17);
-            this.lblStatus.TabIndex = 13;
-            this.lblStatus.Text = "状态:";
+            lblStatus.AutoSize = true;
+            lblStatus.Font = new Font("Microsoft YaHei UI", 9F);
+            lblStatus.ForeColor = Color.FromArgb(51, 51, 51);
+            lblStatus.Location = new Point(65, 971);
+            lblStatus.Margin = new Padding(6, 0, 6, 0);
+            lblStatus.Name = "lblStatus";
+            lblStatus.Size = new Size(59, 28);
+            lblStatus.TabIndex = 13;
+            lblStatus.Text = "状态:";
             // 
             // txtStatus
             // 
-            this.txtStatus.BackColor = Constants.Colors.ControlBackground;
-            this.txtStatus.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtStatus.Font = new System.Drawing.Font("Microsoft YaHei UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtStatus.ForeColor = Constants.Colors.TextSecondary;
-            this.txtStatus.Location = new System.Drawing.Point(35, 540);
-            this.txtStatus.Multiline = true;
-            this.txtStatus.Name = "txtStatus";
-            this.txtStatus.ReadOnly = true;
-            this.txtStatus.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtStatus.Size = new System.Drawing.Size(515, 85);
-            this.txtStatus.TabIndex = 14;
-            this.txtStatus.Text = Constants.UI.WaitingStatus;
+            txtStatus.BackColor = Color.White;
+            txtStatus.BorderStyle = BorderStyle.FixedSingle;
+            txtStatus.Font = new Font("Microsoft YaHei UI", 9.75F);
+            txtStatus.ForeColor = Color.FromArgb(102, 102, 102);
+            txtStatus.Location = new Point(65, 1008);
+            txtStatus.Margin = new Padding(6);
+            txtStatus.Multiline = true;
+            txtStatus.Name = "txtStatus";
+            txtStatus.ReadOnly = true;
+            txtStatus.ScrollBars = ScrollBars.Vertical;
+            txtStatus.Size = new Size(955, 157);
+            txtStatus.TabIndex = 14;
+            txtStatus.Text = "等待操作...";
             // 
             // chkShowAllAdapters
             // 
-            this.chkShowAllAdapters.AutoSize = true;
-            this.chkShowAllAdapters.Font = new System.Drawing.Font("Microsoft YaHei UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.chkShowAllAdapters.ForeColor = Constants.Colors.TextSecondary;
-            this.chkShowAllAdapters.Location = new System.Drawing.Point(130, 63);
-            this.chkShowAllAdapters.Name = "chkShowAllAdapters";
-            this.chkShowAllAdapters.Size = new System.Drawing.Size(111, 20);
-            this.chkShowAllAdapters.TabIndex = 15;
-            this.chkShowAllAdapters.Text = "显示所有网卡";
-            this.chkShowAllAdapters.UseVisualStyleBackColor = true;
-            this.chkShowAllAdapters.CheckedChanged += new System.EventHandler(this.chkShowAllAdapters_CheckedChanged);
+            chkShowAllAdapters.AutoSize = true;
+            chkShowAllAdapters.Font = new Font("Microsoft YaHei UI", 8.25F);
+            chkShowAllAdapters.ForeColor = Color.FromArgb(102, 102, 102);
+            chkShowAllAdapters.Location = new Point(241, 118);
+            chkShowAllAdapters.Margin = new Padding(6);
+            chkShowAllAdapters.Name = "chkShowAllAdapters";
+            chkShowAllAdapters.Size = new Size(158, 31);
+            chkShowAllAdapters.TabIndex = 15;
+            chkShowAllAdapters.Text = "显示所有网卡";
+            chkShowAllAdapters.UseVisualStyleBackColor = true;
+            chkShowAllAdapters.CheckedChanged += chkShowAllAdapters_CheckedChanged;
+            // 
+            // grpAdapterInfo
+            // 
+            grpAdapterInfo.Controls.Add(txtAdapterInfoContent);
+            grpAdapterInfo.Font = new Font("Microsoft YaHei UI", 9F);
+            grpAdapterInfo.ForeColor = Color.FromArgb(51, 51, 51);
+            grpAdapterInfo.Location = new Point(65, 168);
+            grpAdapterInfo.Margin = new Padding(6);
+            grpAdapterInfo.Name = "grpAdapterInfo";
+            grpAdapterInfo.Padding = new Padding(6);
+            grpAdapterInfo.Size = new Size(956, 336);
+            grpAdapterInfo.TabIndex = 17;
+            grpAdapterInfo.TabStop = false;
+            grpAdapterInfo.Text = "当前网卡信息";
+            // 
+            // txtAdapterInfoContent
+            // 
+            txtAdapterInfoContent.BackColor = Color.FromArgb(250, 250, 250);
+            txtAdapterInfoContent.BorderStyle = BorderStyle.None;
+            txtAdapterInfoContent.Font = new Font("Microsoft YaHei UI", 9F);
+            txtAdapterInfoContent.ForeColor = Color.FromArgb(102, 102, 102);
+            txtAdapterInfoContent.Location = new Point(28, 47);
+            txtAdapterInfoContent.Margin = new Padding(6);
+            txtAdapterInfoContent.Multiline = true;
+            txtAdapterInfoContent.Name = "txtAdapterInfoContent";
+            txtAdapterInfoContent.ReadOnly = true;
+            txtAdapterInfoContent.Size = new Size(901, 271);
+            txtAdapterInfoContent.TabIndex = 0;
+            txtAdapterInfoContent.Text = "请选择网络适配器";
             // 
             // tabControlMain
             // 
-            this.tabControlMain.Controls.Add(this.tabPageIpConfig);
-            this.tabControlMain.Controls.Add(this.tabPagePingTest);
-            this.tabControlMain.Controls.Add(this.tabPageSubnetCalc);
-            this.tabControlMain.Controls.Add(this.tabPageTraceRoute);
-            this.tabControlMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControlMain.Location = new System.Drawing.Point(0, 0);
-            this.tabControlMain.Name = "tabControlMain";
-            this.tabControlMain.SelectedIndex = 0;
-            this.tabControlMain.Size = new System.Drawing.Size(600, 680);
-            this.tabControlMain.TabIndex = 0;
+            tabControlMain.Controls.Add(tabPageIpConfig);
+            tabControlMain.Controls.Add(tabPagePingTest);
+            tabControlMain.Controls.Add(tabPageSubnetCalc);
+            tabControlMain.Controls.Add(tabPageTraceRoute);
+            tabControlMain.Controls.Add(tabPageRouteManagement);
+            tabControlMain.Dock = DockStyle.Fill;
+            tabControlMain.Location = new Point(0, 0);
+            tabControlMain.Margin = new Padding(6);
+            tabControlMain.Name = "tabControlMain";
+            tabControlMain.SelectedIndex = 0;
+            tabControlMain.Size = new Size(1114, 1269);
+            tabControlMain.TabIndex = 0;
             // 
             // tabPageIpConfig
             // 
-            this.tabPageIpConfig.Controls.Add(this.chkShowAllAdapters);
-            this.tabPageIpConfig.Controls.Add(this.txtStatus);
-            this.tabPageIpConfig.Controls.Add(this.lblStatus);
-            this.tabPageIpConfig.Controls.Add(this.btnRefreshAdapters);
-            this.tabPageIpConfig.Controls.Add(this.btnApplyConfig);
-            this.tabPageIpConfig.Controls.Add(this.lblSecondaryDnsError);
-            this.tabPageIpConfig.Controls.Add(this.txtSecondaryDnsServer);
-            this.tabPageIpConfig.Controls.Add(this.lblSecondaryDnsServer);
-            this.tabPageIpConfig.Controls.Add(this.lblDnsError);
-            this.tabPageIpConfig.Controls.Add(this.txtDnsServer);
-            this.tabPageIpConfig.Controls.Add(this.lblDnsServer);
-            this.tabPageIpConfig.Controls.Add(this.lblGatewayError);
-            this.tabPageIpConfig.Controls.Add(this.txtGateway);
-            this.tabPageIpConfig.Controls.Add(this.lblGateway);
-            this.tabPageIpConfig.Controls.Add(this.lblSubnetError);
-            this.tabPageIpConfig.Controls.Add(this.txtSubnetMask);
-            this.tabPageIpConfig.Controls.Add(this.lblSubnetMask);
-            this.tabPageIpConfig.Controls.Add(this.chkDhcp);
-            this.tabPageIpConfig.Controls.Add(this.lblIpError);
-            this.tabPageIpConfig.Controls.Add(this.txtIpAddress);
-            this.tabPageIpConfig.Controls.Add(this.lblIpAddress);
-            this.tabPageIpConfig.Controls.Add(this.grpAdapterInfo);
-            this.tabPageIpConfig.Controls.Add(this.cmbNetworkAdapters);
-            this.tabPageIpConfig.Controls.Add(this.lblNetworkAdapter);
-            this.tabPageIpConfig.Location = new System.Drawing.Point(4, 24);
-            this.tabPageIpConfig.Name = "tabPageIpConfig";
-            this.tabPageIpConfig.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageIpConfig.Size = new System.Drawing.Size(592, 652);
-            this.tabPageIpConfig.TabIndex = 0;
-            this.tabPageIpConfig.Text = "IP 配置";
-            this.tabPageIpConfig.UseVisualStyleBackColor = true;
+            tabPageIpConfig.Controls.Add(chkShowAllAdapters);
+            tabPageIpConfig.Controls.Add(txtStatus);
+            tabPageIpConfig.Controls.Add(lblStatus);
+            tabPageIpConfig.Controls.Add(btnRefreshAdapters);
+            tabPageIpConfig.Controls.Add(btnApplyConfig);
+            tabPageIpConfig.Controls.Add(lblSecondaryDnsError);
+            tabPageIpConfig.Controls.Add(txtSecondaryDnsServer);
+            tabPageIpConfig.Controls.Add(lblSecondaryDnsServer);
+            tabPageIpConfig.Controls.Add(lblDnsError);
+            tabPageIpConfig.Controls.Add(txtDnsServer);
+            tabPageIpConfig.Controls.Add(lblDnsServer);
+            tabPageIpConfig.Controls.Add(lblGatewayError);
+            tabPageIpConfig.Controls.Add(txtGateway);
+            tabPageIpConfig.Controls.Add(lblGateway);
+            tabPageIpConfig.Controls.Add(lblSubnetError);
+            tabPageIpConfig.Controls.Add(txtSubnetMask);
+            tabPageIpConfig.Controls.Add(lblSubnetMask);
+            tabPageIpConfig.Controls.Add(chkDhcp);
+            tabPageIpConfig.Controls.Add(lblIpError);
+            tabPageIpConfig.Controls.Add(txtIpAddress);
+            tabPageIpConfig.Controls.Add(lblIpAddress);
+            tabPageIpConfig.Controls.Add(grpAdapterInfo);
+            tabPageIpConfig.Controls.Add(cmbNetworkAdapters);
+            tabPageIpConfig.Controls.Add(lblNetworkAdapter);
+            tabPageIpConfig.Location = new Point(4, 37);
+            tabPageIpConfig.Margin = new Padding(6);
+            tabPageIpConfig.Name = "tabPageIpConfig";
+            tabPageIpConfig.Padding = new Padding(6);
+            tabPageIpConfig.Size = new Size(1106, 1228);
+            tabPageIpConfig.TabIndex = 0;
+            tabPageIpConfig.Text = "IP 配置";
+            tabPageIpConfig.UseVisualStyleBackColor = true;
+            // 
+            // chkDhcp
+            // 
+            chkDhcp.AutoSize = true;
+            chkDhcp.Font = new Font("Microsoft YaHei UI", 9F);
+            chkDhcp.ForeColor = Color.FromArgb(51, 51, 51);
+            chkDhcp.Location = new Point(854, 539);
+            chkDhcp.Margin = new Padding(6);
+            chkDhcp.Name = "chkDhcp";
+            chkDhcp.Size = new Size(97, 32);
+            chkDhcp.TabIndex = 4;
+            chkDhcp.Text = "DHCP";
+            chkDhcp.UseVisualStyleBackColor = true;
+            chkDhcp.CheckedChanged += chkDhcp_CheckedChanged;
             // 
             // tabPagePingTest
             // 
-            this.tabPagePingTest.Controls.Add(this.ipGridControl);
-            this.tabPagePingTest.Controls.Add(this.scanStatisticsPanel);
-            this.tabPagePingTest.Controls.Add(this.scanControlPanel);
-            this.tabPagePingTest.Location = new System.Drawing.Point(4, 24);
-            this.tabPagePingTest.Name = "tabPagePingTest";
-            this.tabPagePingTest.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPagePingTest.Size = new System.Drawing.Size(592, 652);
-            this.tabPagePingTest.TabIndex = 1;
-            this.tabPagePingTest.Text = "Ping 测试";
-            this.tabPagePingTest.UseVisualStyleBackColor = true;
-            // 
-            // scanControlPanel
-            // 
-            this.scanControlPanel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.scanControlPanel.Location = new System.Drawing.Point(3, 3);
-            this.scanControlPanel.Name = "scanControlPanel";
-            this.scanControlPanel.Size = new System.Drawing.Size(586, 60);
-            this.scanControlPanel.TabIndex = 0;
-            // 
-            // scanStatisticsPanel
-            // 
-            this.scanStatisticsPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.scanStatisticsPanel.Location = new System.Drawing.Point(3, 566);
-            this.scanStatisticsPanel.Name = "scanStatisticsPanel";
-            this.scanStatisticsPanel.Size = new System.Drawing.Size(586, 80);
-            this.scanStatisticsPanel.TabIndex = 1;
+            tabPagePingTest.Controls.Add(ipGridControl);
+            tabPagePingTest.Controls.Add(scanStatisticsPanel);
+            tabPagePingTest.Controls.Add(scanControlPanel);
+            tabPagePingTest.Location = new Point(4, 37);
+            tabPagePingTest.Margin = new Padding(6);
+            tabPagePingTest.Name = "tabPagePingTest";
+            tabPagePingTest.Padding = new Padding(6);
+            tabPagePingTest.Size = new Size(1106, 1228);
+            tabPagePingTest.TabIndex = 1;
+            tabPagePingTest.Text = "Ping 测试";
+            tabPagePingTest.UseVisualStyleBackColor = true;
             // 
             // ipGridControl
             // 
-            this.ipGridControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.ipGridControl.Location = new System.Drawing.Point(3, 66);
-            this.ipGridControl.Name = "ipGridControl";
-            this.ipGridControl.Size = new System.Drawing.Size(586, 497);
-            this.ipGridControl.TabIndex = 2;
+            ipGridControl.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            ipGridControl.BackColor = Color.White;
+            ipGridControl.Font = new Font("Consolas", 8F);
+            ipGridControl.Location = new Point(6, 123);
+            ipGridControl.Margin = new Padding(6);
+            ipGridControl.Name = "ipGridControl";
+            ipGridControl.Size = new Size(1088, 928);
+            ipGridControl.TabIndex = 2;
+            // 
+            // scanStatisticsPanel
+            // 
+            scanStatisticsPanel.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            scanStatisticsPanel.Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            scanStatisticsPanel.Location = new Point(6, 1057);
+            scanStatisticsPanel.Margin = new Padding(11, 9, 11, 9);
+            scanStatisticsPanel.Name = "scanStatisticsPanel";
+            scanStatisticsPanel.Size = new Size(1088, 149);
+            scanStatisticsPanel.TabIndex = 1;
+            // 
+            // scanControlPanel
+            // 
+            scanControlPanel.Dock = DockStyle.Top;
+            scanControlPanel.Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            scanControlPanel.Location = new Point(6, 6);
+            scanControlPanel.Margin = new Padding(11, 9, 11, 9);
+            scanControlPanel.Name = "scanControlPanel";
+            scanControlPanel.Size = new Size(1094, 112);
+            scanControlPanel.TabIndex = 0;
             // 
             // tabPageSubnetCalc
             // 
-            this.tabPageSubnetCalc.Controls.Add(this.subnetCalculatorPanel);
-            this.tabPageSubnetCalc.Location = new System.Drawing.Point(4, 24);
-            this.tabPageSubnetCalc.Name = "tabPageSubnetCalc";
-            this.tabPageSubnetCalc.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageSubnetCalc.Size = new System.Drawing.Size(592, 652);
-            this.tabPageSubnetCalc.TabIndex = 2;
-            this.tabPageSubnetCalc.Text = "子网计算";
-            this.tabPageSubnetCalc.UseVisualStyleBackColor = true;
-            // 
-            // tabPageTraceRoute
-            // 
-            this.tabPageTraceRoute.Controls.Add(this.traceRoutePanel);
-            this.tabPageTraceRoute.Location = new System.Drawing.Point(4, 24);
-            this.tabPageTraceRoute.Name = "tabPageTraceRoute";
-            this.tabPageTraceRoute.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageTraceRoute.Size = new System.Drawing.Size(592, 652);
-            this.tabPageTraceRoute.TabIndex = 3;
-            this.tabPageTraceRoute.Text = "路由跟踪";
-            this.tabPageTraceRoute.UseVisualStyleBackColor = true;
+            tabPageSubnetCalc.Controls.Add(subnetCalculatorPanel);
+            tabPageSubnetCalc.Location = new Point(4, 37);
+            tabPageSubnetCalc.Margin = new Padding(6);
+            tabPageSubnetCalc.Name = "tabPageSubnetCalc";
+            tabPageSubnetCalc.Padding = new Padding(6);
+            tabPageSubnetCalc.Size = new Size(1106, 1228);
+            tabPageSubnetCalc.TabIndex = 2;
+            tabPageSubnetCalc.Text = "子网计算";
+            tabPageSubnetCalc.UseVisualStyleBackColor = true;
             // 
             // subnetCalculatorPanel
             // 
-            this.subnetCalculatorPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.subnetCalculatorPanel.Location = new System.Drawing.Point(3, 3);
-            this.subnetCalculatorPanel.Name = "subnetCalculatorPanel";
-            this.subnetCalculatorPanel.Size = new System.Drawing.Size(586, 646);
-            this.subnetCalculatorPanel.TabIndex = 0;
+            subnetCalculatorPanel.Dock = DockStyle.Fill;
+            subnetCalculatorPanel.Location = new Point(6, 6);
+            subnetCalculatorPanel.Margin = new Padding(6);
+            subnetCalculatorPanel.Name = "subnetCalculatorPanel";
+            subnetCalculatorPanel.Size = new Size(1094, 1216);
+            subnetCalculatorPanel.TabIndex = 0;
+            // 
+            // tabPageTraceRoute
+            // 
+            tabPageTraceRoute.Controls.Add(traceRoutePanel);
+            tabPageTraceRoute.Location = new Point(4, 37);
+            tabPageTraceRoute.Margin = new Padding(6);
+            tabPageTraceRoute.Name = "tabPageTraceRoute";
+            tabPageTraceRoute.Padding = new Padding(6);
+            tabPageTraceRoute.Size = new Size(1106, 1228);
+            tabPageTraceRoute.TabIndex = 3;
+            tabPageTraceRoute.Text = "路由跟踪";
+            tabPageTraceRoute.UseVisualStyleBackColor = true;
             // 
             // traceRoutePanel
             // 
-            this.traceRoutePanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.traceRoutePanel.Location = new System.Drawing.Point(3, 3);
-            this.traceRoutePanel.Name = "traceRoutePanel";
-            this.traceRoutePanel.Size = new System.Drawing.Size(586, 646);
-            this.traceRoutePanel.TabIndex = 0;
+            traceRoutePanel.BackColor = Color.FromArgb(245, 245, 245);
+            traceRoutePanel.Dock = DockStyle.Fill;
+            traceRoutePanel.Location = new Point(6, 6);
+            traceRoutePanel.Margin = new Padding(11);
+            traceRoutePanel.Name = "traceRoutePanel";
+            traceRoutePanel.Size = new Size(1094, 1216);
+            traceRoutePanel.TabIndex = 0;
+            // 
+            // tabPageRouteManagement
+            // 
+            tabPageRouteManagement.Controls.Add(routeManagementPanel);
+            tabPageRouteManagement.Location = new Point(4, 37);
+            tabPageRouteManagement.Margin = new Padding(6);
+            tabPageRouteManagement.Name = "tabPageRouteManagement";
+            tabPageRouteManagement.Padding = new Padding(6);
+            tabPageRouteManagement.Size = new Size(1106, 1228);
+            tabPageRouteManagement.TabIndex = 4;
+            tabPageRouteManagement.Text = "路由管理";
+            tabPageRouteManagement.UseVisualStyleBackColor = true;
+            // 
+            // routeManagementPanel
+            // 
+            routeManagementPanel.Dock = DockStyle.Fill;
+            routeManagementPanel.Location = new Point(6, 6);
+            routeManagementPanel.Margin = new Padding(11, 9, 11, 9);
+            routeManagementPanel.Name = "routeManagementPanel";
+            routeManagementPanel.Size = new Size(1094, 1216);
+            routeManagementPanel.TabIndex = 0;
+            routeManagementPanel.Load += routeManagementPanel_Load;
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = Constants.Colors.FormBackground;
-            this.ClientSize = new System.Drawing.Size(600, 680);
-            this.Controls.Add(this.tabControlMain);
-            this.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
-            this.Name = "MainForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = Constants.Application.FullTitle;
-            this.Load += new System.EventHandler(this.MainForm_Load);
-            this.grpAdapterInfo.ResumeLayout(false);
-            this.grpAdapterInfo.PerformLayout();
-            this.tabControlMain.ResumeLayout(false);
-            this.tabPageIpConfig.ResumeLayout(false);
-            this.tabPageIpConfig.PerformLayout();
-            this.tabPagePingTest.ResumeLayout(false);
-            this.tabPageSubnetCalc.ResumeLayout(false);
-            this.tabPageTraceRoute.ResumeLayout(false);
-            this.ResumeLayout(false);
+            AutoScaleDimensions = new SizeF(13F, 28F);
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.FromArgb(245, 245, 245);
+            ClientSize = new Size(1114, 1269);
+            Controls.Add(tabControlMain);
+            Font = new Font("Microsoft YaHei UI", 9F);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            Margin = new Padding(6);
+            MaximizeBox = false;
+            Name = "MainForm";
+            StartPosition = FormStartPosition.CenterScreen;
+            Text = "NETKit v1.4";
+            Load += MainForm_Load;
+            grpAdapterInfo.ResumeLayout(false);
+            grpAdapterInfo.PerformLayout();
+            tabControlMain.ResumeLayout(false);
+            tabPageIpConfig.ResumeLayout(false);
+            tabPageIpConfig.PerformLayout();
+            tabPagePingTest.ResumeLayout(false);
+            tabPageSubnetCalc.ResumeLayout(false);
+            tabPageTraceRoute.ResumeLayout(false);
+            tabPageRouteManagement.ResumeLayout(false);
+            ResumeLayout(false);
         }
 
         #endregion
@@ -545,11 +609,13 @@ namespace NETKit.UI.Forms
         private System.Windows.Forms.TabPage tabPagePingTest;
         private System.Windows.Forms.TabPage tabPageSubnetCalc;
         private System.Windows.Forms.TabPage tabPageTraceRoute;
+        private System.Windows.Forms.TabPage tabPageRouteManagement;
         private Controls.ScanControlPanel scanControlPanel;
         private Controls.ScanStatisticsPanel scanStatisticsPanel;
         private Controls.IPGridControl ipGridControl;
         private Controls.SubnetCalculatorPanel subnetCalculatorPanel;
         private Controls.TraceRoutePanel traceRoutePanel;
+        private Controls.RouteManagementPanel routeManagementPanel;
         private System.Windows.Forms.CheckBox chkDhcp;
     }
 }

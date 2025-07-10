@@ -6,15 +6,17 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyTitle>NETKit v1.4</AssemblyTitle>
-    <Product>NETKit v1.4</Product>
+    <AssemblyTitle>NETKit v1.5</AssemblyTitle>
+    <Product>NETKit v1.5</Product>
     <Description>网络工程师专用的IP地址快速配置工具</Description>
     <Copyright>Copyright © 2025</Copyright>
-    <AssemblyVersion>1.4.0.0</AssemblyVersion>
-    <FileVersion>1.4.0.0</FileVersion>
-    <Version>1.4.0</Version>
+    <AssemblyVersion>1.5.0.0</AssemblyVersion>
+    <FileVersion>1.5.0.0</FileVersion>
+    <Version>1.5.0</Version>
     <!-- 应用程序清单文件 -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- 高DPI支持配置 -->
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <!-- 输出路径配置 -->
     <OutputPath>..\..\output\$(Configuration)\</OutputPath>
     <BaseOutputPath>..\..\output\</BaseOutputPath>
@@ -57,7 +59,11 @@
     </Compile>
   </ItemGroup>
 
+  <!-- MainForm 相关的资源文件配置 -->
   <ItemGroup>
+    <EmbeddedResource Update="UI\Forms\MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

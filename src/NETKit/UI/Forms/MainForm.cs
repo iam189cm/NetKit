@@ -19,7 +19,7 @@ namespace NETKit.UI.Forms
         private readonly NetworkConfigService _networkService;
         private readonly NetworkScanService _scanService;
         private CancellationTokenSource? _cancellationTokenSource;
-        
+
         // 实时验证定时器
         private System.Windows.Forms.Timer? _validationTimer;
         private TextBox? _lastChangedTextBox;
@@ -31,11 +31,11 @@ namespace NETKit.UI.Forms
         public MainForm()
         {
             InitializeComponent();
-            
+
             // 在构造函数中初始化readonly字段
             _networkService = new NetworkConfigService();
             _scanService = new NetworkScanService(new PingExecutionService());
-            
+
             InitializeServices();
             InitializeEventHandlers();
             InitializeInputValidation();
@@ -69,6 +69,9 @@ namespace NETKit.UI.Forms
             // 移除子网计算和路由跟踪面板的状态事件绑定，让它们独立处理状态
             // subnetCalculatorPanel.StatusUpdated += OnStatusUpdated;  // 已删除
             // traceRoutePanel.StatusUpdated += OnStatusUpdated;        // 已删除
+
+            // 路由管理面板事件绑定
+            routeManagementPanel.StatusUpdated += OnStatusUpdated;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -93,7 +96,7 @@ namespace NETKit.UI.Forms
         private void CheckAdministratorPrivileges()
         {
             bool isAdmin = SecurityHelper.IsRunAsAdministrator();
-            
+
             if (!isAdmin)
             {
                 UpdateStatus("程序需要管理员权限才能正常工作。请重新启动程序并允许UAC权限提升。", true);
@@ -172,7 +175,7 @@ namespace NETKit.UI.Forms
             {
                 btnApplyConfig.Enabled = enabled;
             }
-            
+
             btnRefreshAdapters.Enabled = enabled;
         }
 
@@ -225,5 +228,10 @@ namespace NETKit.UI.Forms
         }
 
         #endregion
+
+        private void routeManagementPanel_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
