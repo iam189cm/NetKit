@@ -58,15 +58,18 @@ namespace NETKit.UI.Forms
             this.tabPageIpConfig = new System.Windows.Forms.TabPage();
             this.tabPagePingTest = new System.Windows.Forms.TabPage();
             this.tabPageSubnetCalc = new System.Windows.Forms.TabPage();
+            this.tabPageTraceRoute = new System.Windows.Forms.TabPage();
             this.scanControlPanel = new NETKit.UI.Controls.ScanControlPanel();
             this.scanStatisticsPanel = new NETKit.UI.Controls.ScanStatisticsPanel();
             this.ipGridControl = new NETKit.UI.Controls.IPGridControl();
             this.subnetCalculatorPanel = new NETKit.UI.Controls.SubnetCalculatorPanel();
+            this.traceRoutePanel = new NETKit.UI.Controls.TraceRoutePanel();
             this.grpAdapterInfo.SuspendLayout();
             this.tabControlMain.SuspendLayout();
             this.tabPageIpConfig.SuspendLayout();
             this.tabPagePingTest.SuspendLayout();
             this.tabPageSubnetCalc.SuspendLayout();
+            this.tabPageTraceRoute.SuspendLayout();
             this.SuspendLayout();
             // 
             // lblNetworkAdapter
@@ -366,6 +369,7 @@ namespace NETKit.UI.Forms
             this.tabControlMain.Controls.Add(this.tabPageIpConfig);
             this.tabControlMain.Controls.Add(this.tabPagePingTest);
             this.tabControlMain.Controls.Add(this.tabPageSubnetCalc);
+            this.tabControlMain.Controls.Add(this.tabPageTraceRoute);
             this.tabControlMain.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControlMain.Location = new System.Drawing.Point(0, 0);
             this.tabControlMain.Name = "tabControlMain";
@@ -458,6 +462,17 @@ namespace NETKit.UI.Forms
             this.tabPageSubnetCalc.Text = "子网计算";
             this.tabPageSubnetCalc.UseVisualStyleBackColor = true;
             // 
+            // tabPageTraceRoute
+            // 
+            this.tabPageTraceRoute.Controls.Add(this.traceRoutePanel);
+            this.tabPageTraceRoute.Location = new System.Drawing.Point(4, 24);
+            this.tabPageTraceRoute.Name = "tabPageTraceRoute";
+            this.tabPageTraceRoute.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageTraceRoute.Size = new System.Drawing.Size(592, 652);
+            this.tabPageTraceRoute.TabIndex = 3;
+            this.tabPageTraceRoute.Text = "路由跟踪";
+            this.tabPageTraceRoute.UseVisualStyleBackColor = true;
+            // 
             // subnetCalculatorPanel
             // 
             this.subnetCalculatorPanel.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -465,6 +480,14 @@ namespace NETKit.UI.Forms
             this.subnetCalculatorPanel.Name = "subnetCalculatorPanel";
             this.subnetCalculatorPanel.Size = new System.Drawing.Size(586, 646);
             this.subnetCalculatorPanel.TabIndex = 0;
+            // 
+            // traceRoutePanel
+            // 
+            this.traceRoutePanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.traceRoutePanel.Location = new System.Drawing.Point(3, 3);
+            this.traceRoutePanel.Name = "traceRoutePanel";
+            this.traceRoutePanel.Size = new System.Drawing.Size(586, 646);
+            this.traceRoutePanel.TabIndex = 0;
             // 
             // MainForm
             // 
@@ -487,6 +510,7 @@ namespace NETKit.UI.Forms
             this.tabPageIpConfig.PerformLayout();
             this.tabPagePingTest.ResumeLayout(false);
             this.tabPageSubnetCalc.ResumeLayout(false);
+            this.tabPageTraceRoute.ResumeLayout(false);
             this.ResumeLayout(false);
         }
 
@@ -520,10 +544,12 @@ namespace NETKit.UI.Forms
         private System.Windows.Forms.TabPage tabPageIpConfig;
         private System.Windows.Forms.TabPage tabPagePingTest;
         private System.Windows.Forms.TabPage tabPageSubnetCalc;
+        private System.Windows.Forms.TabPage tabPageTraceRoute;
         private Controls.ScanControlPanel scanControlPanel;
         private Controls.ScanStatisticsPanel scanStatisticsPanel;
         private Controls.IPGridControl ipGridControl;
         private Controls.SubnetCalculatorPanel subnetCalculatorPanel;
+        private Controls.TraceRoutePanel traceRoutePanel;
         private System.Windows.Forms.CheckBox chkDhcp;
     }
 }

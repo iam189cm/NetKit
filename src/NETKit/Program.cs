@@ -1,3 +1,4 @@
+using System.Text;
 using NETKit.UI.Forms;
 using NETKit.Common;
 
@@ -11,6 +12,9 @@ namespace NETKit
         [STAThread]
         static void Main()
         {
+            // 注册编码提供程序，支持 GBK、GB2312 等编码
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            
             // 配置应用程序设置
             ApplicationConfiguration.Initialize();
             

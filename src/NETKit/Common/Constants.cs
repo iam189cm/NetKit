@@ -79,12 +79,17 @@ namespace NETKit.Common
             public static readonly System.Drawing.Color SuccessGreen = System.Drawing.Color.FromArgb(92, 184, 92);
             public static readonly System.Drawing.Color SuccessGreenHover = System.Drawing.Color.FromArgb(76, 174, 76);
             public static readonly System.Drawing.Color WarningOrange = System.Drawing.Color.FromArgb(240, 173, 78);
+            public static readonly System.Drawing.Color WarningRed = System.Drawing.Color.FromArgb(217, 83, 79);
             public static readonly System.Drawing.Color DangerRed = System.Drawing.Color.FromArgb(217, 83, 79);
             public static readonly System.Drawing.Color DangerRedHover = System.Drawing.Color.FromArgb(201, 48, 44);
             
             // 悬停和焦点效果
             public static readonly System.Drawing.Color HoverLight = System.Drawing.Color.FromArgb(248, 249, 250);
             public static readonly System.Drawing.Color FocusBorder = System.Drawing.Color.FromArgb(74, 144, 226);
+            
+            // 表格和选择相关颜色
+            public static readonly System.Drawing.Color SelectionBlue = System.Drawing.Color.FromArgb(74, 144, 226);
+            public static readonly System.Drawing.Color HeaderBackground = System.Drawing.Color.FromArgb(248, 249, 250);
             
             // 兼容性保持
             public static readonly System.Drawing.Color SecondaryGray = System.Drawing.Color.FromArgb(108, 117, 125);

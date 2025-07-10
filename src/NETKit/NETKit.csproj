@@ -38,6 +38,11 @@
     <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
+  <!-- NuGet 包依赖 -->
+  <ItemGroup>
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Update="UI\Controls\*.cs">
       <SubType>UserControl</SubType>

@@ -68,6 +68,9 @@ namespace NETKit.UI.Forms
 
             // 子网计算面板事件
             subnetCalculatorPanel.StatusUpdated += OnStatusUpdated;
+
+            // 路由跟踪面板事件
+            traceRoutePanel.StatusUpdated += OnStatusUpdated;
         }
 
         private void MainForm_Load(object sender, EventArgs e)
