@@ -6,13 +6,13 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyTitle>NETKit v1.5</AssemblyTitle>
-    <Product>NETKit v1.5</Product>
+    <AssemblyTitle>NETKit v1.5.1</AssemblyTitle>
+    <Product>NETKit v1.5.1</Product>
     <Description>网络工程师专用的IP地址快速配置工具</Description>
     <Copyright>Copyright © 2025</Copyright>
-    <AssemblyVersion>1.5.0.0</AssemblyVersion>
-    <FileVersion>1.5.0.0</FileVersion>
-    <Version>1.5.0</Version>
+    <AssemblyVersion>1.5.1.0</AssemblyVersion>
+    <FileVersion>1.5.1.0</FileVersion>
+    <Version>1.5.1</Version>
     <!-- 应用程序清单文件 -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- 高DPI支持配置 -->

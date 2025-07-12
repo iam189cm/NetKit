@@ -66,12 +66,15 @@ namespace NETKit.UI.Forms
             scanControlPanel.OnStartScan += ScanControlPanel_OnStartScan;
             scanControlPanel.OnStopScan += ScanControlPanel_OnStopScan;
 
+            // 标签页切换事件 - 用于路由管理面板懒加载
+            tabControlMain.SelectedIndexChanged += TabControlMain_SelectedIndexChanged;
+
             // 移除子网计算和路由跟踪面板的状态事件绑定，让它们独立处理状态
             // subnetCalculatorPanel.StatusUpdated += OnStatusUpdated;  // 已删除
             // traceRoutePanel.StatusUpdated += OnStatusUpdated;        // 已删除
 
-            // 路由管理面板事件绑定
-            routeManagementPanel.StatusUpdated += OnStatusUpdated;
+            // 路由管理面板事件绑定 - 已移除，让其状态独立处理，不显示在IP配置界面
+            // routeManagementPanel.StatusUpdated += OnStatusUpdated;   // 已删除
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -228,6 +231,27 @@ namespace NETKit.UI.Forms
         }
 
         #endregion
+
+        /// <summary>
+        /// 标签页切换事件处理 - 实现路由管理面板懒加载
+        /// </summary>
+        private async void TabControlMain_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            // 检查是否切换到路由管理标签页
+            if (tabControlMain.SelectedTab == tabPageRouteManagement)
+            {
+                try
+                {
+                    // 触发路由管理面板的懒加载
+                    await routeManagementPanel.EnsureDataLoaded();
+                }
+                catch (Exception ex)
+                {
+                    // 静默处理异常，避免影响用户体验
+                    System.Diagnostics.Debug.WriteLine($"路由管理面板加载失败: {ex.Message}");
+                }
+            }
+        }
 
         private void routeManagementPanel_Load(object sender, EventArgs e)
         {

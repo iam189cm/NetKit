@@ -564,7 +564,7 @@ namespace NETKit.UI.Forms
             MaximizeBox = false;
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "NETKit v1.4";
+            Text = "NETKit v1.5.1";
             Load += MainForm_Load;
             grpAdapterInfo.ResumeLayout(false);
             grpAdapterInfo.PerformLayout();

@@ -13,6 +13,7 @@ namespace NETKit.UI.Controls
         private readonly RouteManagementService _routeService;
         private List<RouteRule> _currentRoutes = new List<RouteRule>();
         private bool _isLoading = false;
+        private bool _isDataLoaded = false;
 
         public event Action<string, bool>? StatusUpdated;
 
@@ -48,11 +49,10 @@ namespace NETKit.UI.Controls
             btnRefreshRoutes.Click += BtnRefreshRoutes_Click;
             btnAddRoute.Click += BtnAddRoute_Click;
             btnDeleteRoute.Click += BtnDeleteRoute_Click;
-            btnClearInput.Click += BtnClearInput_Click;
             cmbAdapter.SelectedIndexChanged += CmbAdapter_SelectedIndexChanged;
             
-            // 初始加载路由表
-            _ = LoadRouteTableAsync();
+            // 移除自动加载，改为懒加载模式
+            ShowInitialLoadingHint();
         }
 
         /// <summary>
@@ -66,14 +66,24 @@ namespace NETKit.UI.Controls
             dgvRoutes.AllowUserToAddRows = false;
             dgvRoutes.AllowUserToDeleteRows = false;
             dgvRoutes.ReadOnly = true;
+            dgvRoutes.ScrollBars = ScrollBars.Vertical;
             
             // 添加列
             dgvRoutes.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "DestinationText",
-                HeaderText = "目标网段",
+                HeaderText = "网络目标",
                 DataPropertyName = "DestinationText",
-                Width = 200,
+                Width = 231,
+                ReadOnly = true
+            });
+            
+            dgvRoutes.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "SubnetMask",
+                HeaderText = "网络掩码",
+                DataPropertyName = "SubnetMask",
+                Width = 198,
                 ReadOnly = true
             });
             
@@ -82,25 +92,25 @@ namespace NETKit.UI.Controls
                 Name = "Gateway",
                 HeaderText = "网关",
                 DataPropertyName = "Gateway",
-                Width = 120,
+                Width = 169,
                 ReadOnly = true
             });
             
             dgvRoutes.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "InterfaceName",
-                HeaderText = "网卡",
+                HeaderText = "接口",
                 DataPropertyName = "InterfaceName",
-                Width = 200,
+                Width = 260,
                 ReadOnly = true
             });
             
             dgvRoutes.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "Metric",
-                HeaderText = "优先级",
+                HeaderText = "跃点数",
                 DataPropertyName = "Metric",
-                Width = 80,
+                Width = 118,
                 ReadOnly = true
             });
         }
@@ -148,6 +158,10 @@ namespace NETKit.UI.Controls
                 _isLoading = true;
                 SetButtonsEnabled(false);
                 
+                // 显示加载状态
+                lblRouteCount.Text = "正在加载路由表...";
+                lblConflictInfo.Visible = false;
+                
                 _currentRoutes = await _routeService.GetRouteTableAsync();
                 
                 // 更新UI
@@ -159,10 +173,14 @@ namespace NETKit.UI.Controls
                 
                 // 检测冲突
                 await CheckConflictsAsync();
+                
+                // 标记数据已加载
+                _isDataLoaded = true;
             }
             catch (Exception ex)
             {
                 OnStatusUpdated($"加载路由表失败: {ex.Message}", true);
+                lblRouteCount.Text = "加载失败，请点击刷新重试";
             }
             finally
             {
@@ -207,6 +225,8 @@ namespace NETKit.UI.Controls
         /// </summary>
         private async void BtnRefreshRoutes_Click(object? sender, EventArgs e)
         {
+            // 强制重新加载数据
+            _isDataLoaded = false;
             await LoadRouteTableAsync();
         }
 
@@ -220,14 +240,14 @@ namespace NETKit.UI.Controls
                 // 验证输入
                 if (string.IsNullOrWhiteSpace(txtDestination.Text))
                 {
-                    OnStatusUpdated("请输入目标网段", true);
+                    OnStatusUpdated("请输入网络目标", true);
                     txtDestination.Focus();
                     return;
                 }
                 
                 if (cmbAdapter.SelectedItem == null)
                 {
-                    OnStatusUpdated("请选择网卡", true);
+                    OnStatusUpdated("请选择接口", true);
                     cmbAdapter.Focus();
                     return;
                 }
@@ -240,7 +260,8 @@ namespace NETKit.UI.Controls
                 var routeRule = await _routeService.CreateRouteRuleAsync(
                     txtDestination.Text.Trim(),
                     selectedAdapter.Name,
-                    (int)numMetric.Value);
+                    (int)numMetric.Value,
+                    chkPersistent.Checked);
                 
                 if (routeRule == null)
                 {
@@ -253,7 +274,10 @@ namespace NETKit.UI.Controls
                 if (success)
                 {
                     // 清空输入
-                    ClearInputFields();
+                    txtDestination.Clear();
+                    numMetric.Value = 1;
+                    chkPersistent.Checked = false;
+                    txtDestination.Focus();
                     
                     // 刷新路由表
                     await LoadRouteTableAsync();
@@ -315,13 +339,7 @@ namespace NETKit.UI.Controls
             }
         }
 
-        /// <summary>
-        /// 清除输入按钮点击事件
-        /// </summary>
-        private void BtnClearInput_Click(object? sender, EventArgs e)
-        {
-            ClearInputFields();
-        }
+
 
         /// <summary>
         /// 网卡选择变化事件
@@ -331,19 +349,11 @@ namespace NETKit.UI.Controls
             if (cmbAdapter.SelectedItem is NetworkAdapterItem adapter)
             {
                 // 可以显示网卡的详细信息
-                OnStatusUpdated($"已选择网卡: {adapter.DisplayName}", false);
+                OnStatusUpdated($"已选择接口: {adapter.DisplayName}", false);
             }
         }
 
-        /// <summary>
-        /// 清空输入字段
-        /// </summary>
-        private void ClearInputFields()
-        {
-            txtDestination.Clear();
-            numMetric.Value = 1;
-            txtDestination.Focus();
-        }
+
 
         /// <summary>
         /// 设置按钮启用状态
@@ -354,7 +364,35 @@ namespace NETKit.UI.Controls
             btnRefreshRoutes.Enabled = enabled;
             btnAddRoute.Enabled = enabled;
             btnDeleteRoute.Enabled = enabled;
-            btnClearInput.Enabled = enabled;
+        }
+
+        /// <summary>
+        /// 显示初始加载提示
+        /// </summary>
+        private void ShowInitialLoadingHint()
+        {
+            lblRouteCount.Text = "点击刷新按钮或执行操作时将自动加载路由表";
+            lblConflictInfo.Visible = false;
+        }
+
+        /// <summary>
+        /// 确保数据已加载（懒加载）
+        /// </summary>
+        /// <returns>是否成功加载</returns>
+        public async Task<bool> EnsureDataLoaded()
+        {
+            if (_isDataLoaded) return true;
+            
+            try
+            {
+                await LoadRouteTableAsync();
+                return _isDataLoaded;
+            }
+            catch (Exception ex)
+            {
+                OnStatusUpdated($"加载路由表失败: {ex.Message}", true);
+                return false;
+            }
         }
 
         /// <summary>

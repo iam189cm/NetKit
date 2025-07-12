@@ -146,11 +146,12 @@ namespace NETKit.Core.Services
         /// <summary>
         /// 创建路由规则（从用户输入）
         /// </summary>
-        /// <param name="destinationInput">目标网段输入</param>
-        /// <param name="adapterName">选择的网卡名称</param>
-        /// <param name="metric">优先级</param>
+        /// <param name="destinationInput">网络目标输入</param>
+        /// <param name="adapterName">选择的网络接口名称</param>
+        /// <param name="metric">跃点数</param>
+        /// <param name="isPersistent">是否为永久路由</param>
         /// <returns>路由规则</returns>
-        public async Task<RouteRule?> CreateRouteRuleAsync(string destinationInput, string adapterName, int metric = 1)
+        public async Task<RouteRule?> CreateRouteRuleAsync(string destinationInput, string adapterName, int metric = 1, bool isPersistent = false)
         {
             try
             {
@@ -158,7 +159,7 @@ namespace NETKit.Core.Services
                 var adapterInfo = _adapterService.GetAdapterDetails(adapterName);
                 if (adapterInfo == null)
                 {
-                    OnStatusUpdated($"未找到网卡: {adapterName}", true);
+                    OnStatusUpdated($"未找到网络接口: {adapterName}", true);
                     return null;
                 }
 
@@ -166,11 +167,11 @@ namespace NETKit.Core.Services
                 string gateway = adapterInfo.CurrentGateway;
                 if (string.IsNullOrEmpty(gateway) || gateway == "未配置")
                 {
-                    OnStatusUpdated($"网卡 {adapterName} 未配置网关", true);
+                    OnStatusUpdated($"网络接口 {adapterName} 未配置网关", true);
                     return null;
                 }
 
-                // 解析目标网段
+                // 解析网络目标
                 string destination, mask;
                 if (destinationInput.Contains('/'))
                 {
@@ -198,8 +199,9 @@ namespace NETKit.Core.Services
                     return null;
                 }
 
-                var routeRule = new RouteRule(destination, mask, gateway, adapterName, metric);
-                OnStatusUpdated($"创建路由规则: {routeRule.DestinationText} -> {gateway} (通过 {adapterName})", false);
+                var routeRule = new RouteRule(destination, mask, gateway, adapterName, metric, isPersistent);
+                string routeType = isPersistent ? "永久路由" : "临时路由";
+                OnStatusUpdated($"创建{routeType}规则: {routeRule.DestinationText} -> {gateway} (通过 {adapterName})", false);
                 
                 return routeRule;
             }
@@ -220,7 +222,7 @@ namespace NETKit.Core.Services
         }
 
         /// <summary>
-        /// 检测多网卡冲突情况
+        /// 检测多网络接口冲突情况
         /// </summary>
         /// <returns>冲突检测结果</returns>
         public async Task<MultiAdapterConflictResult> DetectMultiAdapterConflictAsync()
@@ -242,14 +244,14 @@ namespace NETKit.Core.Services
                     result.HasConflict = true;
                     result.ConflictDescription = $"发现 {defaultRoutes.Count} 个默认路由，可能导致网络访问问题";
                     
-                    // 分析网卡类型
+                    // 分析网络接口类型
                     var wiredRoutes = defaultRoutes.Where(r => IsWiredAdapter(r.InterfaceName, adapters)).ToList();
                     var wirelessRoutes = defaultRoutes.Where(r => IsWirelessAdapter(r.InterfaceName, adapters)).ToList();
                     
                     if (wiredRoutes.Any() && wirelessRoutes.Any())
                     {
                         result.ConflictType = "有线+无线冲突";
-                        result.SuggestedSolution = "建议将公网流量路由到无线网卡，内网流量路由到有线网卡";
+                        result.SuggestedSolution = "建议将公网流量路由到无线接口，内网流量路由到有线接口";
                     }
                 }
 
@@ -257,7 +259,7 @@ namespace NETKit.Core.Services
             }
             catch (Exception ex)
             {
-                OnStatusUpdated($"检测多网卡冲突时发生错误: {ex.Message}", true);
+                OnStatusUpdated($"检测多网络接口冲突时发生错误: {ex.Message}", true);
                 return new MultiAdapterConflictResult { HasConflict = false };
             }
         }
@@ -358,7 +360,7 @@ namespace NETKit.Core.Services
                     
                     if (int.TryParse(parts[4], out int metric))
                     {
-                        // 通过接口IP查找网卡名称
+                        // 通过接口IP查找网络接口名称
                         string interfaceName = GetInterfaceNameByIP(interfaceIP);
                         
                         var route = new RouteRule(destination, netmask, gateway, interfaceName, metric);
@@ -384,10 +386,10 @@ namespace NETKit.Core.Services
         }
 
         /// <summary>
-        /// 通过IP地址查找网卡名称
+        /// 通过IP地址查找网络接口名称
         /// </summary>
         /// <param name="interfaceIP">接口IP地址</param>
-        /// <returns>网卡名称</returns>
+        /// <returns>网络接口名称</returns>
         private string GetInterfaceNameByIP(string interfaceIP)
         {
             try
@@ -403,11 +405,11 @@ namespace NETKit.Core.Services
         }
 
         /// <summary>
-        /// 判断是否为有线网卡
+        /// 判断是否为有线网络接口
         /// </summary>
-        /// <param name="interfaceName">网卡名称</param>
-        /// <param name="adapters">网卡列表</param>
-        /// <returns>是否为有线网卡</returns>
+        /// <param name="interfaceName">网络接口名称</param>
+        /// <param name="adapters">网络接口列表</param>
+        /// <returns>是否为有线网络接口</returns>
         private bool IsWiredAdapter(string interfaceName, List<NetworkAdapterItem> adapters)
         {
             var adapter = adapters.FirstOrDefault(a => a.Name == interfaceName);
@@ -415,11 +417,11 @@ namespace NETKit.Core.Services
         }
 
         /// <summary>
-        /// 判断是否为无线网卡
+        /// 判断是否为无线网络接口
         /// </summary>
-        /// <param name="interfaceName">网卡名称</param>
-        /// <param name="adapters">网卡列表</param>
-        /// <returns>是否为无线网卡</returns>
+        /// <param name="interfaceName">网络接口名称</param>
+        /// <param name="adapters">网络接口列表</param>
+        /// <returns>是否为无线网络接口</returns>
         private bool IsWirelessAdapter(string interfaceName, List<NetworkAdapterItem> adapters)
         {
             var adapter = adapters.FirstOrDefault(a => a.Name == interfaceName);
@@ -452,7 +454,7 @@ namespace NETKit.Core.Services
     }
 
     /// <summary>
-    /// 多网卡冲突检测结果
+    /// 多网络接口冲突检测结果
     /// </summary>
     public class MultiAdapterConflictResult
     {

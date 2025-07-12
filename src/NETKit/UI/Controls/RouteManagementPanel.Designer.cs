@@ -31,8 +31,8 @@ namespace NETKit.UI.Controls
             lblDestination = new Label();
             txtDestination = new TextBox();
             btnAddRoute = new Button();
-            btnClearInput = new Button();
             lblDestinationHint = new Label();
+            chkPersistent = new CheckBox();
             grpRouteTable.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvRoutes).BeginInit();
             grpAddRoute.SuspendLayout();
@@ -115,7 +115,7 @@ namespace NETKit.UI.Controls
             grpAddRoute.Controls.Add(lblDestination);
             grpAddRoute.Controls.Add(txtDestination);
             grpAddRoute.Controls.Add(btnAddRoute);
-            grpAddRoute.Controls.Add(btnClearInput);
+            grpAddRoute.Controls.Add(chkPersistent);
             grpAddRoute.Location = new Point(6, 392);
             grpAddRoute.Name = "grpAddRoute";
             grpAddRoute.Size = new Size(574, 120);
@@ -130,7 +130,7 @@ namespace NETKit.UI.Controls
             lblMetric.Name = "lblMetric";
             lblMetric.Size = new Size(56, 17);
             lblMetric.TabIndex = 7;
-            lblMetric.Text = "优先级:";
+            lblMetric.Text = "跃点数:";
             // 
             // numMetric
             // 
@@ -149,7 +149,7 @@ namespace NETKit.UI.Controls
             lblAdapter.Name = "lblAdapter";
             lblAdapter.Size = new Size(68, 17);
             lblAdapter.TabIndex = 5;
-            lblAdapter.Text = "选择网卡:";
+            lblAdapter.Text = "选择接口:";
             // 
             // cmbAdapter
             // 
@@ -169,7 +169,7 @@ namespace NETKit.UI.Controls
             lblDestination.Name = "lblDestination";
             lblDestination.Size = new Size(68, 17);
             lblDestination.TabIndex = 3;
-            lblDestination.Text = "目标网段:";
+            lblDestination.Text = "网络目标:";
             // 
             // txtDestination
             // 
@@ -178,6 +178,16 @@ namespace NETKit.UI.Controls
             txtDestination.PlaceholderText = "例如: 192.168.1.0/24 或 8.8.8.8";
             txtDestination.Size = new Size(280, 23);
             txtDestination.TabIndex = 2;
+            // 
+            // chkPersistent
+            // 
+            chkPersistent.AutoSize = true;
+            chkPersistent.Location = new Point(450, 55);
+            chkPersistent.Name = "chkPersistent";
+            chkPersistent.Size = new Size(88, 21);
+            chkPersistent.TabIndex = 8;
+            chkPersistent.Text = "永久路由";
+            chkPersistent.UseVisualStyleBackColor = true;
             // 
             // btnAddRoute
             // 
@@ -188,16 +198,7 @@ namespace NETKit.UI.Controls
             btnAddRoute.TabIndex = 1;
             btnAddRoute.Text = "添加";
             btnAddRoute.UseVisualStyleBackColor = true;
-            // 
-            // btnClearInput
-            // 
-            btnClearInput.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnClearInput.Location = new Point(493, 83);
-            btnClearInput.Name = "btnClearInput";
-            btnClearInput.Size = new Size(75, 23);
-            btnClearInput.TabIndex = 0;
-            btnClearInput.Text = "清除";
-            btnClearInput.UseVisualStyleBackColor = true;
+
             // 
             // lblDestinationHint
             // 
@@ -236,7 +237,6 @@ namespace NETKit.UI.Controls
         private Label lblDestination;
         private TextBox txtDestination;
         private Button btnAddRoute;
-        private Button btnClearInput;
         private Label lblAdapter;
         private ComboBox cmbAdapter;
         private Label lblMetric;
@@ -244,5 +244,6 @@ namespace NETKit.UI.Controls
         private Label lblRouteCount;
         private Label lblConflictInfo;
         private Label lblDestinationHint;
+        private CheckBox chkPersistent;
     }
 } 
