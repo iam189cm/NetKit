@@ -17,6 +17,14 @@ namespace NETKit.UI.Forms
         {
             try
             {
+                // 记住当前选择的网卡名称
+                string selectedAdapterName = null;
+                var currentSelected = cmbNetworkAdapters.SelectedItem as NetworkAdapterItem;
+                if (currentSelected != null)
+                {
+                    selectedAdapterName = currentSelected.Name;
+                }
+
                 cmbNetworkAdapters.Items.Clear();
                 var adapters = _networkService.GetNetworkAdapters(chkShowAllAdapters.Checked);
 
@@ -27,7 +35,22 @@ namespace NETKit.UI.Forms
 
                 if (cmbNetworkAdapters.Items.Count > 0)
                 {
-                    cmbNetworkAdapters.SelectedIndex = 0;
+                    // 尝试找到之前选择的网卡
+                    int indexToSelect = 0;
+                    if (!string.IsNullOrEmpty(selectedAdapterName))
+                    {
+                        for (int i = 0; i < cmbNetworkAdapters.Items.Count; i++)
+                        {
+                            var adapter = cmbNetworkAdapters.Items[i] as NetworkAdapterItem;
+                            if (adapter != null && adapter.Name == selectedAdapterName)
+                            {
+                                indexToSelect = i;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    cmbNetworkAdapters.SelectedIndex = indexToSelect;
                 }
             }
             catch (Exception ex)

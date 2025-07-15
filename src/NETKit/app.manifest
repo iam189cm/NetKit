@@ -23,6 +23,13 @@
     </security>
   </trustInfo>
 
+  <!-- DPI感知配置 - 禁用DPI适配 -->
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">false</dpiAware>
+    </windowsSettings>
+  </application>
+
   <!-- 应用程序兼容性 -->
   <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
     <application>

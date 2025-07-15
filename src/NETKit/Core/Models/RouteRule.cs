@@ -23,14 +23,19 @@ namespace NETKit.Core.Models
         public string Gateway { get; set; } = string.Empty;
 
         /// <summary>
-        /// 网卡接口名称
+        /// 网络接口名称
         /// </summary>
         public string InterfaceName { get; set; } = string.Empty;
 
         /// <summary>
-        /// 路由优先级(Metric值，数值越小优先级越高)
+        /// 路由跃点数(Metric值，数值越小优先级越高)
         /// </summary>
         public int Metric { get; set; } = 1;
+
+        /// <summary>
+        /// 是否为永久路由(重启后仍然有效)
+        /// </summary>
+        public bool IsPersistent { get; set; } = false;
 
         /// <summary>
         /// 是否为默认路由
@@ -38,7 +43,7 @@ namespace NETKit.Core.Models
         public bool IsDefaultRoute => DestinationNetwork == "0.0.0.0" && SubnetMask == "0.0.0.0";
 
         /// <summary>
-        /// 显示用的目标网段文本
+        /// 显示用的网络目标文本
         /// </summary>
         public string DestinationText
         {
@@ -79,27 +84,30 @@ namespace NETKit.Core.Models
         /// <param name="destination">目标网络</param>
         /// <param name="mask">子网掩码</param>
         /// <param name="gateway">网关</param>
-        /// <param name="interfaceName">网卡名称</param>
-        /// <param name="metric">优先级</param>
-        public RouteRule(string destination, string mask, string gateway, string interfaceName, int metric = 1)
+        /// <param name="interfaceName">网络接口名称</param>
+        /// <param name="metric">跃点数</param>
+        /// <param name="isPersistent">是否为永久路由</param>
+        public RouteRule(string destination, string mask, string gateway, string interfaceName, int metric = 1, bool isPersistent = false)
         {
             DestinationNetwork = destination;
             SubnetMask = mask;
             Gateway = gateway;
             InterfaceName = interfaceName;
             Metric = metric;
+            IsPersistent = isPersistent;
         }
 
         /// <summary>
         /// 创建默认路由
         /// </summary>
         /// <param name="gateway">网关</param>
-        /// <param name="interfaceName">网卡名称</param>
-        /// <param name="metric">优先级</param>
+        /// <param name="interfaceName">网络接口名称</param>
+        /// <param name="metric">跃点数</param>
+        /// <param name="isPersistent">是否为永久路由</param>
         /// <returns>默认路由规则</returns>
-        public static RouteRule CreateDefaultRoute(string gateway, string interfaceName, int metric = 1)
+        public static RouteRule CreateDefaultRoute(string gateway, string interfaceName, int metric = 1, bool isPersistent = false)
         {
-            return new RouteRule("0.0.0.0", "0.0.0.0", gateway, interfaceName, metric);
+            return new RouteRule("0.0.0.0", "0.0.0.0", gateway, interfaceName, metric, isPersistent);
         }
 
         /// <summary>
@@ -107,10 +115,11 @@ namespace NETKit.Core.Models
         /// </summary>
         /// <param name="cidrNetwork">CIDR格式网络(如192.168.1.0/24)</param>
         /// <param name="gateway">网关</param>
-        /// <param name="interfaceName">网卡名称</param>
-        /// <param name="metric">优先级</param>
+        /// <param name="interfaceName">网络接口名称</param>
+        /// <param name="metric">跃点数</param>
+        /// <param name="isPersistent">是否为永久路由</param>
         /// <returns>路由规则</returns>
-        public static RouteRule CreateFromCidr(string cidrNetwork, string gateway, string interfaceName, int metric = 1)
+        public static RouteRule CreateFromCidr(string cidrNetwork, string gateway, string interfaceName, int metric = 1, bool isPersistent = false)
         {
             var parts = cidrNetwork.Split('/');
             if (parts.Length != 2 || !int.TryParse(parts[1], out int cidr))
@@ -121,7 +130,7 @@ namespace NETKit.Core.Models
             string network = parts[0];
             string mask = GetMaskFromCidr(cidr);
             
-            return new RouteRule(network, mask, gateway, interfaceName, metric);
+            return new RouteRule(network, mask, gateway, interfaceName, metric, isPersistent);
         }
 
         /// <summary>
@@ -140,7 +149,7 @@ namespace NETKit.Core.Models
                 return new ValidationResult(false, "网关不能为空");
 
             if (string.IsNullOrWhiteSpace(InterfaceName))
-                return new ValidationResult(false, "网卡接口不能为空");
+                return new ValidationResult(false, "网络接口不能为空");
 
             if (!IPAddress.TryParse(DestinationNetwork, out _))
                 return new ValidationResult(false, "目标网络地址格式不正确");
@@ -152,7 +161,7 @@ namespace NETKit.Core.Models
                 return new ValidationResult(false, "网关地址格式不正确");
 
             if (Metric < 1 || Metric > 9999)
-                return new ValidationResult(false, "优先级必须在1-9999之间");
+                return new ValidationResult(false, "跃点数必须在1-9999之间");
 
             return new ValidationResult(true, "路由规则验证通过");
         }
@@ -163,7 +172,8 @@ namespace NETKit.Core.Models
         /// <returns>route命令参数</returns>
         public string ToRouteCommand()
         {
-            return $"add {DestinationNetwork} mask {SubnetMask} {Gateway} metric {Metric}";
+            string persistentFlag = IsPersistent ? "-p " : "";
+            return $"{persistentFlag}add {DestinationNetwork} mask {SubnetMask} {Gateway} metric {Metric}";
         }
 
         /// <summary>

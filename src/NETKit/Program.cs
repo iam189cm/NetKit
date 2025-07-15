@@ -15,7 +15,8 @@ namespace NETKit
             // 注册编码提供程序，支持 GBK、GB2312 等编码
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             
-            // 配置应用程序设置
+            // 配置应用程序设置 - 禁用DPI感知
+            Application.SetHighDpiMode(HighDpiMode.DpiUnaware);
             ApplicationConfiguration.Initialize();
             
             // 设置应用程序标题

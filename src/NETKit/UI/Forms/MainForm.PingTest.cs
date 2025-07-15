@@ -34,11 +34,13 @@ namespace NETKit.UI.Forms
             }
             catch (TaskCanceledException)
             {
-                UpdateStatus("扫描已由用户取消。", false);
+                // 扫描取消消息不显示在IP配置界面，ping测试界面有自己的状态显示
+                // UpdateStatus("扫描已由用户取消。", false);
             }
             catch (Exception ex)
             {
-                UpdateStatus($"扫描时发生未知错误: {ex.Message}", true);
+                // 扫描错误消息不显示在IP配置界面，ping测试界面有自己的状态显示
+                // UpdateStatus($"扫描时发生未知错误: {ex.Message}", true);
             }
             finally
             {
@@ -86,7 +88,8 @@ namespace NETKit.UI.Forms
             {
                 scanStatisticsPanel.CompleteScan(result);
             }
-            UpdateStatus("扫描完成。", false);
+            // 扫描完成消息不显示在IP配置界面，ping测试界面有自己的统计面板显示状态
+            // UpdateStatus("扫描完成。", false);
         }
 
         /// <summary>
