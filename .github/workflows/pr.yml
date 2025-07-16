@@ -2,7 +2,7 @@ name: Pull Request Check
 
 on:
   pull_request:
-    branches: [ master, dev ]
+    branches: [ main, dev ]
 
 jobs:
   check:
@@ -39,17 +39,16 @@ jobs:
     - name: Build test
       run: |
         echo "🔨 Testing build process..."
-        pyinstaller scripts/netkit_onefile.spec --distpath temp_dist
-        if (Test-Path "temp_dist/NetKit.exe") {
-          Write-Host "✅ Build test passed"
-        } else {
-          Write-Host "❌ Build test failed"
+        python scripts/build.py
+        if [ -f "dist/NetKit.exe" ]; then
+          echo "✅ Build test passed"
+        else
+          echo "❌ Build test failed"
           exit 1
-        }
-      shell: powershell
+        fi
+      shell: bash
       
     - name: Cleanup
       run: |
-        Remove-Item -Recurse -Force temp_dist -ErrorAction SilentlyContinue
-        Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
-      shell: powershell 
+        rm -rf dist build __pycache__ *.pyc
+      shell: bash 

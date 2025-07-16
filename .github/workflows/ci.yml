@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ master, dev ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
   release:
     types: [ published ]
 
@@ -92,51 +92,20 @@ jobs:
         
     - name: Build executable
       run: |
-        Write-Host "Building NetKit executable..."
-        Write-Host "Current directory: $(Get-Location)"
-        
-        Write-Host "Checking scripts directory..."
-        if (Test-Path "scripts/") {
-          Write-Host "Scripts directory exists"
-          Write-Host "Files in scripts directory:"
-          Get-ChildItem scripts/ -Force | Select-Object Name, Length, LastWriteTime
-        } else {
-          Write-Host "Scripts directory does not exist!"
-          exit 1
-        }
-        
-        Write-Host "Checking spec file..."
-        if (Test-Path "scripts/netkit_onefile.spec") {
-          Write-Host "Spec file exists"
-        } else {
-          Write-Host "Spec file does not exist!"
-          exit 1
-        }
-        
-        Write-Host "Running PyInstaller..."
-        pyinstaller scripts/netkit_onefile.spec --log-level=INFO
-        
-        Write-Host "Checking build results..."
-        if (Test-Path "dist/") {
-          Write-Host "Dist directory contents:"
-          Get-ChildItem dist/ -Force | Select-Object Name, Length, LastWriteTime
-        } else {
-          Write-Host "Dist directory does not exist!"
-          exit 1
-        }
-      shell: powershell
+        python scripts/build.py
       
     - name: Test executable
       run: |
-        if (Test-Path "dist/NetKit.exe") {
-          Write-Host "✅ NetKit executable built successfully"
-          $fileSize = (Get-Item "dist/NetKit.exe").Length / 1MB
-          Write-Host "📦 File size: $([math]::Round($fileSize, 1)) MB"
-        } else {
-          Write-Host "❌ Netkit executable build failed"
+        if [ -f "dist/NetKit.exe" ]; then
+          echo "✅ NetKit executable built successfully"
+          file_size=$(stat -c%s "dist/NetKit.exe" 2>/dev/null || stat -f%z "dist/NetKit.exe" 2>/dev/null || echo "0")
+          file_size_mb=$(echo "scale=1; $file_size / 1048576" | bc -l 2>/dev/null || echo "Unknown")
+          echo "📦 File size: ${file_size_mb} MB"
+        else
+          echo "❌ NetKit executable build failed"
           exit 1
-        }
-      shell: powershell
+        fi
+      shell: bash
       
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
@@ -170,7 +139,7 @@ jobs:
   security:
     name: Security Scan
     runs-on: windows-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
     - name: Checkout code

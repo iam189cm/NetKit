@@ -38,52 +38,19 @@ jobs:
         
     - name: Build executable
       run: |
-        Write-Host "Building NetKit executable..."
-        Write-Host "Current directory: $(Get-Location)"
-        Write-Host "Files in current directory:"
-        Get-ChildItem -Force | Select-Object Name, Length, LastWriteTime
-        
-        Write-Host "Checking scripts directory..."
-        if (Test-Path "scripts/") {
-          Write-Host "Scripts directory exists"
-          Write-Host "Files in scripts directory:"
-          Get-ChildItem scripts/ -Force | Select-Object Name, Length, LastWriteTime
-        } else {
-          Write-Host "Scripts directory does not exist!"
-          exit 1
-        }
-        
-        Write-Host "Checking spec file..."
-        if (Test-Path "scripts/netkit_onefile.spec") {
-          Write-Host "Spec file exists"
-        } else {
-          Write-Host "Spec file does not exist!"
-          exit 1
-        }
-        
-        Write-Host "Running PyInstaller..."
-        pyinstaller scripts/netkit_onefile.spec --log-level=DEBUG
-        
-        Write-Host "Checking build results..."
-        if (Test-Path "dist/") {
-          Write-Host "Dist directory contents:"
-          Get-ChildItem dist/ -Force | Select-Object Name, Length, LastWriteTime
-        } else {
-          Write-Host "Dist directory does not exist!"
-          exit 1
-        }
-      shell: powershell
+        python scripts/build.py
         
     - name: Verify build
       run: |
-        if (Test-Path "dist/NetKit.exe") {
-          $fileSize = (Get-Item "dist/NetKit.exe").Length / 1MB
-          Write-Host "Build successful! File size: $([math]::Round($fileSize, 1)) MB"
-        } else {
-          Write-Host "Build failed!"
+        if [ -f "dist/NetKit.exe" ]; then
+          file_size=$(stat -c%s "dist/NetKit.exe" 2>/dev/null || stat -f%z "dist/NetKit.exe" 2>/dev/null || echo "0")
+          file_size_mb=$(echo "scale=1; $file_size / 1048576" | bc -l 2>/dev/null || echo "Unknown")
+          echo "Build successful! File size: ${file_size_mb} MB"
+        else
+          echo "Build failed!"
           exit 1
-        }
-      shell: powershell
+        fi
+      shell: bash
       
     - name: Create Release
       env:
