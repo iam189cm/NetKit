@@ -1,0 +1,117 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'  # 当推送版本标签时触发
+  release:
+    types: [published, created]  # 监听release事件
+  workflow_dispatch:  # 支持手动触发
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write  # 允许创建release和上传文件
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Build executable
+      run: |
+        Write-Host "Building Netkit executable..."
+        Write-Host "Current directory: $(Get-Location)"
+        Write-Host "Files in current directory:"
+        Get-ChildItem -Force
+        Write-Host "Files in scripts directory:"
+        Get-ChildItem scripts/ -Force
+        Write-Host "Running PyInstaller..."
+        pyinstaller scripts/netkit_onefile.spec
+      shell: powershell
+        
+    - name: Verify build
+      run: |
+        if (Test-Path "dist/NETKit-Py.exe") {
+          $fileSize = (Get-Item "dist/NETKit-Py.exe").Length / 1MB
+          Write-Host "Build successful! File size: $([math]::Round($fileSize, 1)) MB"
+        } else {
+          Write-Host "Build failed!"
+          exit 1
+        }
+      shell: powershell
+      
+    - name: Create Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # 获取标签名称
+        if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+          $tag = "${{ github.event.inputs.tag }}"
+        } else {
+          $tag = "${{ github.ref_name }}"
+        }
+        
+        $buildTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        $commitSha = "${{ github.sha }}"
+        
+        $releaseBody = @"
+## Netkit Release $tag
+
+### 下载
+- **NETKit-Py.exe** - 单文件可执行程序 (约16MB)
+
+### 使用说明
+1. 下载 NETKit-Py.exe 文件
+2. 右键选择"以管理员身份运行"
+3. 开始使用网络工具功能
+
+### 系统要求
+- Windows 10/11
+- 管理员权限（推荐）
+
+### 功能特性
+- IP地址快速切换
+- Ping测试工具
+- 子网计算器
+- 路由追踪
+- 静态路由管理
+
+---
+
+**自动构建时间**: $buildTime
+**构建版本**: $commitSha
+"@
+        
+        # 只有在推送标签或手动触发时才创建Release
+        if ("${{ github.event_name }}" -eq "push" -or "${{ github.event_name }}" -eq "workflow_dispatch") {
+          gh release create $tag dist/NETKit-Py.exe --title "Netkit $tag" --notes $releaseBody
+        } else {
+          # 对于release事件，只上传文件到已存在的release
+          gh release upload $tag dist/NETKit-Py.exe --clobber
+        }
+        
+        # 上传使用说明文档
+        if (Test-Path "docs/使用说明_单文件版本.md") {
+          gh release upload $tag "docs/使用说明_单文件版本.md" --clobber
+        }
+      shell: powershell 
+# End of file 

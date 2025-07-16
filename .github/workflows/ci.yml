@@ -1,0 +1,172 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ master, dev ]
+  pull_request:
+    branches: [ master ]
+  release:
+    types: [ published ]
+
+permissions:
+  contents: write  # 允许上传文件到release
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov
+        
+    - name: Run tests
+      run: |
+        pytest tests/ -v --cov=netkit --cov=gui
+        
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: success()
+
+  lint:
+    name: Code Quality Check
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install linting tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort
+        
+    - name: Run Black (Code Formatting)
+      run: black --check --diff .
+      continue-on-error: true
+      
+    - name: Run isort (Import Sorting)
+      run: isort --check-only --diff .
+      continue-on-error: true
+      
+    - name: Run Flake8 (Linting)
+      run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      continue-on-error: true
+
+  build:
+    name: Build Executable
+    runs-on: windows-latest
+    needs: [test, lint]
+    if: github.event_name == 'push' || github.event_name == 'release'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Build executable
+      run: |
+        pyinstaller scripts/netkit_onefile.spec
+        
+    - name: Test executable
+      run: |
+        if (Test-Path "dist/NETKit-Py.exe") {
+          Write-Host "✅ Netkit executable built successfully"
+          $fileSize = (Get-Item "dist/NETKit-Py.exe").Length / 1MB
+          Write-Host "📦 File size: $([math]::Round($fileSize, 1)) MB"
+        } else {
+          Write-Host "❌ Netkit executable build failed"
+          exit 1
+        }
+      shell: powershell
+      
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Netkit-${{ github.sha }}
+        path: dist/NETKit-Py.exe
+        retention-days: 30
+
+  release:
+    name: Upload to Release
+    runs-on: windows-latest
+    needs: [build]
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: Netkit-${{ github.sha }}
+        path: ./dist/
+        
+    - name: Upload Release Asset
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release upload ${{ github.event.release.tag_name }} ./dist/NETKit-Py.exe --clobber
+
+  security:
+    name: Security Scan
+    runs-on: windows-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit safety
+        
+    - name: Run Bandit (Security Linting)
+      run: bandit -r netkit/ gui/ -f json -o bandit-report.json
+      continue-on-error: true
+      
+    - name: Run Safety (Dependency Security)
+      run: safety check --json --output safety-report.json
+      continue-on-error: true
+      
+    - name: Upload security reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+        retention-days: 30 
