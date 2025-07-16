@@ -1,0 +1,10 @@
+
+[project]
+name = "netkit_py"
+version = "0.1.0"
+description = "Network engineer toolbox in Python"
+authors = [{name = "小白程序员"}]
+dependencies = ["ttkbootstrap", "psutil"]
+
+[tool.pyinstaller]
+specpath = "."
