@@ -28,13 +28,14 @@ jobs:
     - name: Build executable
       run: |
         echo "🔨 Building NETKit-Py executable..."
-        echo "Current directory: $(pwd)"
-        echo "Files in current directory:"
-        ls -la
-        echo "Files in scripts directory:"
-        ls -la scripts/
-        echo "Running PyInstaller..."
+        Write-Host "Current directory: $(Get-Location)"
+        Write-Host "Files in current directory:"
+        Get-ChildItem -Force
+        Write-Host "Files in scripts directory:"
+        Get-ChildItem scripts/ -Force
+        Write-Host "Running PyInstaller..."
         pyinstaller scripts/netkit_onefile.spec
+      shell: powershell
         
     - name: Verify build
       run: |
