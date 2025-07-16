@@ -127,14 +127,10 @@ jobs:
         path: ./dist/
         
     - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: ./dist/NETKit-Py.exe
-        asset_name: NETKit-Py.exe
-        asset_content_type: application/octet-stream
+      run: |
+        gh release upload ${{ github.event.release.tag_name }} ./dist/NETKit-Py.exe --clobber
 
   security:
     name: Security Scan
