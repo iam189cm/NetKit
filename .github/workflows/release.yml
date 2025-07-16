@@ -113,5 +113,5 @@ jobs:
         if (Test-Path "docs/使用说明_单文件版本.md") {
           gh release upload $tag "docs/使用说明_单文件版本.md" --clobber
         }
-      shell: powershell 
-# End of file 
+      shell: powershell
+# End of file
