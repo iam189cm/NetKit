@@ -92,8 +92,40 @@ jobs:
         
     - name: Build executable
       run: |
-        pyinstaller scripts/netkit_onefile.spec
+        Write-Host "Building NetKit executable..."
+        Write-Host "Current directory: $(Get-Location)"
         
+        Write-Host "Checking scripts directory..."
+        if (Test-Path "scripts/") {
+          Write-Host "Scripts directory exists"
+          Write-Host "Files in scripts directory:"
+          Get-ChildItem scripts/ -Force | Select-Object Name, Length, LastWriteTime
+        } else {
+          Write-Host "Scripts directory does not exist!"
+          exit 1
+        }
+        
+        Write-Host "Checking spec file..."
+        if (Test-Path "scripts/netkit_onefile.spec") {
+          Write-Host "Spec file exists"
+        } else {
+          Write-Host "Spec file does not exist!"
+          exit 1
+        }
+        
+        Write-Host "Running PyInstaller..."
+        pyinstaller scripts/netkit_onefile.spec --log-level=INFO
+        
+        Write-Host "Checking build results..."
+        if (Test-Path "dist/") {
+          Write-Host "Dist directory contents:"
+          Get-ChildItem dist/ -Force | Select-Object Name, Length, LastWriteTime
+        } else {
+          Write-Host "Dist directory does not exist!"
+          exit 1
+        }
+      shell: powershell
+      
     - name: Test executable
       run: |
         if (Test-Path "dist/NetKit.exe") {
@@ -110,7 +142,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Netkit-${{ github.sha }}
-        path: dist/NETKit-Py.exe
+        path: dist/NetKit.exe
         retention-days: 30
 
   release:
@@ -133,7 +165,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release upload ${{ github.event.release.tag_name }} ./dist/NETKit-Py.exe --clobber
+        gh release upload ${{ github.event.release.tag_name }} ./dist/NetKit.exe --clobber
 
   security:
     name: Security Scan
