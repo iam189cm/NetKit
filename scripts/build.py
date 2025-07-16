@@ -102,13 +102,21 @@ def build_executable():
     print("Building executable...")
     
     # 检查spec文件是否存在
-    spec_file = Path('scripts/netkit_onefile.spec')
+    spec_file = Path('scripts') / 'netkit_onefile.spec'
     if not spec_file.exists():
         print(f"Error: {spec_file} not found!")
+        print(f"Current working directory: {os.getcwd()}")
+        print("Files in scripts directory:")
+        scripts_dir = Path('scripts')
+        if scripts_dir.exists():
+            for file in scripts_dir.iterdir():
+                print(f"  {file.name}")
+        else:
+            print("  Scripts directory does not exist!")
         return False
     
-    # 运行PyInstaller
-    cmd = [sys.executable, '-m', 'PyInstaller', str(spec_file), '--log-level=INFO']
+    # 运行PyInstaller - 使用绝对路径
+    cmd = [sys.executable, '-m', 'PyInstaller', str(spec_file.absolute()), '--log-level=INFO']
     
     if not run_command(cmd):
         return False
