@@ -273,7 +273,7 @@ class MainWindow:
         
     def run(self):
         """运行应用程序"""
-                    self.set_status("NetKit 启动完成，欢迎使用！")
+        self.set_status("NetKit 启动完成，欢迎使用！")
         self.app.mainloop()
 
 
