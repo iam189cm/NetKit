@@ -4,13 +4,13 @@ block_cipher = None
 
 # 分析主程序
 a = Analysis(
-    ['start_netkit.py'],  # 使用start_netkit.py作为入口点
+    ['../start_netkit.py'],  # 使用start_netkit.py作为入口点（相对于scripts目录）
     pathex=[],
     binaries=[],
     datas=[
         # 包含GUI相关的资源文件
-        ('gui', 'gui'),
-        ('netkit', 'netkit'),
+        ('../gui', 'gui'),
+        ('../netkit', 'netkit'),
     ],
     hiddenimports=[
         'ttkbootstrap',
