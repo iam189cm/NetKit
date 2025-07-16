@@ -27,7 +27,7 @@ jobs:
         
     - name: Build executable
       run: |
-        Write-Host "🔨 Building NETKit-Py executable..."
+        Write-Host "Building NETKit-Py executable..."
         Write-Host "Current directory: $(Get-Location)"
         Write-Host "Files in current directory:"
         Get-ChildItem -Force
@@ -54,21 +54,21 @@ jobs:
       run: |
         $tag = "${{ github.ref_name }}"
         $releaseBody = @"
-        ## 🚀 NETKit-Py Release $tag
+        ## NETKit-Py Release $tag
         
-        ### 📦 下载
+        ### 下载
         - **NETKit-Py.exe** - 单文件可执行程序 (约16MB)
         
-        ### 🔧 使用说明
+        ### 使用说明
         1. 下载 NETKit-Py.exe 文件
         2. 右键选择"以管理员身份运行"
         3. 开始使用网络工具功能
         
-        ### ⚠️ 系统要求
+        ### 系统要求
         - Windows 10/11
         - 管理员权限（推荐）
         
-        ### 📋 功能特性
+        ### 功能特性
         - IP地址快速切换
         - Ping测试工具
         - 子网计算器
