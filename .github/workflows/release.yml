@@ -73,7 +73,7 @@ jobs:
         $buildTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
         $commitSha = "${{ github.sha }}"
         
-        $releaseBody = @"
+        $releaseBody = @'
 ## Netkit Release $tag
 
 ### 下载
@@ -99,7 +99,7 @@ jobs:
 
 **自动构建时间**: $buildTime
 **构建版本**: $commitSha
-"@
+'@
         
         # 只有在推送标签或手动触发时才创建Release
         if ("${{ github.event_name }}" -eq "push" -or "${{ github.event_name }}" -eq "workflow_dispatch") {
