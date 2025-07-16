@@ -38,7 +38,7 @@ jobs:
         
     - name: Build executable
       run: |
-        Write-Host "Building Netkit executable..."
+        Write-Host "Building NetKit executable..."
         Write-Host "Current directory: $(Get-Location)"
         Write-Host "Files in current directory:"
         Get-ChildItem -Force
@@ -73,11 +73,11 @@ jobs:
         $buildTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
         $commitSha = "${{ github.sha }}"
         
-        $releaseBody = @'
-## Netkit Release $tag
+        $releaseBody = @"
+## NetKit Release $tag
 
 ### 下载
-- **NetKit.exe** - 单文件可执行程序 (约16MB)
+- **NetKit.exe** - 单文件可执行程序 (约17MB)
 
 ### 使用说明
 1. 下载 NetKit.exe 文件
@@ -99,7 +99,7 @@ jobs:
 
 **自动构建时间**: $buildTime
 **构建版本**: $commitSha
-'@
+"@
         
         # 只有在推送标签或手动触发时才创建Release
         if ("${{ github.event_name }}" -eq "push" -or "${{ github.event_name }}" -eq "workflow_dispatch") {
