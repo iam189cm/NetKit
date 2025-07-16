@@ -40,7 +40,7 @@ jobs:
       run: |
         echo "🔨 Testing build process..."
         pyinstaller scripts/netkit_onefile.spec --distpath temp_dist
-        if (Test-Path "temp_dist/NETKit-Py.exe") {
+        if (Test-Path "temp_dist/NetKit.exe") {
           Write-Host "✅ Build test passed"
         } else {
           Write-Host "❌ Build test failed"

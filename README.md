@@ -1,9 +1,9 @@
 
 # Netkit
 
-[![CI/CD Pipeline](https://github.com/iam189cm/NETKit/actions/workflows/ci.yml/badge.svg)](https://github.com/iam189cm/NETKit/actions/workflows/ci.yml)
-[![Release Build](https://github.com/iam189cm/NETKit/actions/workflows/release.yml/badge.svg)](https://github.com/iam189cm/NETKit/actions/workflows/release.yml)
-[![GitHub release](https://img.shields.io/github/release/iam189cm/NETKit.svg)](https://github.com/iam189cm/NETKit/releases)
+[![CI/CD Pipeline](https://github.com/iam189cm/NetKit/actions/workflows/ci.yml/badge.svg)](https://github.com/iam189cm/NetKit/actions/workflows/ci.yml)
+[![Release Build](https://github.com/iam189cm/NetKit/actions/workflows/release.yml/badge.svg)](https://github.com/iam189cm/NetKit/actions/workflows/release.yml)
+[![GitHub release](https://img.shields.io/github/release/iam189cm/NetKit.svg)](https://github.com/iam189cm/NetKit/releases)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 
 一款面向网络工程师的Windows图形化工具箱，提供常用网络诊断与配置操作。
@@ -51,7 +51,7 @@ netkit/
 │   ├── project_1.md        # 项目需求文档
 │   └── 使用说明_单文件版本.md # 使用说明
 ├── releases/                # 发布文件
-│   └── Netkit.exe          # 单文件可执行程序
+│   └── NetKit.exe          # 单文件可执行程序
 ├── start_netkit.py         # 启动脚本
 ├── start_netkit.bat        # Windows启动脚本
 ├── pyproject.toml          # 项目配置
@@ -98,7 +98,7 @@ python start_netkit.py
 ```
 
 ### 生产模式
-直接运行 `releases/Netkit.exe`
+直接运行 `releases/NetKit.exe`
 
 ## ⚠️ 注意事项
 

@@ -1,4 +1,4 @@
-# Netkit Release Notes
+# NetKit Release Notes
 
 ## v0.2.9 - 项目发布版 (2024-12-19)
 
@@ -92,7 +92,7 @@
 ### 📦 发布内容
 
 #### 可执行文件
-- **Netkit.exe** (约16MB)
+- **NetKit.exe** (约16MB)
   - 单文件可执行程序
   - 无需安装Python环境
   - 包含所有依赖库
@@ -151,6 +151,6 @@ GPL-3.0 License
 
 ---
 
-**下载地址**: [GitHub Releases](https://github.com/iam189cm/NETKit/releases/tag/v0.1.0)
+**下载地址**: [GitHub Releases](https://github.com/iam189cm/NetKit/releases/tag/v0.1.0)
 
-**项目主页**: [https://github.com/iam189cm/NETKit](https://github.com/iam189cm/NETKit) 
+**项目主页**: [https://github.com/iam189cm/NetKit](https://github.com/iam189cm/NetKit) 

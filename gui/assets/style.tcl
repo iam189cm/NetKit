@@ -1,4 +1,4 @@
-# Netkit 自定义样式配置
+# NetKit 自定义样式配置
 # 基于 ttkbootstrap darkly 主题的扩展
 
 # 自定义颜色变量

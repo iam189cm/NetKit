@@ -50,8 +50,8 @@ jobs:
         
     - name: Verify build
       run: |
-        if (Test-Path "dist/NETKit-Py.exe") {
-          $fileSize = (Get-Item "dist/NETKit-Py.exe").Length / 1MB
+        if (Test-Path "dist/NetKit.exe") {
+          $fileSize = (Get-Item "dist/NetKit.exe").Length / 1MB
           Write-Host "Build successful! File size: $([math]::Round($fileSize, 1)) MB"
         } else {
           Write-Host "Build failed!"
@@ -77,10 +77,10 @@ jobs:
 ## Netkit Release $tag
 
 ### 下载
-- **NETKit-Py.exe** - 单文件可执行程序 (约16MB)
+- **NetKit.exe** - 单文件可执行程序 (约16MB)
 
 ### 使用说明
-1. 下载 NETKit-Py.exe 文件
+1. 下载 NetKit.exe 文件
 2. 右键选择"以管理员身份运行"
 3. 开始使用网络工具功能
 
@@ -103,10 +103,10 @@ jobs:
         
         # 只有在推送标签或手动触发时才创建Release
         if ("${{ github.event_name }}" -eq "push" -or "${{ github.event_name }}" -eq "workflow_dispatch") {
-          gh release create $tag dist/NETKit-Py.exe --title "Netkit $tag" --notes $releaseBody
+          gh release create $tag dist/NetKit.exe --title "NetKit $tag" --notes $releaseBody
         } else {
           # 对于release事件，只上传文件到已存在的release
-          gh release upload $tag dist/NETKit-Py.exe --clobber
+          gh release upload $tag dist/NetKit.exe --clobber
         }
         
         # 上传使用说明文档

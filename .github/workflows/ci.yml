@@ -96,9 +96,9 @@ jobs:
         
     - name: Test executable
       run: |
-        if (Test-Path "dist/NETKit-Py.exe") {
-          Write-Host "✅ Netkit executable built successfully"
-          $fileSize = (Get-Item "dist/NETKit-Py.exe").Length / 1MB
+        if (Test-Path "dist/NetKit.exe") {
+          Write-Host "✅ NetKit executable built successfully"
+          $fileSize = (Get-Item "dist/NetKit.exe").Length / 1MB
           Write-Host "📦 File size: $([math]::Round($fileSize, 1)) MB"
         } else {
           Write-Host "❌ Netkit executable build failed"

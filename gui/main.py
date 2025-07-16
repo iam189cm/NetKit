@@ -17,7 +17,7 @@ from datetime import datetime
 class MainWindow:
     def __init__(self):
         self.app = tb.Window(themename='darkly')
-        self.app.title('Netkit v0.1 - 网络工程师工具箱')
+        self.app.title('NetKit v0.2.9 - 网络工程师工具箱')
         self.app.geometry('1200x800')
         self.app.minsize(1000, 600)
         
@@ -57,7 +57,7 @@ class MainWindow:
         # 标题
         title_label = tb.Label(
             sidebar, 
-            text="Netkit", 
+                            text="NetKit", 
             font=('Arial', 16, 'bold'),
             bootstyle=INFO
         )
@@ -273,7 +273,7 @@ class MainWindow:
         
     def run(self):
         """运行应用程序"""
-        self.set_status("Netkit 启动完成，欢迎使用！")
+                    self.set_status("NetKit 启动完成，欢迎使用！")
         self.app.mainloop()
 
 
