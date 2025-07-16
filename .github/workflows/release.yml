@@ -41,9 +41,9 @@ jobs:
       run: |
         if (Test-Path "dist/NETKit-Py.exe") {
           $fileSize = (Get-Item "dist/NETKit-Py.exe").Length / 1MB
-          Write-Host "✅ Build successful! File size: $([math]::Round($fileSize, 1)) MB"
+          Write-Host "Build successful! File size: $([math]::Round($fileSize, 1)) MB"
         } else {
-          Write-Host "❌ Build failed!"
+          Write-Host "Build failed!"
           exit 1
         }
       shell: powershell
