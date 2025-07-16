@@ -27,7 +27,7 @@ jobs:
         
     - name: Build executable
       run: |
-        echo "🔨 Building NETKit-Py executable..."
+        Write-Host "🔨 Building NETKit-Py executable..."
         Write-Host "Current directory: $(Get-Location)"
         Write-Host "Files in current directory:"
         Get-ChildItem -Force
