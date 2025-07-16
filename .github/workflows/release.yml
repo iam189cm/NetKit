@@ -1,0 +1,99 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'  # 当推送版本标签时触发
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Build executable
+      run: |
+        echo "🔨 Building NETKit-Py executable..."
+        pyinstaller scripts/netkit_onefile.spec
+        
+    - name: Verify build
+      run: |
+        if (Test-Path "dist/NETKit-Py.exe") {
+          $fileSize = (Get-Item "dist/NETKit-Py.exe").Length / 1MB
+          Write-Host "✅ Build successful! File size: $([math]::Round($fileSize, 1)) MB"
+        } else {
+          Write-Host "❌ Build failed!"
+          exit 1
+        }
+      shell: powershell
+      
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: NETKit-Py ${{ github.ref }}
+        body: |
+          ## 🚀 NETKit-Py Release
+          
+          ### 📦 下载
+          - **NETKit-Py.exe** - 单文件可执行程序 (约16MB)
+          
+          ### 🔧 使用说明
+          1. 下载 `NETKit-Py.exe` 文件
+          2. 右键选择"以管理员身份运行"
+          3. 开始使用网络工具功能
+          
+          ### ⚠️ 系统要求
+          - Windows 10/11
+          - 管理员权限（推荐）
+          
+          ### 📋 功能特性
+          - IP地址快速切换
+          - Ping测试工具
+          - 子网计算器
+          - 路由追踪
+          - 静态路由管理
+          
+          ---
+          
+          **自动构建时间**: ${{ steps.date.outputs.date }}
+          **构建版本**: ${{ github.sha }}
+        draft: false
+        prerelease: false
+        
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/NETKit-Py.exe
+        asset_name: NETKit-Py.exe
+        asset_content_type: application/octet-stream
+        
+    - name: Upload Usage Guide
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./docs/使用说明_单文件版本.md
+        asset_name: 使用说明.md
+        asset_content_type: text/markdown 

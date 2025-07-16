@@ -1,6 +1,11 @@
 
 # NETKit-Py
 
+[![CI/CD Pipeline](https://github.com/iam189cm/NETKit/actions/workflows/ci.yml/badge.svg)](https://github.com/iam189cm/NETKit/actions/workflows/ci.yml)
+[![Release Build](https://github.com/iam189cm/NETKit/actions/workflows/release.yml/badge.svg)](https://github.com/iam189cm/NETKit/actions/workflows/release.yml)
+[![GitHub release](https://img.shields.io/github/release/iam189cm/NETKit.svg)](https://github.com/iam189cm/NETKit/releases)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+
 一款面向网络工程师的Windows图形化工具箱，提供常用网络诊断与配置操作。
 
 ## 🚀 功能特性
