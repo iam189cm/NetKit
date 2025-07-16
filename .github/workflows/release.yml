@@ -73,33 +73,7 @@ jobs:
         $buildTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
         $commitSha = "${{ github.sha }}"
         
-        $releaseBody = @"
-## NetKit Release $tag
-
-### 下载
-- **NetKit.exe** - 单文件可执行程序 (约17MB)
-
-### 使用说明
-1. 下载 NetKit.exe 文件
-2. 右键选择"以管理员身份运行"
-3. 开始使用网络工具功能
-
-### 系统要求
-- Windows 10/11
-- 管理员权限（推荐）
-
-### 功能特性
-- IP地址快速切换
-- Ping测试工具
-- 子网计算器
-- 路由追踪
-- 静态路由管理
-
----
-
-**自动构建时间**: $buildTime
-**构建版本**: $commitSha
-"@
+        $releaseBody = "## NetKit Release $tag`n`n### 下载`n- **NetKit.exe** - 单文件可执行程序 (约17MB)`n`n### 使用说明`n1. 下载 NetKit.exe 文件`n2. 右键选择`"以管理员身份运行`"`n3. 开始使用网络工具功能`n`n### 系统要求`n- Windows 10/11`n- 管理员权限（推荐）`n`n### 功能特性`n- IP地址快速切换`n- Ping测试工具`n- 子网计算器`n- 路由追踪`n- 静态路由管理`n`n---`n`n**自动构建时间**: $buildTime`n**构建版本**: $commitSha"
         
         # 只有在推送标签或手动触发时才创建Release
         if ("${{ github.event_name }}" -eq "push" -or "${{ github.event_name }}" -eq "workflow_dispatch") {
