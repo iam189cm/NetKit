@@ -2,220 +2,204 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from netkit.services.ip_switcher import (
-    apply_profile, get_network_interfaces, validate_ip_config
+    get_network_interfaces, apply_profile, set_dhcp, validate_ip_config
 )
 import tkinter.messagebox as mbox
-
+import threading
 
 class IPSwitcherFrame(tb.Frame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+        self.interfaces = []
         self.setup_ui()
-        
-    def setup_ui(self):
-        """设置IP切换界面"""
-        # 标题
-        title = tb.Label(
-            self, 
-            text="IP 地址快速切换", 
-            font=('Arial', 18, 'bold'),
-            bootstyle=PRIMARY
-        )
-        title.pack(pady=(0, 20))
-        
-        # 主要内容区域
-        main_frame = tb.Frame(self)
-        main_frame.pack(fill=BOTH, expand=True)
-        
-        # 左侧配置区域
-        left_frame = tb.Frame(main_frame)
-        left_frame.pack(side=LEFT, fill=BOTH, expand=True, padx=(0, 10))
-        
-        # 网络配置输入区域
-        config_frame = tb.LabelFrame(left_frame, text="网络配置", padding=15)
-        config_frame.pack(fill=X, pady=(0, 10))
-        
-        # 网络接口选择
-        interface_frame = tb.Frame(config_frame)
-        interface_frame.pack(fill=X, pady=(0, 10))
-        
-        tb.Label(interface_frame, text="网络接口:").pack(side=LEFT)
-        self.interface_var = tb.StringVar()
-        self.interface_combo = tb.Combobox(
-            interface_frame, 
-            textvariable=self.interface_var,
-            state="readonly",
-            width=25
-        )
-        self.interface_combo.pack(side=LEFT, padx=(10, 5))
-        
-        # 刷新接口按钮
-        tb.Button(
-            interface_frame,
-            text="刷新",
-            bootstyle=INFO,
-            command=self.refresh_interfaces,
-            width=8
-        ).pack(side=RIGHT)
-        
-        # IP配置字段
-        config_fields = [
-            ("IP地址:", "ip_entry", ""),
-            ("子网掩码:", "mask_entry", ""),
-            ("默认网关:", "gateway_entry", ""),
-            ("DNS服务器:", "dns_entry", "")
-        ]
-        
-        for i, (label_text, entry_name, default_value) in enumerate(config_fields):
-            field_frame = tb.Frame(config_frame)
-            field_frame.pack(fill=X, pady=3)
-            
-            tb.Label(field_frame, text=label_text, width=12).pack(side=LEFT)
-            entry = tb.Entry(field_frame, width=35)
-            entry.pack(side=LEFT, padx=(10, 0))
-            if default_value:  # 只有非空默认值才插入
-                entry.insert(0, default_value)
-            setattr(self, entry_name, entry)
-        
-        # 操作按钮
-        btn_frame = tb.Frame(config_frame)
-        btn_frame.pack(fill=X, pady=(15, 0))
-        
-        tb.Button(
-            btn_frame,
-            text="验证配置",
-            bootstyle=WARNING,
-            command=self.validate_current_config,
-            width=12
-        ).pack(side=LEFT, padx=(0, 10))
-        
-        tb.Button(
-            btn_frame,
-            text="应用配置",
-            bootstyle=SUCCESS,
-            command=self.apply_config,
-            width=12
-        ).pack(side=LEFT)
-        
-        # 右侧结果显示区域
-        right_frame = tb.Frame(main_frame)
-        right_frame.pack(side=RIGHT, fill=BOTH, expand=True)
-        
-        result_frame = tb.LabelFrame(right_frame, text="执行结果", padding=15)
-        result_frame.pack(fill=BOTH, expand=True)
-        
-        # 结果文本框
-        self.result_text = tb.Text(
-            result_frame,
-            height=20,
-            state=DISABLED,
-            wrap=WORD,
-            font=('Consolas', 10)
-        )
-        
-        # 滚动条
-        scrollbar = tb.Scrollbar(result_frame, orient=VERTICAL, command=self.result_text.yview)
-        self.result_text.configure(yscrollcommand=scrollbar.set)
-        
-        self.result_text.pack(side=LEFT, fill=BOTH, expand=True)
-        scrollbar.pack(side=RIGHT, fill=Y)
-        
-        # 清空结果按钮
-        clear_btn_frame = tb.Frame(result_frame)
-        clear_btn_frame.pack(fill=X, pady=(10, 0))
-        
-        tb.Button(
-            clear_btn_frame,
-            text="清空结果",
-            bootstyle=LIGHT,
-            command=self.clear_result,
-            width=12
-        ).pack(side=RIGHT)
-        
-        # 初始化时刷新网络接口
         self.refresh_interfaces()
-        self.append_result("=== Netkit IP地址快速切换工具 ===\n")
-        self.append_result("请选择网络接口并输入IP配置信息\n\n")
+
+    def setup_ui(self):
+        """设置网卡配置界面"""
+        # --- 网卡选择 ---
+        selection_frame = tb.LabelFrame(self, text="网卡选择", padding=15)
+        selection_frame.pack(fill=X, padx=10, pady=10)
+
+        tb.Label(selection_frame, text="选择网卡:").pack(side=LEFT, padx=(0, 10))
+        self.interface_var = tb.StringVar()
+        self.interface_combo = tb.Combobox(selection_frame, textvariable=self.interface_var, state="readonly", width=40)
+        self.interface_combo.pack(side=LEFT, padx=(0, 10))
+        self.interface_combo.bind("<<ComboboxSelected>>", self.on_interface_selected)
+
+        self.show_all_var = tb.BooleanVar()
+        tb.Checkbutton(selection_frame, text="显示所有网卡", variable=self.show_all_var, command=self.refresh_interfaces).pack(side=LEFT, padx=10)
+        tb.Button(selection_frame, text="刷新网卡", command=self.refresh_interfaces, bootstyle=INFO).pack(side=LEFT)
+
+        # --- 当前网卡信息 ---
+        info_frame = tb.LabelFrame(self, text="当前网卡信息", padding=15)
+        info_frame.pack(fill=X, padx=10, pady=(0, 10))
+
+        self.info_text = tb.Text(info_frame, height=8, width=80, state=DISABLED, wrap=WORD, font=('Consolas', 10))
+        self.info_text.pack(fill=BOTH, expand=True)
+
+        # --- IP配置 ---
+        config_frame = tb.LabelFrame(self, text="IP 配置", padding=15)
+        config_frame.pack(fill=X, padx=10, pady=(0, 10))
         
+        self.dhcp_var = tb.BooleanVar(value=False)
+        self.dhcp_check = tb.Checkbutton(config_frame, text="DHCP", variable=self.dhcp_var, command=self.toggle_dhcp)
+        
+        self.ip_entry = self.create_config_entry(config_frame, "IP地址:", "例如: 192.168.1.100")
+        self.dhcp_check.grid(row=0, column=2, sticky='e', padx=5)
+        self.mask_entry = self.create_config_entry(config_frame, "子网掩码:", "例如: 255.255.255.0 或 24")
+        self.gateway_entry = self.create_config_entry(config_frame, "默认网关:", "例如: 192.168.1.1")
+        self.dns1_entry = self.create_config_entry(config_frame, "DNS服务器1:", "首选DNS服务器")
+        self.dns2_entry = self.create_config_entry(config_frame, "DNS服务器2:", "备用DNS服务器")
+
+        # --- 应用按钮 ---
+        apply_button = tb.Button(self, text="应用配置", command=self.apply_config, bootstyle=SUCCESS, width=20)
+        apply_button.pack(pady=20)
+
+    def create_config_entry(self, parent, label_text, placeholder_text):
+        row = len(parent.grid_slaves(row=None))
+        label = tb.Label(parent, text=label_text, width=12)
+        label.grid(row=row, column=0, padx=5, pady=5, sticky='w')
+        entry = tb.Entry(parent, width=50)
+        entry.grid(row=row, column=1, padx=5, pady=5, sticky='we')
+        entry.insert(0, placeholder_text)
+        entry.config(foreground="grey")
+        entry.bind("<FocusIn>", lambda e: self.on_entry_focus_in(e, placeholder_text))
+        entry.bind("<FocusOut>", lambda e: self.on_entry_focus_out(e, placeholder_text))
+        parent.grid_columnconfigure(1, weight=1)
+        return entry
+    
+    def on_entry_focus_in(self, event, placeholder):
+        if event.widget.get() == placeholder:
+            event.widget.delete(0, "end")
+            event.widget.config(foreground='white')
+
+    def on_entry_focus_out(self, event, placeholder):
+        if not event.widget.get():
+            event.widget.insert(0, placeholder)
+            event.widget.config(foreground='grey')
+
     def refresh_interfaces(self):
         """刷新网络接口列表"""
+        def _task():
+            try:
+                self.interfaces = get_network_interfaces(self.show_all_var.get())
+                interface_names = [f"{iface['name']} ({iface['description']})" for iface in self.interfaces]
+                
+                self.interface_combo['values'] = interface_names
+                if interface_names:
+                    self.interface_combo.current(0)
+                    self.on_interface_selected()
+                else:
+                    self.clear_info()
+            except Exception as e:
+                mbox.showerror("错误", f"获取网络接口失败: {e}")
+
+        threading.Thread(target=_task).start()
+
+    def on_interface_selected(self, event=None):
+        """当用户选择一个网卡时"""
         try:
-            interfaces = get_network_interfaces()
-            self.interface_combo['values'] = interfaces
-            if interfaces:
-                self.interface_combo.current(0)
-                self.append_result(f"已获取 {len(interfaces)} 个网络接口\n")
-            else:
-                self.append_result("未找到可用的网络接口\n")
-        except Exception as e:
-            self.append_result(f"获取网络接口失败: {str(e)}\n")
-    
-    def validate_current_config(self):
-        """验证当前配置"""
-        ip = self.ip_entry.get().strip()
-        mask = self.mask_entry.get().strip()
-        gateway = self.gateway_entry.get().strip()
-        dns = self.dns_entry.get().strip()
-        
-        self.append_result("正在验证IP配置...\n")
-        
-        result = validate_ip_config(ip, mask, gateway, dns)
-        if result['valid']:
-            self.append_result("✓ IP配置验证通过\n")
-        else:
-            self.append_result(f"✗ IP配置验证失败: {result['error']}\n")
-            
+            selected_index = self.interface_combo.current()
+            if selected_index < 0: return
+
+            interface = self.interfaces[selected_index]
+            self.display_interface_info(interface)
+            self.populate_config_fields(interface)
+        except (IndexError, KeyError) as e:
+             self.clear_info()
+             print(f"选择接口时出错: {e}")
+             
+    def display_interface_info(self, interface):
+        """显示选定接口的详细信息"""
+        info = (
+            f"网卡名称: {interface.get('name', 'N/A')}\n"
+            f"描述    : {interface.get('description', 'N/A')}\n"
+            f"状态    : {interface.get('status', 'N/A')}\n"
+            f"物理地址: {interface.get('mac', 'N/A')}\n"
+            f"DHCP    : {'是' if interface.get('dhcp_enabled') else '否'}\n"
+            f"IP地址  : {interface.get('ip', 'N/A')}\n"
+            f"子网掩码: {interface.get('mask', 'N/A')}\n"
+            f"默认网关: {interface.get('gateway', 'N/A')}\n"
+            f"DNS服务器: {', '.join(interface.get('dns_servers', []))}"
+        )
+        self.info_text.config(state=NORMAL)
+        self.info_text.delete("1.0", END)
+        self.info_text.insert(END, info)
+        self.info_text.config(state=DISABLED)
+
+    def populate_config_fields(self, interface):
+        """用接口信息填充配置字段"""
+        self.dhcp_var.set(interface.get('dhcp_enabled', False))
+
+        self.ip_entry.delete(0, END)
+        self.ip_entry.insert(0, interface.get('ip', ''))
+        self.mask_entry.delete(0, END)
+        self.mask_entry.insert(0, interface.get('mask', ''))
+        self.gateway_entry.delete(0, END)
+        self.gateway_entry.insert(0, interface.get('gateway', ''))
+
+        dns_servers = interface.get('dns_servers', [])
+        self.dns1_entry.delete(0, END)
+        self.dns1_entry.insert(0, dns_servers[0] if len(dns_servers) > 0 else '')
+        self.dns2_entry.delete(0, END)
+        self.dns2_entry.insert(0, dns_servers[1] if len(dns_servers) > 1 else '')
+        self.toggle_dhcp()
+
+    def clear_info(self):
+        self.info_text.config(state=NORMAL)
+        self.info_text.delete("1.0", END)
+        self.info_text.config(state=DISABLED)
+        self.interface_var.set('')
+        self.interface_combo['values'] = []
+        # Clear entry fields
+        for entry in [self.ip_entry, self.mask_entry, self.gateway_entry, self.dns1_entry, self.dns2_entry]:
+            entry.delete(0, END)
+
+    def toggle_dhcp(self):
+        """切换DHCP状态"""
+        is_dhcp = self.dhcp_var.get()
+        state = DISABLED if is_dhcp else NORMAL
+        for entry in [self.ip_entry, self.mask_entry, self.gateway_entry, self.dns1_entry, self.dns2_entry]:
+            entry.config(state=state)
+
     def apply_config(self):
-        """应用IP配置"""
-        interface = self.interface_var.get().strip()
-        ip = self.ip_entry.get().strip()
-        mask = self.mask_entry.get().strip()
-        gateway = self.gateway_entry.get().strip()
-        dns = self.dns_entry.get().strip()
-        
-        # 验证输入
-        if not interface:
-            self.append_result("错误: 请选择网络接口\n")
-            return
-            
-        if not all([ip, mask, gateway]):
-            self.append_result("错误: 请完整填写IP地址、子网掩码和默认网关\n")
+        """应用网络配置"""
+        selected_index = self.interface_combo.current()
+        if selected_index < 0:
+            mbox.showerror("错误", "请选择一个网络接口。")
             return
         
-        # 先验证配置
-        validation = validate_ip_config(ip, mask, gateway, dns)
-        if not validation['valid']:
-            self.append_result(f"配置验证失败: {validation['error']}\n")
-            return
-            
-        # 应用配置
-        self.append_result(f"\n正在应用配置到接口 '{interface}'...\n")
-        self.append_result(f"IP地址: {ip}\n")
-        self.append_result(f"子网掩码: {mask}\n")
-        self.append_result(f"默认网关: {gateway}\n")
-        if dns:
-            self.append_result(f"DNS服务器: {dns}\n")
-        self.append_result("-" * 40 + "\n")
+        interface_name = self.interfaces[selected_index]['name']
+        is_dhcp = self.dhcp_var.get()
+
+        def _task():
+            try:
+                if is_dhcp:
+                    result = set_dhcp(interface_name)
+                else:
+                    ip = self.ip_entry.get().strip()
+                    mask = self.mask_entry.get().strip()
+                    gateway = self.gateway_entry.get().strip()
+                    dns1 = self.dns1_entry.get().strip()
+                    dns2 = self.dns2_entry.get().strip()
+
+                    if not all([ip, mask, gateway]):
+                        mbox.showerror("输入错误", "IP地址、子网掩码和默认网关不能为空。")
+                        return
+
+                    validation = validate_ip_config(ip, mask, gateway, f"{dns1},{dns2}" if dns1 or dns2 else "")
+                    if not validation['valid']:
+                        mbox.showerror("配置错误", f"配置验证失败: {validation['error']}")
+                        return
+                    
+                    result = apply_profile(interface_name, ip, mask, gateway, dns1, dns2)
+
+                if result['success']:
+                    mbox.showinfo("成功", result['message'])
+                    self.refresh_interfaces()
+                else:
+                    mbox.showerror("失败", result['error'])
+            except Exception as e:
+                mbox.showerror("应用配置时出错", str(e))
         
-        try:
-            result = apply_profile(interface, ip, mask, gateway, dns)
-            if result['success']:
-                self.append_result("✓ IP配置应用成功!\n\n")
-            else:
-                self.append_result(f"✗ IP配置应用失败: {result['error']}\n\n")
-        except Exception as e:
-            self.append_result(f"✗ 执行出错: {str(e)}\n\n")
-    
-    def clear_result(self):
-        """清空结果框"""
-        self.result_text.configure(state=NORMAL)
-        self.result_text.delete("1.0", END)
-        self.result_text.configure(state=DISABLED)
-        self.append_result("=== 结果已清空 ===\n\n")
-            
-    def append_result(self, text):
-        """向结果框追加文本"""
-        self.result_text.configure(state=NORMAL)
-        self.result_text.insert(END, text)
-        self.result_text.configure(state=DISABLED)
-        self.result_text.see(END)
+        threading.Thread(target=_task).start()
