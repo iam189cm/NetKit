@@ -41,9 +41,11 @@ class IPSwitcherFrame(tb.Frame):
         self.setup_result_area()
         
         # 初始化
-        self.refresh_interfaces()
         self.append_result("=== NetKit 网卡配置工具 ===\n")
         self.append_result("请选择网卡查看当前配置信息\n\n")
+        
+        # 延迟加载网络接口，避免阻塞界面显示
+        self.after(100, self.refresh_interfaces)
         
     def setup_network_selection(self, parent):
         """设置网卡选择区域"""
@@ -203,8 +205,7 @@ class IPSwitcherFrame(tb.Frame):
             text="应用配置",
             bootstyle=SUCCESS,
             command=self.apply_config,
-            width=20,
-            height=3
+            width=20
         ).pack(anchor=CENTER, pady=(30, 0))
         
     def setup_result_area(self):
@@ -276,8 +277,9 @@ class IPSwitcherFrame(tb.Frame):
             self.interface_combo['values'] = interfaces
             if interfaces:
                 self.interface_combo.current(0)
-                self.on_interface_selected()
                 self.append_result(f"已获取 {len(interfaces)} 个网络接口\n")
+                # 延迟调用网卡信息获取，避免阻塞
+                self.after(100, self.on_interface_selected)
             else:
                 self.append_result("未找到可用的网络接口\n")
         except Exception as e:

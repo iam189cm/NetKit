@@ -56,9 +56,9 @@ def get_network_card_info(interface_name):
         
         # 获取接口基本信息
         cmd_interface = ['netsh', 'interface', 'show', 'interface', f'name={interface_name}']
-        result_interface = subprocess.run(cmd_interface, capture_output=True, text=True, encoding='utf-8')
+        result_interface = subprocess.run(cmd_interface, capture_output=True, text=True, encoding='gbk', errors='ignore')
         
-        if result_interface.returncode == 0:
+        if result_interface.returncode == 0 and result_interface.stdout:
             lines = result_interface.stdout.split('\n')
             for line in lines:
                 if '管理状态' in line or 'Administrative state' in line:
@@ -68,9 +68,9 @@ def get_network_card_info(interface_name):
         
         # 获取物理地址
         cmd_mac = ['getmac', '/fo', 'csv', '/v']
-        result_mac = subprocess.run(cmd_mac, capture_output=True, text=True, encoding='utf-8')
+        result_mac = subprocess.run(cmd_mac, capture_output=True, text=True, encoding='gbk', errors='ignore')
         
-        if result_mac.returncode == 0:
+        if result_mac.returncode == 0 and result_mac.stdout:
             lines = result_mac.stdout.split('\n')
             for line in lines:
                 if interface_name in line:
@@ -83,9 +83,9 @@ def get_network_card_info(interface_name):
         
         # 获取IP配置信息
         cmd_ip = ['netsh', 'interface', 'ip', 'show', 'config', f'name={interface_name}']
-        result_ip = subprocess.run(cmd_ip, capture_output=True, text=True, encoding='utf-8')
+        result_ip = subprocess.run(cmd_ip, capture_output=True, text=True, encoding='gbk', errors='ignore')
         
-        if result_ip.returncode == 0:
+        if result_ip.returncode == 0 and result_ip.stdout:
             lines = result_ip.stdout.split('\n')
             dns_servers = []
             
