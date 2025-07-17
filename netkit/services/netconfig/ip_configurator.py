@@ -20,7 +20,7 @@ def apply_profile(interface_name, ip, mask, gateway, dns=None, dhcp=False):
                 f'name={interface_name}', 'source=dhcp'
             ]
             
-            result_dhcp = subprocess.run(cmd_dhcp, capture_output=True, text=True, encoding='utf-8')
+            result_dhcp = subprocess.run(cmd_dhcp, capture_output=True, text=True, encoding='gbk', errors='ignore')
             
             if result_dhcp.returncode != 0:
                 return {
@@ -34,7 +34,7 @@ def apply_profile(interface_name, ip, mask, gateway, dns=None, dhcp=False):
                 f'name={interface_name}', 'source=dhcp'
             ]
             
-            result_dns_dhcp = subprocess.run(cmd_dns_dhcp, capture_output=True, text=True, encoding='utf-8')
+            result_dns_dhcp = subprocess.run(cmd_dns_dhcp, capture_output=True, text=True, encoding='gbk', errors='ignore')
             
             if result_dns_dhcp.returncode != 0:
                 return {
@@ -54,7 +54,7 @@ def apply_profile(interface_name, ip, mask, gateway, dns=None, dhcp=False):
                 f'addr={ip}', f'mask={mask}', f'gateway={gateway}'
             ]
             
-            result_ip = subprocess.run(cmd_ip, capture_output=True, text=True, encoding='utf-8')
+            result_ip = subprocess.run(cmd_ip, capture_output=True, text=True, encoding='gbk', errors='ignore')
             
             if result_ip.returncode != 0:
                 return {
@@ -79,7 +79,7 @@ def apply_profile(interface_name, ip, mask, gateway, dns=None, dhcp=False):
                             f'name={interface_name}', dns_server, 'index=2'
                         ]
                     
-                    result_dns = subprocess.run(cmd_dns, capture_output=True, text=True, encoding='utf-8')
+                    result_dns = subprocess.run(cmd_dns, capture_output=True, text=True, encoding='gbk', errors='ignore')
                     
                     if result_dns.returncode != 0:
                         return {
@@ -91,11 +91,11 @@ def apply_profile(interface_name, ip, mask, gateway, dns=None, dhcp=False):
                 'success': True,
                 'message': f"静态IP配置已成功应用到接口 '{interface_name}'"
             }
-        
+            
     except Exception as e:
         return {
             'success': False,
-            'error': f"执行命令时出错: {str(e)}"
+            'error': f"应用配置时发生异常: {str(e)}"
         }
 
 
@@ -178,69 +178,42 @@ def validate_ip_config(ip, mask, gateway, dns=""):
                 'error': "IP地址和网关地址不能相同"
             }
         
-        # 验证DNS（如果提供）
+        # 验证DNS服务器（如果提供）
+        warnings = []
         if dns:
             dns_servers = [d.strip() for d in dns.split(',') if d.strip()]
-            for i, dns_server in enumerate(dns_servers, 1):
+            for dns_server in dns_servers:
                 try:
-                    dns_addr = ipaddress.IPv4Address(dns_server)
-                    
-                    # 检查DNS服务器地址的有效性
-                    if dns_addr.is_loopback:
-                        return {
-                            'valid': False,
-                            'error': f"DNS服务器 {i} ({dns_server}) 不能是环回地址"
-                        }
-                    
-                    if dns_addr.is_multicast:
-                        return {
-                            'valid': False,
-                            'error': f"DNS服务器 {i} ({dns_server}) 不能是多播地址"
-                        }
-                    
-                    if dns_addr.is_reserved:
-                        return {
-                            'valid': False,
-                            'error': f"DNS服务器 {i} ({dns_server}) 是保留地址"
-                        }
-                        
-                except Exception as e:
+                    ipaddress.IPv4Address(dns_server)
+                except Exception:
                     return {
                         'valid': False,
-                        'error': f"DNS服务器 {i} ({dns_server}) 格式无效: {str(e)}"
+                        'error': f"无效的DNS服务器地址: {dns_server}"
                     }
         
-        # 检查常见的配置错误
-        warnings = []
+        # 检查是否是私有网络
+        if ip_addr.is_private:
+            warnings.append("使用私有IP地址")
         
-        # 检查是否使用了私有地址
-        if not ip_addr.is_private and not ip_addr.is_global:
-            warnings.append(f"IP地址 {ip} 既不是私有地址也不是公网地址")
+        # 检查是否是常见的网络配置
+        if str(network.network_address) == '192.168.1.0' and network.prefixlen == 24:
+            warnings.append("使用常见的家庭网络配置")
         
-        # 检查子网掩码长度
-        prefix_length = network.prefixlen
-        if prefix_length < 8:
-            warnings.append(f"子网掩码 /{prefix_length} 可能过于宽泛")
-        elif prefix_length > 30:
-            warnings.append(f"子网掩码 /{prefix_length} 可能过于狭窄，可用主机数很少")
+        return {
+            'valid': True,
+            'warnings': warnings,
+            'message': "IP配置验证通过"
+        }
         
-        # 检查常用的DNS服务器
-        if dns:
-            dns_servers = [d.strip() for d in dns.split(',') if d.strip()]
-            common_dns = ['8.8.8.8', '8.8.4.4', '114.114.114.114', '223.5.5.5']
-            if not any(dns_server in common_dns for dns_server in dns_servers):
-                warnings.append("建议使用知名的公共DNS服务器")
-        
-        result = {'valid': True}
-        if warnings:
-            result['warnings'] = warnings
-            
-        return result
-        
+    except ValueError as e:
+        return {
+            'valid': False,
+            'error': f"IP地址格式错误: {str(e)}"
+        }
     except Exception as e:
         return {
             'valid': False,
-            'error': f"验证过程出错: {str(e)}"
+            'error': f"验证配置时发生异常: {str(e)}"
         }
 
 
@@ -293,7 +266,7 @@ def check_network_conflict(ip, mask, gateway):
     except Exception as e:
         return {
             'conflicts': [f"检查网络冲突时出错: {str(e)}"],
-            'has_conflict': False
+            'has_conflict': True
         }
 
 

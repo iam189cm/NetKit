@@ -5,6 +5,93 @@
 
 import subprocess
 import re
+import locale
+
+
+def run_netsh_command(cmd, timeout=30):
+    """
+    运行netsh命令并处理编码问题
+    
+    Args:
+        cmd: 命令列表
+        timeout: 超时时间（秒）
+    
+    Returns:
+        str: 命令输出结果，如果失败返回空字符串
+    """
+    encodings_to_try = [
+        'utf-8',           # 首先尝试UTF-8
+        'gbk',             # 然后尝试GBK
+        'cp936',           # 中文简体
+        'utf-16',          # Unicode
+        locale.getpreferredencoding(),  # 系统默认编码
+        'ascii'            # 最后尝试ASCII
+    ]
+    
+    for encoding in encodings_to_try:
+        try:
+            result = subprocess.run(
+                cmd, 
+                capture_output=True, 
+                text=True, 
+                encoding=encoding, 
+                errors='ignore',
+                timeout=timeout
+            )
+            
+            if result.returncode == 0 and result.stdout:
+                # 检查输出是否包含明显的乱码
+                output = result.stdout.strip()
+                if output and not _contains_obvious_mojibake(output):
+                    return output
+                    
+        except (UnicodeDecodeError, subprocess.TimeoutExpired, OSError):
+            continue
+    
+    # 如果所有编码都失败，尝试使用bytes模式
+    try:
+        result = subprocess.run(cmd, capture_output=True, timeout=timeout)
+        if result.returncode == 0 and result.stdout:
+            # 尝试用多种编码解码bytes
+            for encoding in encodings_to_try:
+                try:
+                    decoded = result.stdout.decode(encoding, errors='ignore')
+                    if decoded and not _contains_obvious_mojibake(decoded):
+                        return decoded
+                except (UnicodeDecodeError, AttributeError):
+                    continue
+    except (subprocess.TimeoutExpired, OSError):
+        pass
+    
+    return ""
+
+
+def _contains_obvious_mojibake(text):
+    """
+    检查文本是否包含明显的乱码
+    
+    Args:
+        text: 要检查的文本
+    
+    Returns:
+        bool: True如果包含乱码，False否则
+    """
+    # 检查是否包含大量问号或其他替换字符
+    if text.count('?') > len(text) * 0.1:  # 超过10%是问号
+        return True
+    
+    # 检查是否包含明显的乱码模式
+    mojibake_patterns = [
+        r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]',  # 控制字符
+        r'[锘垄]',  # 常见的UTF-8 BOM乱码
+        r'\ufffd{2,}',  # 连续的替换字符
+    ]
+    
+    for pattern in mojibake_patterns:
+        if re.search(pattern, text):
+            return True
+    
+    return False
 
 
 def get_network_adapter_hardware_info(interface_name):
@@ -12,18 +99,26 @@ def get_network_adapter_hardware_info(interface_name):
     try:
         # 使用WMIC获取网卡硬件信息
         cmd = ['wmic', 'nic', 'where', f'NetConnectionID="{interface_name}"', 
-               'get', 'Name,Manufacturer,Description,PhysicalAdapter', '/format:csv']
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding='gbk', errors='ignore')
+               'get', 'Name,Manufacturer,Description,PhysicalAdapter,Speed', '/format:csv']
+        output = run_netsh_command(cmd)
         
-        if result.returncode == 0 and result.stdout:
-            lines = result.stdout.strip().split('\n')
+        if output:
+            lines = output.split('\n')
             for line in lines:
                 if line.strip() and not line.startswith('Node'):
                     parts = line.split(',')
-                    if len(parts) >= 5:
+                    if len(parts) >= 6:
                         manufacturer = parts[2].strip() if parts[2].strip() else '未知'
                         description = parts[1].strip() if parts[1].strip() else '未知'
                         name = parts[3].strip() if parts[3].strip() else '未知'
+                        speed = parts[5].strip() if parts[5].strip() else '未知'
+                        
+                        # 处理速度信息
+                        if speed and speed != '未知' and speed.isdigit():
+                            speed_mbps = int(speed) // 1000000  # 转换为Mbps
+                            speed = f"{speed_mbps} Mbps"
+                        elif speed == '未知' or not speed:
+                            speed = '未知'
                         
                         # 提取简化的制造商名称
                         if manufacturer != '未知':
@@ -60,6 +155,8 @@ def get_network_adapter_hardware_info(interface_name):
                                 model = 'Virtual'
                             elif 'bluetooth' in desc_lower:
                                 model = 'Bluetooth'
+                            elif 'dedicated' in desc_lower:
+                                model = '专用网卡'
                             else:
                                 # 尝试提取型号信息
                                 words = description.split()
@@ -71,31 +168,34 @@ def get_network_adapter_hardware_info(interface_name):
                         return {
                             'manufacturer': manufacturer,
                             'model': model,
-                            'full_description': description
+                            'full_description': description,
+                            'speed': speed
                         }
         
         return {
             'manufacturer': '未知',
             'model': '未知',
-            'full_description': '未知'
+            'full_description': '未知',
+            'speed': '未知'
         }
         
     except Exception as e:
         return {
             'manufacturer': '未知',
             'model': '未知',
-            'full_description': '未知'
+            'full_description': '未知',
+            'speed': '未知'
         }
 
 
 def get_interface_mac_address(interface_name):
     """获取网卡MAC地址"""
     try:
-        cmd_mac = ['getmac', '/fo', 'csv', '/v']
-        result_mac = subprocess.run(cmd_mac, capture_output=True, text=True, encoding='gbk', errors='ignore')
+        cmd = ['getmac', '/fo', 'csv', '/v']
+        output = run_netsh_command(cmd)
         
-        if result_mac.returncode == 0 and result_mac.stdout:
-            lines = result_mac.stdout.split('\n')
+        if output:
+            lines = output.split('\n')
             for line in lines:
                 if interface_name in line:
                     parts = line.split(',')
@@ -111,21 +211,35 @@ def get_interface_mac_address(interface_name):
 def get_interface_basic_info(interface_name):
     """获取网卡基本信息（状态、类型等）"""
     try:
-        cmd_interface = ['netsh', 'interface', 'show', 'interface', f'name={interface_name}']
-        result_interface = subprocess.run(cmd_interface, capture_output=True, text=True, encoding='gbk', errors='ignore')
+        cmd = ['netsh', 'interface', 'show', 'interface', f'name={interface_name}']
+        output = run_netsh_command(cmd)
         
         info = {
             'status': '未知',
             'type': '未知'
         }
         
-        if result_interface.returncode == 0 and result_interface.stdout:
-            lines = result_interface.stdout.split('\n')
+        if output:
+            lines = output.split('\n')
             for line in lines:
                 if '管理状态' in line or 'Administrative state' in line:
-                    info['status'] = line.split(':')[-1].strip()
+                    status = line.split(':')[-1].strip()
+                    # 状态本地化
+                    if status.lower() == 'enabled':
+                        info['status'] = '已启用'
+                    elif status.lower() == 'disabled':
+                        info['status'] = '已禁用'
+                    else:
+                        info['status'] = status
                 elif '类型' in line or 'Type' in line:
-                    info['type'] = line.split(':')[-1].strip()
+                    type_info = line.split(':')[-1].strip()
+                    # 类型本地化
+                    if type_info.lower() == 'dedicated':
+                        info['type'] = '专用'
+                    elif type_info.lower() == 'loopback':
+                        info['type'] = '环回'
+                    else:
+                        info['type'] = type_info
         
         return info
         
@@ -139,8 +253,8 @@ def get_interface_basic_info(interface_name):
 def get_interface_ip_config(interface_name):
     """获取网卡IP配置信息"""
     try:
-        cmd_ip = ['netsh', 'interface', 'ip', 'show', 'config', f'name={interface_name}']
-        result_ip = subprocess.run(cmd_ip, capture_output=True, text=True, encoding='gbk', errors='ignore')
+        cmd = ['netsh', 'interface', 'ip', 'show', 'config', f'name={interface_name}']
+        output = run_netsh_command(cmd)
         
         config = {
             'ip': '未配置',
@@ -150,8 +264,8 @@ def get_interface_ip_config(interface_name):
             'dns2': '未配置'
         }
         
-        if result_ip.returncode == 0 and result_ip.stdout:
-            lines = result_ip.stdout.split('\n')
+        if output:
+            lines = output.split('\n')
             dns_servers = []
             
             for line in lines:
@@ -222,6 +336,7 @@ def get_network_card_info(interface_name):
         info['manufacturer'] = hardware_info['manufacturer']
         info['model'] = hardware_info['model']
         info['description'] = hardware_info['full_description']
+        info['speed'] = hardware_info['speed']
         
         # 获取接口基本信息
         basic_info = get_interface_basic_info(interface_name)
@@ -262,12 +377,12 @@ def get_interface_config(interface_name):
     """获取指定接口的当前配置（原始输出）"""
     try:
         cmd = ['netsh', 'interface', 'ip', 'show', 'config', f'name={interface_name}']
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8')
+        output = run_netsh_command(cmd)
         
-        if result.returncode != 0:
+        if not output:
             return None
             
-        return result.stdout
+        return output
         
     except Exception as e:
         print(f"获取接口配置失败: {e}")
