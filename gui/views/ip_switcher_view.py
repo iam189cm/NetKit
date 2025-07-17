@@ -61,7 +61,7 @@ class IPSwitcherFrame(tb.Frame):
             select_frame,
             textvariable=self.interface_var,
             state="readonly",
-            width=60,
+            width=45,  # 从60调整为45
             font=('Arial', 9)
         )
         self.interface_combo.pack(side=LEFT, padx=(10, 20))
@@ -90,11 +90,11 @@ class IPSwitcherFrame(tb.Frame):
         info_frame = tb.LabelFrame(parent, text="当前网卡信息", padding=20)
         info_frame.pack(fill=X, pady=(0, 15))
         
-        # 创建信息显示网格
-        info_grid = tb.Frame(info_frame)
-        info_grid.pack(fill=X)
+        # 创建信息显示区域（1列布局）
+        info_container = tb.Frame(info_frame)
+        info_container.pack(fill=X)
         
-        # 信息字段定义
+        # 信息字段定义（9行显示）
         info_fields = [
             ("网卡名称:", "name_label"),
             ("描述:", "desc_label"),
@@ -107,34 +107,28 @@ class IPSwitcherFrame(tb.Frame):
             ("DNS服务器:", "dns_label")
         ]
         
-        # 创建信息显示标签
+        # 创建信息显示标签（每行一个信息）
         for i, (label_text, attr_name) in enumerate(info_fields):
-            row = i // 3  # 每行3个字段
-            col = i % 3
+            field_frame = tb.Frame(info_container)
+            field_frame.pack(fill=X, pady=2)
             
-            field_frame = tb.Frame(info_grid)
-            field_frame.grid(row=row, column=col, sticky=W, padx=(0, 40), pady=3)
-            
-            tb.Label(field_frame, text=label_text, font=('Arial', 9)).pack(side=LEFT)
+            tb.Label(field_frame, text=label_text, font=('Arial', 9), width=12).pack(side=LEFT)
             label = tb.Label(field_frame, text="未选择", font=('Arial', 9), bootstyle=SECONDARY)
-            label.pack(side=LEFT, padx=(5, 0))
+            label.pack(side=LEFT, padx=(10, 0))
             setattr(self, attr_name, label)
-        
-        # 配置网格权重
-        for i in range(3):
-            info_grid.columnconfigure(i, weight=1)
             
     def setup_network_config(self, parent):
         """设置网络配置区域"""
         config_frame = tb.LabelFrame(parent, text="网络配置", padding=20)
         config_frame.pack(fill=X, pady=(0, 15))
         
-        # 配置字段
+        # 配置字段（DNS分为两个输入框）
         config_fields = [
             ("IP地址:", "ip_entry", "例如: 192.168.1.100"),
             ("子网掩码:", "mask_entry", "例如: 255.255.255.0 或 24"),
             ("默认网关:", "gateway_entry", "例如: 192.168.1.1"),
-            ("DNS服务器:", "dns_entry", "例如: 8.8.8.8,8.8.4.4")
+            ("DNS服务器1:", "dns1_entry", "例如: 8.8.8.8"),
+            ("DNS服务器2:", "dns2_entry", "例如: 8.8.4.4")
         ]
         
         # 创建配置输入字段
@@ -181,10 +175,10 @@ class IPSwitcherFrame(tb.Frame):
         status_frame = tb.LabelFrame(parent, text="状态", padding=15)
         status_frame.pack(fill=BOTH, expand=True, pady=(0, 0))
         
-        # 状态文本框
+        # 状态文本框（调小高度）
         self.status_text = tb.Text(
             status_frame,
-            height=6,
+            height=4,  # 从6调整为4
             state=DISABLED,
             wrap=WORD,
             font=('Consolas', 9)
@@ -316,7 +310,8 @@ class IPSwitcherFrame(tb.Frame):
             ip = self.get_entry_value(self.ip_entry, "例如: 192.168.1.100")
             mask = self.get_entry_value(self.mask_entry, "例如: 255.255.255.0 或 24")
             gateway = self.get_entry_value(self.gateway_entry, "例如: 192.168.1.1")
-            dns = self.get_entry_value(self.dns_entry, "例如: 8.8.8.8,8.8.4.4")
+            dns1 = self.get_entry_value(self.dns1_entry, "例如: 8.8.8.8")
+            dns2 = self.get_entry_value(self.dns2_entry, "例如: 8.8.4.4")
             
             # 验证必填字段
             if not all([ip, mask, gateway]):
@@ -324,7 +319,7 @@ class IPSwitcherFrame(tb.Frame):
                 return
             
             # 验证配置
-            validation = validate_ip_config(ip, mask, gateway, dns)
+            validation = validate_ip_config(ip, mask, gateway, f"{dns1},{dns2}")
             if not validation['valid']:
                 self.append_status(f"配置验证失败: {validation['error']}\n")
                 return
@@ -334,12 +329,12 @@ class IPSwitcherFrame(tb.Frame):
             self.append_status(f"IP地址: {ip}\n")
             self.append_status(f"子网掩码: {mask}\n")
             self.append_status(f"默认网关: {gateway}\n")
-            if dns:
-                self.append_status(f"DNS服务器: {dns}\n")
+            if dns1 or dns2:
+                self.append_status(f"DNS服务器: {dns1}, {dns2}\n")
             self.append_status("-" * 50 + "\n")
             
             try:
-                result = apply_profile(interface, ip, mask, gateway, dns, dhcp=False)
+                result = apply_profile(interface, ip, mask, gateway, f"{dns1},{dns2}", dhcp=False)
                 if result['success']:
                     self.append_status("✓ 静态IP配置应用成功!\n\n")
                     # 刷新网卡信息显示
