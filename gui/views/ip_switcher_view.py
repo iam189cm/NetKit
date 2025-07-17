@@ -48,48 +48,65 @@ class IPSwitcherFrame(tb.Frame):
     def setup_network_selection(self, parent):
         """设置网卡选择区域"""
         select_frame = tb.LabelFrame(parent, text="网卡选择", padding=15)
-        select_frame.pack(side=LEFT, fill=Y, padx=(0, 10))
+        select_frame.pack(fill=X, pady=(0, 10))
         
-        # 网卡选择
-        interface_frame = tb.Frame(select_frame)
-        interface_frame.pack(fill=X, pady=(0, 10))
+        # 创建水平布局容器
+        content_frame = tb.Frame(select_frame)
+        content_frame.pack(fill=X)
         
-        tb.Label(interface_frame, text="网卡选择:").pack(anchor=W, pady=(0, 5))
+        # 左侧：网卡选择
+        left_frame = tb.Frame(content_frame)
+        left_frame.pack(side=LEFT, fill=X, expand=True)
+        
+        tb.Label(left_frame, text="网卡选择:").pack(anchor=W, pady=(0, 5))
         self.interface_var = tb.StringVar()
         self.interface_combo = tb.Combobox(
-            interface_frame, 
+            left_frame, 
             textvariable=self.interface_var,
             state="readonly",
-            width=35
+            width=50
         )
         self.interface_combo.pack(fill=X, pady=(0, 10))
         self.interface_combo.bind('<<ComboboxSelected>>', self.on_interface_selected)
         
+        # 右侧：按钮和选项
+        right_frame = tb.Frame(content_frame)
+        right_frame.pack(side=RIGHT, padx=(20, 0))
+        
         # 刷新按钮
         tb.Button(
-            interface_frame,
+            right_frame,
             text="刷新网卡",
             bootstyle=INFO,
             command=self.refresh_interfaces,
             width=15
-        ).pack(fill=X)
+        ).pack(pady=(0, 10))
         
         # 显示所有网卡选项
-        show_all_frame = tb.Frame(select_frame)
-        show_all_frame.pack(fill=X, pady=(10, 0))
-        
         self.show_all_var = tb.BooleanVar()
         tb.Checkbutton(
-            show_all_frame,
+            right_frame,
             text="显示所有网卡",
             variable=self.show_all_var,
             command=self.refresh_interfaces
-        ).pack(anchor=W)
+        ).pack()
         
     def setup_network_info_display(self, parent):
         """设置当前网卡信息显示区域"""
         info_frame = tb.LabelFrame(parent, text="当前网卡信息", padding=15)
-        info_frame.pack(side=LEFT, fill=BOTH, expand=True, padx=(0, 10))
+        info_frame.pack(fill=X, pady=(0, 10))
+        
+        # 创建两列布局
+        columns_frame = tb.Frame(info_frame)
+        columns_frame.pack(fill=X)
+        
+        # 左列
+        left_column = tb.Frame(columns_frame)
+        left_column.pack(side=LEFT, fill=X, expand=True)
+        
+        # 右列
+        right_column = tb.Frame(columns_frame)
+        right_column.pack(side=RIGHT, fill=X, expand=True, padx=(20, 0))
         
         # 创建信息显示标签
         info_fields = [
@@ -105,8 +122,11 @@ class IPSwitcherFrame(tb.Frame):
             ("DNS服务器2:", "dns2_label")
         ]
         
+        # 分配字段到两列
         for i, (label_text, attr_name) in enumerate(info_fields):
-            field_frame = tb.Frame(info_frame)
+            parent_column = left_column if i < 5 else right_column
+            
+            field_frame = tb.Frame(parent_column)
             field_frame.pack(fill=X, pady=2)
             
             tb.Label(field_frame, text=label_text, width=12).pack(side=LEFT)
@@ -117,10 +137,18 @@ class IPSwitcherFrame(tb.Frame):
     def setup_network_config(self, parent):
         """设置网络配置输入区域"""
         config_frame = tb.LabelFrame(parent, text="网络配置", padding=15)
-        config_frame.pack(side=RIGHT, fill=Y)
+        config_frame.pack(fill=X, pady=(0, 10))
+        
+        # 创建水平布局容器
+        content_frame = tb.Frame(config_frame)
+        content_frame.pack(fill=X)
+        
+        # 左侧：配置输入
+        left_frame = tb.Frame(content_frame)
+        left_frame.pack(side=LEFT, fill=X, expand=True)
         
         # DHCP选项
-        dhcp_frame = tb.Frame(config_frame)
+        dhcp_frame = tb.Frame(left_frame)
         dhcp_frame.pack(fill=X, pady=(0, 15))
         
         self.dhcp_var = tb.BooleanVar()
@@ -132,7 +160,18 @@ class IPSwitcherFrame(tb.Frame):
         )
         self.dhcp_check.pack(anchor=W)
         
-        # 配置输入字段
+        # 配置输入字段（两列布局）
+        fields_frame = tb.Frame(left_frame)
+        fields_frame.pack(fill=X)
+        
+        # 左列字段
+        left_fields_frame = tb.Frame(fields_frame)
+        left_fields_frame.pack(side=LEFT, fill=X, expand=True)
+        
+        # 右列字段
+        right_fields_frame = tb.Frame(fields_frame)
+        right_fields_frame.pack(side=RIGHT, fill=X, expand=True, padx=(20, 0))
+        
         config_fields = [
             ("IP地址:", "ip_entry", "例如: 192.168.1.100"),
             ("子网掩码:", "mask_entry", "例如: 255.255.255.0 或 24"),
@@ -141,8 +180,10 @@ class IPSwitcherFrame(tb.Frame):
             ("DNS服务器2:", "dns2_entry", "例如: 8.8.4.4")
         ]
         
-        for label_text, entry_name, placeholder in config_fields:
-            field_frame = tb.Frame(config_frame)
+        for i, (label_text, entry_name, placeholder) in enumerate(config_fields):
+            parent_frame = left_fields_frame if i < 3 else right_fields_frame
+            
+            field_frame = tb.Frame(parent_frame)
             field_frame.pack(fill=X, pady=3)
             
             tb.Label(field_frame, text=label_text, width=12).pack(anchor=W)
@@ -153,14 +194,18 @@ class IPSwitcherFrame(tb.Frame):
             entry.bind('<FocusOut>', lambda e, placeholder=placeholder: self.on_entry_focus_out(e, placeholder))
             setattr(self, entry_name, entry)
         
-        # 应用配置按钮
+        # 右侧：应用配置按钮
+        right_frame = tb.Frame(content_frame)
+        right_frame.pack(side=RIGHT, padx=(20, 0))
+        
         tb.Button(
-            config_frame,
+            right_frame,
             text="应用配置",
             bootstyle=SUCCESS,
             command=self.apply_config,
-            width=20
-        ).pack(fill=X, pady=(20, 0))
+            width=20,
+            height=3
+        ).pack(anchor=CENTER, pady=(30, 0))
         
     def setup_result_area(self):
         """设置执行结果区域"""
