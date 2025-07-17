@@ -17,7 +17,7 @@ class TracerouteFrame(tb.Frame):
         title = tb.Label(
             self, 
             text="路由追踪 (Traceroute)", 
-            font=('Arial', 18, 'bold'),
+            font=('Microsoft YaHei', 18, 'bold'),
             bootstyle=WARNING
         )
         title.pack(pady=(0, 20))
@@ -91,7 +91,7 @@ class TracerouteFrame(tb.Frame):
             status_frame, 
             text="就绪", 
             bootstyle=INFO,
-            font=('Arial', 10, 'bold')
+            font=('Microsoft YaHei', 10, 'bold')
         )
         self.status_label.pack(pady=(0, 5))
         

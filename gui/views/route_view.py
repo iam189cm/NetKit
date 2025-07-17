@@ -21,7 +21,7 @@ class RouteFrame(tb.Frame):
         title = tb.Label(
             self, 
             text="静态路由管理", 
-            font=('Arial', 18, 'bold'),
+            font=('Microsoft YaHei', 18, 'bold'),
             bootstyle=DANGER
         )
         title.pack(pady=(0, 20))

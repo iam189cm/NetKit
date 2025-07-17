@@ -19,7 +19,7 @@ class IPSwitcherFrame(tb.Frame):
         title = tb.Label(
             self, 
             text="网卡配置", 
-            font=('Arial', 18, 'bold'),
+            font=('Microsoft YaHei', 18, 'bold'),
             bootstyle=PRIMARY
         )
         title.pack(pady=(0, 20))
@@ -54,7 +54,7 @@ class IPSwitcherFrame(tb.Frame):
         select_frame.pack(fill=X, pady=(0, 15))
         
         # 左侧：网卡选择标签和下拉框
-        tb.Label(select_frame, text="网卡选择:", font=('Arial', 10)).pack(side=LEFT)
+        tb.Label(select_frame, text="网卡选择:", font=('Microsoft YaHei', 10)).pack(side=LEFT)
         
         self.interface_var = tb.StringVar()
         self.interface_combo = tb.Combobox(
@@ -62,7 +62,7 @@ class IPSwitcherFrame(tb.Frame):
             textvariable=self.interface_var,
             state="readonly",
             width=45,  # 从60调整为45
-            font=('Arial', 9)
+            font=('Microsoft YaHei', 9)
         )
         self.interface_combo.pack(side=LEFT, padx=(10, 20))
         self.interface_combo.bind('<<ComboboxSelected>>', self.on_interface_selected)
@@ -94,7 +94,7 @@ class IPSwitcherFrame(tb.Frame):
         info_container = tb.Frame(info_frame)
         info_container.pack(fill=X)
         
-        # 信息字段定义（9行显示）
+        # 信息字段定义（10行显示）
         info_fields = [
             ("网卡名称:", "name_label"),
             ("描述:", "desc_label"),
@@ -104,7 +104,8 @@ class IPSwitcherFrame(tb.Frame):
             ("IP地址:", "ip_label"),
             ("子网掩码:", "mask_label"),
             ("默认网关:", "gateway_label"),
-            ("DNS服务器:", "dns_label")
+            ("DNS服务器1:", "dns1_label"),
+            ("DNS服务器2:", "dns2_label")
         ]
         
         # 创建信息显示标签（每行一个信息）
@@ -112,8 +113,8 @@ class IPSwitcherFrame(tb.Frame):
             field_frame = tb.Frame(info_container)
             field_frame.pack(fill=X, pady=2)
             
-            tb.Label(field_frame, text=label_text, font=('Arial', 9), width=12).pack(side=LEFT)
-            label = tb.Label(field_frame, text="未选择", font=('Arial', 9), bootstyle=SECONDARY)
+            tb.Label(field_frame, text=label_text, font=('Microsoft YaHei', 9), width=12).pack(side=LEFT)
+            label = tb.Label(field_frame, text="未选择", font=('Microsoft YaHei', 9), bootstyle=SECONDARY)
             label.pack(side=LEFT, padx=(10, 0))
             setattr(self, attr_name, label)
             
@@ -137,10 +138,10 @@ class IPSwitcherFrame(tb.Frame):
             field_frame.pack(fill=X, pady=5)
             
             # 标签
-            tb.Label(field_frame, text=label_text, font=('Arial', 10), width=12).pack(side=LEFT)
+            tb.Label(field_frame, text=label_text, font=('Microsoft YaHei', 10), width=12).pack(side=LEFT)
             
             # 输入框
-            entry = tb.Entry(field_frame, font=('Arial', 9), width=40)
+            entry = tb.Entry(field_frame, font=('Microsoft YaHei', 9), width=40)
             entry.pack(side=LEFT, padx=(10, 0))
             entry.insert(0, placeholder)
             entry.bind('<FocusIn>', lambda e, ph=placeholder: self.on_entry_focus_in(e, ph))
@@ -181,7 +182,7 @@ class IPSwitcherFrame(tb.Frame):
             height=4,  # 从6调整为4
             state=DISABLED,
             wrap=WORD,
-            font=('Consolas', 9)
+            font=('Microsoft YaHei', 9)
         )
         
         # 滚动条
@@ -253,18 +254,9 @@ class IPSwitcherFrame(tb.Frame):
             self.mask_label.config(text=info.get('mask', '未配置'))
             self.gateway_label.config(text=info.get('gateway', '未配置'))
             
-            # 合并DNS服务器显示
-            dns1 = info.get('dns1', '')
-            dns2 = info.get('dns2', '')
-            if dns1 and dns2:
-                dns_text = f"{dns1}, {dns2}"
-            elif dns1:
-                dns_text = dns1
-            elif dns2:
-                dns_text = dns2
-            else:
-                dns_text = "未配置"
-            self.dns_label.config(text=dns_text)
+            # 分别显示两个DNS服务器
+            self.dns1_label.config(text=info.get('dns1', '未配置'))
+            self.dns2_label.config(text=info.get('dns2', '未配置'))
             
             self.append_status(f"已选择网卡: {info.get('name', interface)}\n")
             
@@ -273,7 +265,7 @@ class IPSwitcherFrame(tb.Frame):
             # 重置信息显示
             for label in [self.name_label, self.desc_label, self.status_label, 
                          self.mac_label, self.speed_label, self.ip_label, 
-                         self.mask_label, self.gateway_label, self.dns_label]:
+                         self.mask_label, self.gateway_label, self.dns1_label, self.dns2_label]:
                 label.config(text="获取失败")
     
     def get_entry_value(self, entry, placeholder):

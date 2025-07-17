@@ -17,7 +17,7 @@ class SubnetFrame(tb.Frame):
         title = tb.Label(
             self, 
             text="子网与VLSM计算器", 
-            font=('Arial', 18, 'bold'),
+            font=('Microsoft YaHei', 18, 'bold'),
             bootstyle=INFO
         )
         title.pack(pady=(0, 20))
@@ -103,7 +103,7 @@ class SubnetFrame(tb.Frame):
         tb.Label(
             example_frame, 
             text="示例: 192.168.1.0/24 或 10.0.0.0/8",
-            font=('Arial', 9),
+            font=('Microsoft YaHei', 9),
             bootstyle=SECONDARY
         ).pack(side=LEFT)
         

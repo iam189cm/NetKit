@@ -18,7 +18,7 @@ class PingFrame(tb.Frame):
         title = tb.Label(
             self, 
             text="Ping 网络测试", 
-            font=('Arial', 18, 'bold'),
+            font=('Microsoft YaHei', 18, 'bold'),
             bootstyle=SUCCESS
         )
         title.pack(pady=(0, 20))
@@ -47,7 +47,7 @@ class PingFrame(tb.Frame):
         help_text = tb.Label(
             target_input_frame,
             text="支持格式: 单个IP、IP范围(1.1.1.1-1.1.1.100)、CIDR(192.168.1.0/24)、主机名",
-            font=('Arial', 8),
+            font=('Microsoft YaHei', 8),
             bootstyle=SECONDARY
         )
         help_text.pack(anchor=W, pady=(5, 0))

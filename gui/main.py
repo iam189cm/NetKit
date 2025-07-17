@@ -58,7 +58,7 @@ class MainWindow:
         title_label = tb.Label(
             sidebar, 
                             text="NetKit", 
-            font=('Arial', 16, 'bold'),
+            font=('Microsoft YaHei', 16, 'bold'),
             bootstyle=INFO
         )
         title_label.pack(pady=(0, 10))
@@ -67,7 +67,7 @@ class MainWindow:
         version_label = tb.Label(
             sidebar,
             text="v0.1 网络工具箱",
-            font=('Arial', 9),
+            font=('Microsoft YaHei', 9),
             bootstyle=SECONDARY
         )
         version_label.pack(pady=(0, 20))
@@ -107,7 +107,7 @@ class MainWindow:
         admin_label = tb.Label(
             info_frame,
             text=f"权限: {admin_status}",
-            font=('Arial', 8),
+            font=('Microsoft YaHei', 8),
             bootstyle=SUCCESS if admin_status == "已获取管理员权限" else WARNING
         )
         admin_label.pack(anchor=W, pady=2)
@@ -117,7 +117,7 @@ class MainWindow:
         time_label = tb.Label(
             info_frame,
             text=f"启动: {start_time}",
-            font=('Arial', 8),
+            font=('Microsoft YaHei', 8),
             bootstyle=SECONDARY
         )
         time_label.pack(anchor=W, pady=2)
@@ -144,7 +144,7 @@ class MainWindow:
         status_label = tb.Label(
             status_content,
             text="状态:",
-            font=('Arial', 9),
+            font=('Microsoft YaHei', 9),
             bootstyle=SECONDARY
         )
         status_label.pack(side=LEFT)
@@ -152,7 +152,7 @@ class MainWindow:
         self.status_display = tb.Label(
             status_content,
             textvariable=self.status_var,
-            font=('Arial', 9),
+            font=('Microsoft YaHei', 9),
             bootstyle=INFO
         )
         self.status_display.pack(side=LEFT, padx=(5, 0))
@@ -168,7 +168,7 @@ class MainWindow:
         self.time_label = tb.Label(
             status_content,
             text="",
-            font=('Arial', 9),
+            font=('Microsoft YaHei', 9),
             bootstyle=SECONDARY
         )
         self.time_label.pack(side=RIGHT)
