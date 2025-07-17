@@ -18,8 +18,8 @@ class MainWindow:
     def __init__(self):
         self.app = tb.Window(themename='darkly')
         self.app.title('NetKit v0.2.9 - 网络工程师工具箱')
-        self.app.geometry('1200x800')
-        self.app.minsize(1000, 600)
+        self.app.geometry('1000x900')
+        self.app.resizable(False, False)  # 禁用窗口大小调整
         
         # 当前显示的内容框架
         self.current_frame = None
