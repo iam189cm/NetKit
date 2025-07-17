@@ -2,8 +2,7 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from netkit.services.ip_switcher import (
-    apply_profile, get_network_interfaces, save_profile, 
-    load_profiles, delete_profile, validate_ip_config
+    apply_profile, get_network_interfaces, validate_ip_config
 )
 import tkinter.messagebox as mbox
 
@@ -11,9 +10,7 @@ import tkinter.messagebox as mbox
 class IPSwitcherFrame(tb.Frame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        self.profiles = {}
         self.setup_ui()
-        self.load_saved_profiles()
         
     def setup_ui(self):
         """设置IP切换界面"""
@@ -33,61 +30,6 @@ class IPSwitcherFrame(tb.Frame):
         # 左侧配置区域
         left_frame = tb.Frame(main_frame)
         left_frame.pack(side=LEFT, fill=BOTH, expand=True, padx=(0, 10))
-        
-        # 配置文件管理
-        profile_frame = tb.LabelFrame(left_frame, text="配置文件管理", padding=15)
-        profile_frame.pack(fill=X, pady=(0, 10))
-        
-        # 配置文件选择
-        profile_select_frame = tb.Frame(profile_frame)
-        profile_select_frame.pack(fill=X, pady=(0, 10))
-        
-        tb.Label(profile_select_frame, text="选择配置:").pack(side=LEFT)
-        self.profile_var = tb.StringVar()
-        self.profile_combo = tb.Combobox(
-            profile_select_frame,
-            textvariable=self.profile_var,
-            state="readonly",
-            width=20
-        )
-        self.profile_combo.pack(side=LEFT, padx=(10, 5))
-        self.profile_combo.bind('<<ComboboxSelected>>', self.on_profile_selected)
-        
-        # 配置文件操作按钮
-        profile_btn_frame = tb.Frame(profile_select_frame)
-        profile_btn_frame.pack(side=RIGHT)
-        
-        tb.Button(
-            profile_btn_frame,
-            text="加载",
-            bootstyle=INFO,
-            command=self.load_selected_profile,
-            width=8
-        ).pack(side=LEFT, padx=2)
-        
-        tb.Button(
-            profile_btn_frame,
-            text="删除",
-            bootstyle=DANGER,
-            command=self.delete_selected_profile,
-            width=8
-        ).pack(side=LEFT, padx=2)
-        
-        # 保存新配置
-        save_frame = tb.Frame(profile_frame)
-        save_frame.pack(fill=X)
-        
-        tb.Label(save_frame, text="保存为:").pack(side=LEFT)
-        self.profile_name_entry = tb.Entry(save_frame, width=20)
-        self.profile_name_entry.pack(side=LEFT, padx=(10, 5))
-        
-        tb.Button(
-            save_frame,
-            text="保存配置",
-            bootstyle=SUCCESS,
-            command=self.save_current_config,
-            width=10
-        ).pack(side=RIGHT)
         
         # 网络配置输入区域
         config_frame = tb.LabelFrame(left_frame, text="网络配置", padding=15)
@@ -263,98 +205,6 @@ class IPSwitcherFrame(tb.Frame):
                 self.append_result(f"✗ IP配置应用失败: {result['error']}\n\n")
         except Exception as e:
             self.append_result(f"✗ 执行出错: {str(e)}\n\n")
-    
-    def save_current_config(self):
-        """保存当前配置"""
-        name = self.profile_name_entry.get().strip()
-        if not name:
-            mbox.showwarning("输入错误", "请输入配置文件名称")
-            return
-            
-        interface = self.interface_var.get().strip()
-        ip = self.ip_entry.get().strip()
-        mask = self.mask_entry.get().strip()
-        gateway = self.gateway_entry.get().strip()
-        dns = self.dns_entry.get().strip()
-        
-        if not all([interface, ip, mask, gateway]):
-            mbox.showwarning("输入错误", "请完整填写网络配置信息")
-            return
-        
-        # 验证配置
-        validation = validate_ip_config(ip, mask, gateway, dns)
-        if not validation['valid']:
-            mbox.showerror("配置错误", f"配置验证失败: {validation['error']}")
-            return
-            
-        try:
-            result = save_profile(name, interface, ip, mask, gateway, dns)
-            if result['success']:
-                self.append_result(f"✓ 配置 '{name}' 保存成功\n")
-                self.profile_name_entry.delete(0, END)
-                self.load_saved_profiles()
-            else:
-                self.append_result(f"✗ 保存失败: {result['error']}\n")
-                mbox.showerror("保存失败", result['error'])
-        except Exception as e:
-            self.append_result(f"✗ 保存出错: {str(e)}\n")
-    
-    def load_saved_profiles(self):
-        """加载已保存的配置文件"""
-        try:
-            self.profiles = load_profiles()
-            profile_names = list(self.profiles.keys())
-            self.profile_combo['values'] = profile_names
-            if profile_names:
-                self.profile_combo.current(0)
-        except Exception as e:
-            self.append_result(f"加载配置文件失败: {str(e)}\n")
-    
-    def on_profile_selected(self, event=None):
-        """配置文件选择事件"""
-        # 这里可以添加预览配置的逻辑
-        pass
-    
-    def load_selected_profile(self):
-        """加载选中的配置文件"""
-        profile_name = self.profile_var.get()
-        if not profile_name or profile_name not in self.profiles:
-            mbox.showwarning("选择错误", "请选择有效的配置文件")
-            return
-            
-        profile = self.profiles[profile_name]
-        
-        # 更新界面
-        self.interface_var.set(profile['interface'])
-        self.ip_entry.delete(0, END)
-        self.ip_entry.insert(0, profile['ip'])
-        self.mask_entry.delete(0, END)
-        self.mask_entry.insert(0, profile['mask'])
-        self.gateway_entry.delete(0, END)
-        self.gateway_entry.insert(0, profile['gateway'])
-        self.dns_entry.delete(0, END)
-        self.dns_entry.insert(0, profile['dns'])
-        
-        self.append_result(f"✓ 已加载配置 '{profile_name}'\n")
-    
-    def delete_selected_profile(self):
-        """删除选中的配置文件"""
-        profile_name = self.profile_var.get()
-        if not profile_name or profile_name not in self.profiles:
-            mbox.showwarning("选择错误", "请选择有效的配置文件")
-            return
-            
-        if mbox.askyesno("确认删除", f"确定要删除配置 '{profile_name}' 吗？"):
-            try:
-                result = delete_profile(profile_name)
-                if result['success']:
-                    self.append_result(f"✓ 配置 '{profile_name}' 已删除\n")
-                    self.load_saved_profiles()
-                else:
-                    self.append_result(f"✗ 删除失败: {result['error']}\n")
-                    mbox.showerror("删除失败", result['error'])
-            except Exception as e:
-                self.append_result(f"✗ 删除出错: {str(e)}\n")
     
     def clear_result(self):
         """清空结果框"""

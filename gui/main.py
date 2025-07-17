@@ -74,7 +74,7 @@ class MainWindow:
         
         # 导航按钮
         nav_buttons = [
-            ("IP地址切换", self.show_ip_switcher, PRIMARY, "快速切换网络配置"),
+            ("网卡配置", self.show_ip_switcher, PRIMARY, "快速切换网络配置"),
             ("Ping测试", self.show_ping, SUCCESS, "网络连通性测试"),
             ("子网计算", self.show_subnet, INFO, "子网划分与计算"),
             ("路由追踪", self.show_traceroute, WARNING, "追踪网络路径"),
