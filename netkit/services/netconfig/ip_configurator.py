@@ -1,142 +1,13 @@
+"""
+IP配置模块
+负责IP地址配置的应用、验证、冲突检查等功能
+"""
 
 import subprocess
 import re
-import json
-import os
-from pathlib import Path
-
-
-def get_network_interfaces():
-    """获取网络接口列表"""
-    try:
-        cmd = ['netsh', 'interface', 'show', 'interface']
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8')
-        
-        if result.returncode != 0:
-            return []
-            
-        interfaces = []
-        lines = result.stdout.split('\n')
-        
-        # 跳过标题行，查找接口信息
-        for line in lines:
-            if line.strip() and not line.startswith('Admin') and not line.startswith('---'):
-                # 解析接口行，格式通常是: 状态 类型 接口名称
-                parts = line.split()
-                if len(parts) >= 4:
-                    # 接口名称可能包含空格，取最后几个部分
-                    interface_name = ' '.join(parts[3:])
-                    if interface_name and interface_name not in interfaces:
-                        # 只返回启用的网络接口
-                        if parts[0].strip() == "已启用" or parts[0].strip() == "Enabled":
-                            interfaces.append(interface_name)
-                        
-        return interfaces
-        
-    except Exception as e:
-        print(f"获取网络接口失败: {e}")
-        return []
-
-
-def get_network_card_info(interface_name):
-    """获取网卡详细信息"""
-    try:
-        info = {
-            'name': interface_name,
-            'description': '未知',
-            'status': '未知',
-            'mac': '未知',
-            'speed': '未知',
-            'ip': '未配置',
-            'mask': '未配置',
-            'gateway': '未配置',
-            'dns1': '未配置',
-            'dns2': '未配置'
-        }
-        
-        # 获取接口基本信息
-        cmd_interface = ['netsh', 'interface', 'show', 'interface', f'name={interface_name}']
-        result_interface = subprocess.run(cmd_interface, capture_output=True, text=True, encoding='gbk', errors='ignore')
-        
-        if result_interface.returncode == 0 and result_interface.stdout:
-            lines = result_interface.stdout.split('\n')
-            for line in lines:
-                if '管理状态' in line or 'Administrative state' in line:
-                    info['status'] = line.split(':')[-1].strip()
-                elif '类型' in line or 'Type' in line:
-                    info['description'] = line.split(':')[-1].strip()
-        
-        # 获取物理地址
-        cmd_mac = ['getmac', '/fo', 'csv', '/v']
-        result_mac = subprocess.run(cmd_mac, capture_output=True, text=True, encoding='gbk', errors='ignore')
-        
-        if result_mac.returncode == 0 and result_mac.stdout:
-            lines = result_mac.stdout.split('\n')
-            for line in lines:
-                if interface_name in line:
-                    parts = line.split(',')
-                    if len(parts) >= 3:
-                        mac = parts[2].strip('"')
-                        if mac != 'N/A':
-                            info['mac'] = mac
-                    break
-        
-        # 获取IP配置信息
-        cmd_ip = ['netsh', 'interface', 'ip', 'show', 'config', f'name={interface_name}']
-        result_ip = subprocess.run(cmd_ip, capture_output=True, text=True, encoding='gbk', errors='ignore')
-        
-        if result_ip.returncode == 0 and result_ip.stdout:
-            lines = result_ip.stdout.split('\n')
-            dns_servers = []
-            
-            for line in lines:
-                line = line.strip()
-                if 'IP Address' in line or 'IP 地址' in line:
-                    ip_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
-                    if ip_match:
-                        info['ip'] = ip_match.group(1)
-                elif 'Subnet Prefix' in line or '子网前缀' in line:
-                    # 提取子网掩码
-                    mask_match = re.search(r'/(\d+)', line)
-                    if mask_match:
-                        prefix = int(mask_match.group(1))
-                        # 转换CIDR为点分十进制
-                        mask_int = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF
-                        info['mask'] = f"{(mask_int >> 24) & 0xFF}.{(mask_int >> 16) & 0xFF}.{(mask_int >> 8) & 0xFF}.{mask_int & 0xFF}"
-                elif 'Default Gateway' in line or '默认网关' in line:
-                    gateway_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
-                    if gateway_match:
-                        info['gateway'] = gateway_match.group(1)
-                elif 'DNS Servers' in line or 'DNS 服务器' in line:
-                    dns_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
-                    if dns_match:
-                        dns_servers.append(dns_match.group(1))
-                elif re.match(r'^\s*\d+\.\d+\.\d+\.\d+\s*$', line):
-                    # 额外的DNS服务器行
-                    dns_servers.append(line.strip())
-            
-            # 设置DNS服务器
-            if len(dns_servers) > 0:
-                info['dns1'] = dns_servers[0]
-            if len(dns_servers) > 1:
-                info['dns2'] = dns_servers[1]
-        
-        return info
-        
-    except Exception as e:
-        print(f"获取网卡信息失败: {e}")
-        return {
-            'name': interface_name,
-            'description': '获取失败',
-            'status': '获取失败',
-            'mac': '获取失败',
-            'speed': '获取失败',
-            'ip': '获取失败',
-            'mask': '获取失败',
-            'gateway': '获取失败',
-            'dns1': '获取失败',
-            'dns2': '获取失败'
-        }
+import ipaddress
+from .interface_manager import get_network_interfaces
+from .interface_info import get_interface_config
 
 
 def apply_profile(interface_name, ip, mask, gateway, dns=None, dhcp=False):
@@ -228,107 +99,8 @@ def apply_profile(interface_name, ip, mask, gateway, dns=None, dhcp=False):
         }
 
 
-def get_interface_config(interface_name):
-    """获取指定接口的当前配置"""
-    try:
-        cmd = ['netsh', 'interface', 'ip', 'show', 'config', f'name={interface_name}']
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8')
-        
-        if result.returncode != 0:
-            return None
-            
-        return result.stdout
-        
-    except Exception as e:
-        print(f"获取接口配置失败: {e}")
-        return None
-
-
-def get_config_dir():
-    """获取配置文件目录"""
-    config_dir = Path.home() / '.netkit_py'
-    config_dir.mkdir(exist_ok=True)
-    return config_dir
-
-
-def save_profile(name, interface, ip, mask, gateway, dns=""):
-    """保存IP配置文件"""
-    try:
-        config_dir = get_config_dir()
-        profiles_file = config_dir / 'ip_profiles.json'
-        
-        # 读取现有配置
-        profiles = {}
-        if profiles_file.exists():
-            with open(profiles_file, 'r', encoding='utf-8') as f:
-                profiles = json.load(f)
-        
-        # 添加新配置
-        profiles[name] = {
-            'interface': interface,
-            'ip': ip,
-            'mask': mask,
-            'gateway': gateway,
-            'dns': dns
-        }
-        
-        # 保存配置
-        with open(profiles_file, 'w', encoding='utf-8') as f:
-            json.dump(profiles, f, indent=2, ensure_ascii=False)
-            
-        return {'success': True, 'message': f"配置文件 '{name}' 已保存"}
-        
-    except Exception as e:
-        return {'success': False, 'error': f"保存配置失败: {str(e)}"}
-
-
-def load_profiles():
-    """加载所有IP配置文件"""
-    try:
-        config_dir = get_config_dir()
-        profiles_file = config_dir / 'ip_profiles.json'
-        
-        if not profiles_file.exists():
-            return {}
-            
-        with open(profiles_file, 'r', encoding='utf-8') as f:
-            return json.load(f)
-            
-    except Exception as e:
-        print(f"加载配置文件失败: {e}")
-        return {}
-
-
-def delete_profile(name):
-    """删除IP配置文件"""
-    try:
-        config_dir = get_config_dir()
-        profiles_file = config_dir / 'ip_profiles.json'
-        
-        if not profiles_file.exists():
-            return {'success': False, 'error': '配置文件不存在'}
-            
-        with open(profiles_file, 'r', encoding='utf-8') as f:
-            profiles = json.load(f)
-            
-        if name not in profiles:
-            return {'success': False, 'error': f"配置 '{name}' 不存在"}
-            
-        del profiles[name]
-        
-        with open(profiles_file, 'w', encoding='utf-8') as f:
-            json.dump(profiles, f, indent=2, ensure_ascii=False)
-            
-        return {'success': True, 'message': f"配置 '{name}' 已删除"}
-        
-    except Exception as e:
-        return {'success': False, 'error': f"删除配置失败: {str(e)}"}
-
-
 def validate_ip_config(ip, mask, gateway, dns=""):
     """验证IP配置的有效性"""
-    import ipaddress
-    
     try:
         # 验证IP地址
         ip_addr = ipaddress.IPv4Address(ip)
@@ -475,8 +247,8 @@ def validate_ip_config(ip, mask, gateway, dns=""):
 def check_network_conflict(ip, mask, gateway):
     """检查网络配置冲突"""
     try:
-        # 获取当前网络接口配置
-        interfaces = get_network_interfaces()
+        # 获取当前网络接口配置（包括虚拟网卡，用于冲突检查）
+        interfaces = get_network_interfaces(show_all=True)
         conflicts = []
         
         for interface in interfaces:
@@ -491,7 +263,6 @@ def check_network_conflict(ip, mask, gateway):
                 for line in lines:
                     if 'IP Address' in line or 'IP 地址' in line:
                         # 提取IP地址
-                        import re
                         ip_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
                         if ip_match:
                             current_ip = ip_match.group(1)
@@ -585,4 +356,4 @@ def suggest_ip_config(interface_name):
         return {
             'success': False,
             'error': f"生成配置建议时出错: {str(e)}"
-        }
+        } 

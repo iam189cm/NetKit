@@ -14,7 +14,12 @@ permissions:
 jobs:
   test:
     name: Run Tests
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-2019, windows-2022]  # Windows 10 and 11 equivalent
+        python-version: ['3.12']
+      fail-fast: false
     
     steps:
     - name: Checkout code
@@ -23,21 +28,57 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.12'
+        python-version: ${{ matrix.python-version }}
         
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest pytest-cov
         
-    - name: Run tests
+    - name: Create test directories
       run: |
-        pytest tests/ -v --cov=netkit --cov=gui
+        mkdir -p reports
+        mkdir -p htmlcov
+        
+    - name: Run unit tests
+      run: |
+        pytest tests/unit/ -v --tb=short -m "unit" --cov=netkit --cov=gui --cov-report=xml --cov-report=html --html=reports/unit_report.html --self-contained-html
+        
+    - name: Run integration tests
+      run: |
+        pytest tests/integration/ -v --tb=short -m "integration" --html=reports/integration_report.html --self-contained-html
+        
+    - name: Run GUI tests
+      run: |
+        pytest tests/gui/ -v --tb=short -m "gui" --html=reports/gui_report.html --self-contained-html
+        
+    - name: Run performance tests (quick)
+      run: |
+        pytest tests/performance/ -v --tb=short -m "performance and not slow" --html=reports/performance_report.html --self-contained-html
+        
+    - name: Check test coverage
+      run: |
+        coverage report --fail-under=85
+        coverage xml
+        
+    - name: Upload test reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-reports-${{ matrix.os }}
+        path: |
+          reports/
+          htmlcov/
+          coverage.xml
+        retention-days: 30
         
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
       if: success()
+      with:
+        file: ./coverage.xml
+        flags: ${{ matrix.os }}
+        name: codecov-${{ matrix.os }}
 
   lint:
     name: Code Quality Check

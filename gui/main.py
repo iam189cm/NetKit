@@ -6,7 +6,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from netkit.utils.admin_check import ensure_admin
-from gui.views.ip_switcher_view import IPSwitcherFrame
+from netkit.utils.network_monitor import start_network_monitoring, stop_network_monitoring
+from gui.views.netconfig.netconfig_view import NetConfigView
 from gui.views.ping_view import PingFrame
 from gui.views.subnet_view import SubnetFrame
 from gui.views.traceroute_view import TracerouteFrame
@@ -29,6 +30,25 @@ class MainWindow:
         self.status_var.set("就绪")
         
         self.setup_ui()
+        
+        # 启动网络监听
+        start_network_monitoring()
+        
+        # 绑定窗口关闭事件
+        self.app.protocol("WM_DELETE_WINDOW", self.on_closing)
+        
+    def on_closing(self):
+        """窗口关闭时的清理工作"""
+        # 停止网络监听
+        stop_network_monitoring()
+        
+        # 清理当前视图
+        if hasattr(self, 'current_frame') and self.current_frame:
+            if hasattr(self.current_frame, 'cleanup'):
+                self.current_frame.cleanup()
+        
+        # 关闭窗口
+        self.app.destroy()
         
     def setup_ui(self):
         """设置主界面布局"""
@@ -208,6 +228,9 @@ class MainWindow:
     def clear_content_area(self):
         """清空内容区域"""
         if self.current_frame:
+            # 如果当前框架有清理方法，先调用清理
+            if hasattr(self.current_frame, 'cleanup'):
+                self.current_frame.cleanup()
             self.current_frame.destroy()
             self.current_frame = None
             
@@ -217,7 +240,7 @@ class MainWindow:
         self.set_status("正在加载IP地址切换功能...")
         
         try:
-            self.current_frame = IPSwitcherFrame(self.content_area)
+            self.current_frame = NetConfigView(self.content_area)
             self.current_frame.pack(fill=BOTH, expand=True)
             self.set_status("IP地址切换功能已加载")
         except Exception as e:
