@@ -6,185 +6,225 @@ import os
 from pathlib import Path
 
 
-def get_network_interfaces(include_all=False):
-    """获取网络接口列表，包含详细信息"""
+def get_network_interfaces():
+    """获取网络接口列表"""
     try:
         cmd = ['netsh', 'interface', 'show', 'interface']
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', errors='ignore')
-
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8')
+        
         if result.returncode != 0:
             return []
-
+            
         interfaces = []
         lines = result.stdout.split('\n')
         
+        # 跳过标题行，查找接口信息
         for line in lines:
             if line.strip() and not line.startswith('Admin') and not line.startswith('---'):
-                parts = re.split(r'\s{2,}', line.strip())
-                if len(parts) >= 3:
-                    status, _, name = parts
-                    is_enabled = status.strip() in ["已启用", "Enabled"]
-                    if include_all or is_enabled:
-                        details = get_interface_details(name)
-                        interfaces.append({
-                            'name': name,
-                            'status': status.strip(),
-                            'enabled': is_enabled,
-                            **details
-                        })
+                # 解析接口行，格式通常是: 状态 类型 接口名称
+                parts = line.split()
+                if len(parts) >= 4:
+                    # 接口名称可能包含空格，取最后几个部分
+                    interface_name = ' '.join(parts[3:])
+                    if interface_name and interface_name not in interfaces:
+                        # 只返回启用的网络接口
+                        if parts[0].strip() == "已启用" or parts[0].strip() == "Enabled":
+                            interfaces.append(interface_name)
+                        
         return interfaces
+        
     except Exception as e:
         print(f"获取网络接口失败: {e}")
         return []
 
-def get_interface_details(interface_name):
-    """获取指定接口的详细配置信息"""
-    try:
-        cmd = ['netsh', 'interface', 'ip', 'show', 'config', f'name="{interface_name}"']
-        result = subprocess.run(cmd, capture_output=True, text=True, encoding='gbk', errors='ignore')
-        
-        if result.returncode != 0:
-            return {}
 
-        details = {
-            'description': 'N/A', 'mac': 'N/A', 'dhcp_enabled': False,
-            'ip': 'N/A', 'mask': 'N/A', 'gateway': 'N/A',
-            'dns_servers': []
+def get_network_card_info(interface_name):
+    """获取网卡详细信息"""
+    try:
+        info = {
+            'name': interface_name,
+            'description': '未知',
+            'status': '未知',
+            'mac': '未知',
+            'speed': '未知',
+            'ip': '未配置',
+            'mask': '未配置',
+            'gateway': '未配置',
+            'dns1': '未配置',
+            'dns2': '未配置'
         }
         
-        for line in result.stdout.split('\n'):
-            line = line.strip()
-            if "描述" in line or "Description" in line:
-                details['description'] = line.split(":", 1)[-1].strip()
-            elif "物理地址" in line or "Physical Address" in line:
-                details['mac'] = line.split(":", 1)[-1].strip()
-            elif "DHCP 已启用" in line or "DHCP enabled" in line:
-                details['dhcp_enabled'] = "Yes" in line or "是" in line
-            elif "IP 地址" in line or "IP Address" in line:
-                if '（主）' in line or '(Primary)' in line or not details.get('ip'):
-                    ip_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
-                    if ip_match:
-                        details['ip'] = ip_match.group(1)
-            elif "子网前缀" in line or "Subnet Prefix" in line:
-                 mask_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
-                 if mask_match:
-                     details['mask'] = mask_match.group(1)
-            elif "子网掩码" in line and not details.get('mask'):
-                 mask_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
-                 if mask_match:
-                     details['mask'] = mask_match.group(1)
-            elif "默认网关" in line or "Default Gateway" in line:
-                gateway_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
-                if gateway_match:
-                    details['gateway'] = gateway_match.group(1)
-            elif "DNS 服务器" in line or "DNS servers" in line:
-                dns_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
-                if dns_match:
-                    details['dns_servers'].append(dns_match.group(1))
-
-        return details
-    except Exception as e:
-        print(f"获取接口 {interface_name} 详细信息失败: {e}")
-        return {}
-
-
-def apply_profile(interface_name, ip, mask, gateway, dns1=None, dns2=None):
-    """应用IP配置文件"""
-    try:
-        # 设置IP地址
-        cmd_ip = [
-            'netsh', 'interface', 'ip', 'set', 'address',
-            f'name="{interface_name}"', 'source=static',
-            f'addr={ip}', f'mask={mask}', f'gateway={gateway}'
-        ]
+        # 获取接口基本信息
+        cmd_interface = ['netsh', 'interface', 'show', 'interface', f'name={interface_name}']
+        result_interface = subprocess.run(cmd_interface, capture_output=True, text=True, encoding='utf-8')
         
+        if result_interface.returncode == 0:
+            lines = result_interface.stdout.split('\n')
+            for line in lines:
+                if '管理状态' in line or 'Administrative state' in line:
+                    info['status'] = line.split(':')[-1].strip()
+                elif '类型' in line or 'Type' in line:
+                    info['description'] = line.split(':')[-1].strip()
+        
+        # 获取物理地址
+        cmd_mac = ['getmac', '/fo', 'csv', '/v']
+        result_mac = subprocess.run(cmd_mac, capture_output=True, text=True, encoding='utf-8')
+        
+        if result_mac.returncode == 0:
+            lines = result_mac.stdout.split('\n')
+            for line in lines:
+                if interface_name in line:
+                    parts = line.split(',')
+                    if len(parts) >= 3:
+                        mac = parts[2].strip('"')
+                        if mac != 'N/A':
+                            info['mac'] = mac
+                    break
+        
+        # 获取IP配置信息
+        cmd_ip = ['netsh', 'interface', 'ip', 'show', 'config', f'name={interface_name}']
         result_ip = subprocess.run(cmd_ip, capture_output=True, text=True, encoding='utf-8')
         
-        if result_ip.returncode != 0:
-            return {
-                'success': False,
-                'error': f"设置IP地址失败: {result_ip.stderr or result_ip.stdout}"
-            }
+        if result_ip.returncode == 0:
+            lines = result_ip.stdout.split('\n')
+            dns_servers = []
+            
+            for line in lines:
+                line = line.strip()
+                if 'IP Address' in line or 'IP 地址' in line:
+                    ip_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
+                    if ip_match:
+                        info['ip'] = ip_match.group(1)
+                elif 'Subnet Prefix' in line or '子网前缀' in line:
+                    # 提取子网掩码
+                    mask_match = re.search(r'/(\d+)', line)
+                    if mask_match:
+                        prefix = int(mask_match.group(1))
+                        # 转换CIDR为点分十进制
+                        mask_int = (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF
+                        info['mask'] = f"{(mask_int >> 24) & 0xFF}.{(mask_int >> 16) & 0xFF}.{(mask_int >> 8) & 0xFF}.{mask_int & 0xFF}"
+                elif 'Default Gateway' in line or '默认网关' in line:
+                    gateway_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
+                    if gateway_match:
+                        info['gateway'] = gateway_match.group(1)
+                elif 'DNS Servers' in line or 'DNS 服务器' in line:
+                    dns_match = re.search(r'(\d+\.\d+\.\d+\.\d+)', line)
+                    if dns_match:
+                        dns_servers.append(dns_match.group(1))
+                elif re.match(r'^\s*\d+\.\d+\.\d+\.\d+\s*$', line):
+                    # 额外的DNS服务器行
+                    dns_servers.append(line.strip())
+            
+            # 设置DNS服务器
+            if len(dns_servers) > 0:
+                info['dns1'] = dns_servers[0]
+            if len(dns_servers) > 1:
+                info['dns2'] = dns_servers[1]
         
-        # 设置DNS
-        if dns1:
-            cmd_dns1 = [
-                'netsh', 'interface', 'ip', 'set', 'dns',
-                f'name="{interface_name}"', 'static', dns1
-            ]
-            result_dns1 = subprocess.run(cmd_dns1, capture_output=True, text=True, encoding='utf-8')
-            if result_dns1.returncode != 0:
-                return {
-                    'success': False,
-                    'error': f"设置主DNS失败: {result_dns1.stderr or result_dns1.stdout}"
-                }
+        return info
         
-        if dns2:
-            cmd_dns2 = [
-                'netsh', 'interface', 'ip', 'add', 'dns',
-                f'name="{interface_name}"', dns2, 'index=2'
-            ]
-            result_dns2 = subprocess.run(cmd_dns2, capture_output=True, text=True, encoding='utf-8')
-            if result_dns2.returncode != 0:
-                return {
-                    'success': False,
-                    'error': f"设置备用DNS失败: {result_dns2.stderr or result_dns2.stdout}"
-                }
-
-        if not dns1 and not dns2:
-             # 如果没有提供DNS，则设置为自动获取
-            cmd_dns_auto = [
-                'netsh', 'interface', 'ip', 'set', 'dns',
-                f'name="{interface_name}"', 'dhcp'
-            ]
-            subprocess.run(cmd_dns_auto, capture_output=True, text=True, encoding='utf-8')
-
+    except Exception as e:
+        print(f"获取网卡信息失败: {e}")
         return {
-            'success': True,
-            'message': f"IP配置已成功应用到接口 '{interface_name}'"
+            'name': interface_name,
+            'description': '获取失败',
+            'status': '获取失败',
+            'mac': '获取失败',
+            'speed': '获取失败',
+            'ip': '获取失败',
+            'mask': '获取失败',
+            'gateway': '获取失败',
+            'dns1': '获取失败',
+            'dns2': '获取失败'
         }
+
+
+def apply_profile(interface_name, ip, mask, gateway, dns=None, dhcp=False):
+    """应用IP配置文件"""
+    try:
+        if dhcp:
+            # DHCP模式
+            cmd_dhcp = [
+                'netsh', 'interface', 'ip', 'set', 'address',
+                f'name={interface_name}', 'source=dhcp'
+            ]
+            
+            result_dhcp = subprocess.run(cmd_dhcp, capture_output=True, text=True, encoding='utf-8')
+            
+            if result_dhcp.returncode != 0:
+                return {
+                    'success': False,
+                    'error': f"启用DHCP失败: {result_dhcp.stderr}"
+                }
+            
+            # 设置DNS为自动获取
+            cmd_dns_dhcp = [
+                'netsh', 'interface', 'ip', 'set', 'dns',
+                f'name={interface_name}', 'source=dhcp'
+            ]
+            
+            result_dns_dhcp = subprocess.run(cmd_dns_dhcp, capture_output=True, text=True, encoding='utf-8')
+            
+            if result_dns_dhcp.returncode != 0:
+                return {
+                    'success': False,
+                    'error': f"设置DNS为DHCP失败: {result_dns_dhcp.stderr}"
+                }
+            
+            return {
+                'success': True,
+                'message': f"DHCP配置已成功应用到接口 '{interface_name}'"
+            }
+        else:
+            # 静态IP模式
+            cmd_ip = [
+                'netsh', 'interface', 'ip', 'set', 'address',
+                f'name={interface_name}', 'source=static',
+                f'addr={ip}', f'mask={mask}', f'gateway={gateway}'
+            ]
+            
+            result_ip = subprocess.run(cmd_ip, capture_output=True, text=True, encoding='utf-8')
+            
+            if result_ip.returncode != 0:
+                return {
+                    'success': False,
+                    'error': f"设置IP地址失败: {result_ip.stderr}"
+                }
+                
+            # 设置DNS（如果提供）
+            if dns:
+                dns_servers = [d.strip() for d in dns.split(',') if d.strip()]
+                for i, dns_server in enumerate(dns_servers):
+                    if i == 0:
+                        # 设置主DNS
+                        cmd_dns = [
+                            'netsh', 'interface', 'ip', 'set', 'dns',
+                            f'name={interface_name}', 'static', dns_server
+                        ]
+                    else:
+                        # 添加备用DNS
+                        cmd_dns = [
+                            'netsh', 'interface', 'ip', 'add', 'dns',
+                            f'name={interface_name}', dns_server, 'index=2'
+                        ]
+                    
+                    result_dns = subprocess.run(cmd_dns, capture_output=True, text=True, encoding='utf-8')
+                    
+                    if result_dns.returncode != 0:
+                        return {
+                            'success': False,
+                            'error': f"设置DNS失败: {result_dns.stderr}"
+                        }
+                    
+            return {
+                'success': True,
+                'message': f"静态IP配置已成功应用到接口 '{interface_name}'"
+            }
         
     except Exception as e:
         return {
             'success': False,
             'error': f"执行命令时出错: {str(e)}"
-        }
-
-def set_dhcp(interface_name):
-    """为指定接口启用DHCP"""
-    try:
-        # 设置IP为DHCP
-        cmd_ip = [
-            'netsh', 'interface', 'ip', 'set', 'address',
-            f'name="{interface_name}"', 'source=dhcp'
-        ]
-        result_ip = subprocess.run(cmd_ip, capture_output=True, text=True, encoding='utf-8')
-        if result_ip.returncode != 0:
-             return {
-                'success': False,
-                'error': f"设置IP为DHCP失败: {result_ip.stderr or result_ip.stdout}"
-            }
-
-        # 设置DNS为DHCP
-        cmd_dns = [
-            'netsh', 'interface', 'ip', 'set', 'dns',
-            f'name="{interface_name}"', 'source=dhcp'
-        ]
-        result_dns = subprocess.run(cmd_dns, capture_output=True, text=True, encoding='utf-8')
-        if result_dns.returncode != 0:
-             return {
-                'success': False,
-                'error': f"设置DNS为DHCP失败: {result_dns.stderr or result_dns.stdout}"
-            }
-
-        return {
-            'success': True,
-            'message': f"接口 '{interface_name}' 已成功设置为DHCP"
-        }
-    except Exception as e:
-        return {
-            'success': False,
-            'error': f"设置DHCP时出错: {str(e)}"
         }
 
 
@@ -440,7 +480,7 @@ def check_network_conflict(ip, mask, gateway):
         conflicts = []
         
         for interface in interfaces:
-            config = get_interface_config(interface['name'])
+            config = get_interface_config(interface)
             if config:
                 # 解析当前配置（简单实现）
                 lines = config.split('\n')
@@ -468,11 +508,11 @@ def check_network_conflict(ip, mask, gateway):
                 
                 # 检查IP冲突
                 if current_ip and current_ip == ip:
-                    conflicts.append(f"IP地址 {ip} 已在接口 {interface['name']} 上使用")
+                    conflicts.append(f"IP地址 {ip} 已在接口 {interface} 上使用")
                 
                 # 检查网关冲突
                 if current_gateway and current_gateway == gateway:
-                    conflicts.append(f"网关地址 {gateway} 已在接口 {interface['name']} 上使用")
+                    conflicts.append(f"网关地址 {gateway} 已在接口 {interface} 上使用")
         
         return {
             'conflicts': conflicts,
