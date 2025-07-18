@@ -5,13 +5,14 @@
 
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from netkit.utils.ui_helper import ui_helper
 
 
 class StatusDisplayWidget(tb.LabelFrame):
     """状态显示组件"""
     
     def __init__(self, master, **kwargs):
-        super().__init__(master, text="状态", padding=15, **kwargs)
+        super().__init__(master, text="状态", padding=ui_helper.get_padding(15), **kwargs)
         
         self.setup_ui()
         
@@ -20,11 +21,9 @@ class StatusDisplayWidget(tb.LabelFrame):
         # 状态文本框（调小高度）
         self.status_text = tb.Text(
             self,
-            height=4,  # 从6调整为4
+            height=ui_helper.scale_size(4),  # 从6调整为4
             state=DISABLED,
-            wrap=WORD,
-            font=('Microsoft YaHei', 9)
-        )
+            wrap=WORD,        )
         
         # 滚动条
         scrollbar = tb.Scrollbar(self, orient=VERTICAL, command=self.status_text.yview)

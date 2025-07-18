@@ -1,6 +1,7 @@
 ttkbootstrap>=1.10.1
 psutil>=5.9.8
 WMI>=1.5.1
+pywin32>=306
 
 # 测试依赖
 pytest>=7.0.0

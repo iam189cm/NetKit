@@ -5,6 +5,7 @@
 
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from netkit.utils.ui_helper import ui_helper
 from netkit.services.netconfig.interface_info import get_network_card_info
 
 
@@ -12,7 +13,7 @@ class InfoDisplayWidget(tb.LabelFrame):
     """网卡信息显示组件"""
     
     def __init__(self, master, on_status_update=None, **kwargs):
-        super().__init__(master, text="当前网卡信息", padding=20, **kwargs)
+        super().__init__(master, text="当前网卡信息", padding=ui_helper.get_padding(20), **kwargs)
         
         # 回调函数
         self.on_status_update = on_status_update
@@ -28,13 +29,11 @@ class InfoDisplayWidget(tb.LabelFrame):
         # 创建可选择的文本显示区域
         self.info_text = tb.Text(
             main_container,
-            height=12,
-            width=50,
-            font=('Microsoft YaHei', 9),
-            state=DISABLED,
+            height=ui_helper.scale_size(12),
+            width=ui_helper.scale_size(50),            state=DISABLED,
             wrap=NONE,
             relief=FLAT,
-            borderwidth=1,
+            borderwidth=ui_helper.scale_size(1),
             background='#f8f9fa',
             selectbackground='#0078d4',
             selectforeground='white'
@@ -132,8 +131,6 @@ class InfoDisplayWidget(tb.LabelFrame):
                 f"状态: {info.get('status', '未知')}",
                 f"物理地址: {info.get('mac', '未知')}",
                 f"速度: {info.get('speed', '未知')}",
-                f"制造商: {info.get('manufacturer', '未知')}",
-                f"型号: {info.get('model', '未知')}",
                 "",
                 "网络配置:",
                 f"IP地址: {info.get('ip', '未配置')}",
@@ -189,10 +186,6 @@ class InfoDisplayWidget(tb.LabelFrame):
                         info['dns1'] = value
                     elif key == 'DNS服务器2':
                         info['dns2'] = value
-                    elif key == '制造商':
-                        info['manufacturer'] = value
-                    elif key == '型号':
-                        info['model'] = value
             
             return info
         except Exception as e:

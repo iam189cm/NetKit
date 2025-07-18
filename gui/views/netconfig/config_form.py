@@ -5,6 +5,7 @@ IP配置表单UI组件
 
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from netkit.utils.ui_helper import ui_helper
 from netkit.services.netconfig.ip_configurator import apply_profile, validate_ip_config
 
 
@@ -12,7 +13,7 @@ class ConfigFormWidget(tb.LabelFrame):
     """IP配置表单组件"""
     
     def __init__(self, master, on_config_applied=None, on_status_update=None, **kwargs):
-        super().__init__(master, text="网络配置", padding=20, **kwargs)
+        super().__init__(master, text="网络配置", padding=ui_helper.get_padding(20), **kwargs)
         
         # 回调函数
         self.on_config_applied = on_config_applied
@@ -37,14 +38,14 @@ class ConfigFormWidget(tb.LabelFrame):
         # 创建配置输入字段
         for i, (label_text, entry_name, placeholder) in enumerate(self.config_fields):
             field_frame = tb.Frame(self)
-            field_frame.pack(fill=X, pady=5)
+            field_frame.pack(fill=X, pady=ui_helper.get_padding(5))
             
             # 标签
-            tb.Label(field_frame, text=label_text, font=('Microsoft YaHei', 10), width=12).pack(side=LEFT)
+            tb.Label(field_frame, text=label_text, font=ui_helper.get_font(10), width=ui_helper.scale_size(12)).pack(side=LEFT)
             
             # 输入框
-            entry = tb.Entry(field_frame, font=('Microsoft YaHei', 9), width=40)
-            entry.pack(side=LEFT, padx=(10, 0))
+            entry = tb.Entry(field_frame, font=ui_helper.get_font(9), width=ui_helper.scale_size(40))
+            entry.pack(side=LEFT, padx=(ui_helper.get_padding(10), 0))
             entry.insert(0, placeholder)
             entry.bind('<FocusIn>', lambda e, ph=placeholder: self.on_entry_focus_in(e, ph))
             entry.bind('<FocusOut>', lambda e, ph=placeholder: self.on_entry_focus_out(e, ph))
@@ -59,19 +60,18 @@ class ConfigFormWidget(tb.LabelFrame):
                     variable=self.dhcp_var,
                     command=self.on_dhcp_changed
                 )
-                self.dhcp_check.pack(side=RIGHT, padx=(20, 0))
+                self.dhcp_check.pack(side=RIGHT, padx=(ui_helper.get_padding(20), 0))
         
         # 应用配置按钮
         button_frame = tb.Frame(self)
-        button_frame.pack(fill=X, pady=(20, 0))
+        button_frame.pack(fill=X, pady=(ui_helper.get_padding(20), 0))
         
         tb.Button(
             button_frame,
             text="应用配置",
             bootstyle=SUCCESS,
             command=self.apply_config,
-            width=15
-        ).pack(anchor=CENTER)
+            width=ui_helper.scale_size(15),        ).pack(anchor=CENTER)
     
     def _append_status(self, text):
         """追加状态信息"""

@@ -1,5 +1,6 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from netkit.utils.ui_helper import ui_helper
 from netkit.services.route import RouteService
 import tkinter.messagebox as mbox
 import threading
@@ -20,23 +21,21 @@ class RouteFrame(tb.Frame):
         # 标题
         title = tb.Label(
             self, 
-            text="静态路由管理", 
-            font=('Microsoft YaHei', 18, 'bold'),
-            bootstyle=DANGER
+            text="静态路由管理",            bootstyle=DANGER
         )
-        title.pack(pady=(0, 20))
+        title.pack(pady=(ui_helper.get_padding(0), ui_helper.get_padding(20)))
         
         # 主要内容区域
         main_frame = tb.Frame(self)
         main_frame.pack(fill=BOTH, expand=True)
         
         # 上方路由表显示区域
-        table_frame = tb.LabelFrame(main_frame, text="当前路由表", padding=10)
-        table_frame.pack(fill=BOTH, expand=True, pady=(0, 10))
+        table_frame = tb.LabelFrame(main_frame, text="当前路由表", padding=ui_helper.get_padding(10))
+        table_frame.pack(fill=BOTH, expand=True, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         # 筛选控制区域
         filter_frame = tb.Frame(table_frame)
-        filter_frame.pack(fill=X, pady=(0, 10))
+        filter_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         # 筛选输入框
         tb.Label(filter_frame, text="筛选:").pack(side=LEFT)
@@ -47,13 +46,13 @@ class RouteFrame(tb.Frame):
             textvariable=self.filter_column_var,
             values=["全部", "目标网络", "子网掩码", "网关", "接口", "跃点数", "路由类型"],
             state="readonly",
-            width=12
+            width=ui_helper.scale_size(12)
         )
-        filter_column_combo.pack(side=LEFT, padx=(5, 0))
+        filter_column_combo.pack(side=LEFT, padx=(ui_helper.get_padding(5), ui_helper.get_padding(0)))
         
         self.filter_value_var = tb.StringVar()
-        self.filter_entry = tb.Entry(filter_frame, textvariable=self.filter_value_var, width=20)
-        self.filter_entry.pack(side=LEFT, padx=(5, 0))
+        self.filter_entry = tb.Entry(filter_frame, textvariable=self.filter_value_var, width=ui_helper.scale_size(20))
+        self.filter_entry.pack(side=LEFT, padx=(ui_helper.get_padding(5), ui_helper.get_padding(0)))
         self.filter_entry.bind('<KeyRelease>', self.on_filter_change)
         
         tb.Button(
@@ -61,8 +60,8 @@ class RouteFrame(tb.Frame):
             text="清除筛选",
             bootstyle=LIGHT,
             command=self.clear_filter,
-            width=8
-        ).pack(side=LEFT, padx=(5, 0))
+            width=ui_helper.scale_size(8)
+        ).pack(side=LEFT, padx=(ui_helper.get_padding(5), ui_helper.get_padding(0)))
         
         # 刷新按钮
         tb.Button(
@@ -70,41 +69,41 @@ class RouteFrame(tb.Frame):
             text="刷新路由表",
             bootstyle=INFO,
             command=self.refresh_routes,
-            width=12
+            width=ui_helper.scale_size(12)
         ).pack(side=RIGHT)
         
         # 路由表TreeView
         self.setup_route_table(table_frame)
         
         # 下方操作区域
-        operation_frame = tb.LabelFrame(main_frame, text="路由操作", padding=15)
+        operation_frame = tb.LabelFrame(main_frame, text="路由操作", padding=ui_helper.get_padding(15))
         operation_frame.pack(fill=X)
         
         # 添加路由区域
         add_frame = tb.Frame(operation_frame)
-        add_frame.pack(fill=X, pady=(0, 10))
+        add_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         # 第一行：目标网络和子网掩码
         row1_frame = tb.Frame(add_frame)
-        row1_frame.pack(fill=X, pady=(0, 5))
+        row1_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
         tb.Label(row1_frame, text="目标网络:").pack(side=LEFT)
-        self.dest_entry = tb.Entry(row1_frame, width=15)
-        self.dest_entry.pack(side=LEFT, padx=(5, 10))
+        self.dest_entry = tb.Entry(row1_frame, width=ui_helper.scale_size(15))
+        self.dest_entry.pack(side=LEFT, padx=(ui_helper.get_padding(5), ui_helper.get_padding(10)))
         self.dest_entry.insert(0, "192.168.2.0")
         
         tb.Label(row1_frame, text="子网掩码:").pack(side=LEFT)
-        self.mask_entry = tb.Entry(row1_frame, width=15)
-        self.mask_entry.pack(side=LEFT, padx=(5, 10))
+        self.mask_entry = tb.Entry(row1_frame, width=ui_helper.scale_size(15))
+        self.mask_entry.pack(side=LEFT, padx=(ui_helper.get_padding(5), ui_helper.get_padding(10)))
         self.mask_entry.insert(0, "255.255.255.0")
         
         # 第二行：网关和跃点数
         row2_frame = tb.Frame(add_frame)
-        row2_frame.pack(fill=X, pady=(0, 5))
+        row2_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
         tb.Label(row2_frame, text="网关地址:").pack(side=LEFT)
-        self.gateway_entry = tb.Entry(row2_frame, width=15)
-        self.gateway_entry.pack(side=LEFT, padx=(5, 10))
+        self.gateway_entry = tb.Entry(row2_frame, width=ui_helper.scale_size(15))
+        self.gateway_entry.pack(side=LEFT, padx=(ui_helper.get_padding(5), ui_helper.get_padding(10)))
         self.gateway_entry.insert(0, "192.168.1.1")
         
         tb.Label(row2_frame, text="跃点数:").pack(side=LEFT)
@@ -113,48 +112,48 @@ class RouteFrame(tb.Frame):
             row2_frame,
             from_=1, to=9999,
             textvariable=self.metric_var,
-            width=8
+            width=ui_helper.scale_size(8)
         )
-        metric_spinbox.pack(side=LEFT, padx=(5, 10))
+        metric_spinbox.pack(side=LEFT, padx=(ui_helper.get_padding(5), ui_helper.get_padding(10)))
         
         # 操作按钮
         btn_frame = tb.Frame(add_frame)
-        btn_frame.pack(fill=X, pady=(10, 0))
+        btn_frame.pack(fill=X, pady=(ui_helper.get_padding(10), ui_helper.get_padding(0)))
         
         tb.Button(
             btn_frame,
             text="验证参数",
             bootstyle=WARNING,
             command=self.validate_route_params,
-            width=12
-        ).pack(side=LEFT, padx=(0, 5))
+            width=ui_helper.scale_size(12)
+        ).pack(side=LEFT, padx=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
         tb.Button(
             btn_frame,
             text="添加路由",
             bootstyle=SUCCESS,
             command=self.add_route,
-            width=12
-        ).pack(side=LEFT, padx=5)
+            width=ui_helper.scale_size(12)
+        ).pack(side=LEFT, padx=ui_helper.get_padding(5))
         
         tb.Button(
             btn_frame,
             text="删除选中",
             bootstyle=DANGER,
             command=self.delete_selected_route,
-            width=12
-        ).pack(side=LEFT, padx=5)
+            width=ui_helper.scale_size(12)
+        ).pack(side=LEFT, padx=ui_helper.get_padding(5))
         
         # 结果显示区域
-        result_frame = tb.LabelFrame(main_frame, text="操作结果", padding=10)
-        result_frame.pack(fill=X, pady=(10, 0))
+        result_frame = tb.LabelFrame(main_frame, text="操作结果", padding=ui_helper.get_padding(10))
+        result_frame.pack(fill=X, pady=(ui_helper.get_padding(10), ui_helper.get_padding(0)))
         
         self.result_text = tb.Text(
             result_frame,
-            height=6,
+            height=ui_helper.scale_size(6),
             state=DISABLED,
             wrap=WORD,
-            font=('Consolas', 9)
+            font=('Consolas', ui_helper.scale_size(9))
         )
         
         result_scrollbar = tb.Scrollbar(result_frame, orient=VERTICAL, command=self.result_text.yview)
@@ -165,14 +164,14 @@ class RouteFrame(tb.Frame):
         
         # 清空结果按钮
         clear_result_frame = tb.Frame(result_frame)
-        clear_result_frame.pack(fill=X, pady=(5, 0))
+        clear_result_frame.pack(fill=X, pady=(ui_helper.get_padding(5), ui_helper.get_padding(0)))
         
         tb.Button(
             clear_result_frame,
             text="清空结果",
             bootstyle=LIGHT,
             command=self.clear_result,
-            width=12
+            width=ui_helper.scale_size(12)
         ).pack(side=RIGHT)
         
         # 初始化
@@ -186,7 +185,7 @@ class RouteFrame(tb.Frame):
         """设置路由表TreeView"""
         # 创建TreeView
         columns = ("destination", "netmask", "gateway", "interface", "metric", "type")
-        self.route_tree = ttk.Treeview(parent, columns=columns, show="headings", height=12)
+        self.route_tree = ttk.Treeview(parent, columns=columns, show="headings", height=ui_helper.scale_size(12))
         
         # 设置列标题和宽度
         self.route_tree.heading("destination", text="目标网络")
@@ -196,12 +195,12 @@ class RouteFrame(tb.Frame):
         self.route_tree.heading("metric", text="跃点数")
         self.route_tree.heading("type", text="路由类型")
         
-        self.route_tree.column("destination", width=120)
-        self.route_tree.column("netmask", width=120)
-        self.route_tree.column("gateway", width=120)
-        self.route_tree.column("interface", width=120)
-        self.route_tree.column("metric", width=80)
-        self.route_tree.column("type", width=100)
+        self.route_tree.column("destination", width=ui_helper.scale_size(120))
+        self.route_tree.column("netmask", width=ui_helper.scale_size(120))
+        self.route_tree.column("gateway", width=ui_helper.scale_size(120))
+        self.route_tree.column("interface", width=ui_helper.scale_size(120))
+        self.route_tree.column("metric", width=ui_helper.scale_size(80))
+        self.route_tree.column("type", width=ui_helper.scale_size(100))
         
         # 绑定选择事件
         self.route_tree.bind('<<TreeviewSelect>>', self.on_route_select)

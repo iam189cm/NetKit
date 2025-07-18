@@ -6,24 +6,24 @@ Netkit 启动脚本
 
 import os
 import sys
-import ctypes
-
-def set_dpi_awareness():
-    """在 Windows 上启用高 DPI 感知"""
-    try:
-        # 尝试使用最新的 DPI 感知 API
-        ctypes.windll.shcore.SetProcessDpiAwareness(2)  # PROCESS_PER_MONITOR_DPI_AWARE
-    except (AttributeError, OSError):
-        # 如果失败，回退到旧的 API
-        try:
-            ctypes.windll.user32.SetProcessDPIAware()
-        except (AttributeError, OSError):
-            print("警告: 无法设置 DPI 感知，在高分屏上界面可能模糊")
 
 def main():
-    # 在 Windows 上设置 DPI 感知
-    if sys.platform == "win32":
-        set_dpi_awareness()
+    # 在导入 GUI 模块之前设置 DPI 感知
+    try:
+        from netkit.utils.ui_helper import ui_helper
+        ui_helper.enable_dpi_awareness()
+    except ImportError as e:
+        print(f"警告: 无法导入 UI 辅助模块: {e}")
+        # 回退到原始的 DPI 设置
+        if sys.platform == "win32":
+            import ctypes
+            try:
+                ctypes.windll.shcore.SetProcessDpiAwareness(2)
+            except (AttributeError, OSError):
+                try:
+                    ctypes.windll.user32.SetProcessDPIAware()
+                except (AttributeError, OSError):
+                    print("警告: 无法设置 DPI 感知，在高分屏上界面可能模糊")
         
     # 设置测试模式（开发阶段使用）
     os.environ['NETKIT_TEST_MODE'] = '1'

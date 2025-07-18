@@ -1,5 +1,6 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from netkit.utils.ui_helper import ui_helper
 from netkit.services.traceroute import TracerouteService
 import tkinter.messagebox as mbox
 from datetime import datetime
@@ -16,11 +17,9 @@ class TracerouteFrame(tb.Frame):
         # 标题
         title = tb.Label(
             self, 
-            text="路由追踪 (Traceroute)", 
-            font=('Microsoft YaHei', 18, 'bold'),
-            bootstyle=WARNING
+            text="路由追踪 (Traceroute)",            bootstyle=WARNING
         )
-        title.pack(pady=(0, 20))
+        title.pack(pady=(ui_helper.get_padding(0), ui_helper.get_padding(20)))
         
         # 主要内容区域
         main_frame = tb.Frame(self)
@@ -28,80 +27,78 @@ class TracerouteFrame(tb.Frame):
         
         # 左侧控制区域
         left_frame = tb.Frame(main_frame)
-        left_frame.pack(side=LEFT, fill=Y, padx=(0, 10))
+        left_frame.pack(side=LEFT, fill=Y, padx=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         # 输入参数区域
-        input_frame = tb.LabelFrame(left_frame, text="追踪参数", padding=15)
-        input_frame.pack(fill=X, pady=(0, 10))
+        input_frame = tb.LabelFrame(left_frame, text="追踪参数", padding=ui_helper.get_padding(15))
+        input_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         # 目标地址
         target_frame = tb.Frame(input_frame)
-        target_frame.pack(fill=X, pady=(0, 10))
+        target_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         tb.Label(target_frame, text="目标地址:").pack(side=LEFT)
-        self.target_entry = tb.Entry(target_frame, width=25)
-        self.target_entry.pack(side=LEFT, padx=(10, 0))
+        self.target_entry = tb.Entry(target_frame, width=ui_helper.scale_size(25))
+        self.target_entry.pack(side=LEFT, padx=(ui_helper.get_padding(10), ui_helper.get_padding(0)))
         self.target_entry.insert(0, "www.baidu.com")
         
         # 最大跳数（固定30跳）
         hops_frame = tb.Frame(input_frame)
-        hops_frame.pack(fill=X, pady=(0, 10))
+        hops_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         tb.Label(hops_frame, text="最大跳数:").pack(side=LEFT)
         self.max_hops_label = tb.Label(hops_frame, text="30", bootstyle=INFO)
-        self.max_hops_label.pack(side=LEFT, padx=(10, 0))
+        self.max_hops_label.pack(side=LEFT, padx=(ui_helper.get_padding(10), ui_helper.get_padding(0)))
         
         # 超时时间（固定5秒）
         timeout_frame = tb.Frame(input_frame)
-        timeout_frame.pack(fill=X, pady=(0, 10))
+        timeout_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         tb.Label(timeout_frame, text="超时时间:").pack(side=LEFT)
         self.timeout_label = tb.Label(timeout_frame, text="5秒", bootstyle=INFO)
-        self.timeout_label.pack(side=LEFT, padx=(10, 0))
+        self.timeout_label.pack(side=LEFT, padx=(ui_helper.get_padding(10), ui_helper.get_padding(0)))
         
         # 控制按钮
         btn_frame = tb.Frame(input_frame)
-        btn_frame.pack(fill=X, pady=(10, 0))
+        btn_frame.pack(fill=X, pady=(ui_helper.get_padding(10), ui_helper.get_padding(0)))
         
         self.start_btn = tb.Button(
             btn_frame,
             text="开始追踪",
             bootstyle=WARNING,
             command=self.start_traceroute,
-            width=12
+            width=ui_helper.scale_size(12)
         )
-        self.start_btn.pack(side=LEFT, padx=(0, 5))
+        self.start_btn.pack(side=LEFT, padx=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
         self.stop_btn = tb.Button(
             btn_frame,
             text="停止追踪",
             bootstyle=DANGER,
             command=self.stop_traceroute,
-            width=12,
+            width=ui_helper.scale_size(12),
             state=DISABLED
         )
-        self.stop_btn.pack(side=LEFT, padx=5)
+        self.stop_btn.pack(side=LEFT, padx=ui_helper.get_padding(5))
         
         # 状态信息区域
-        status_frame = tb.LabelFrame(left_frame, text="追踪状态", padding=15)
-        status_frame.pack(fill=X, pady=(0, 10))
+        status_frame = tb.LabelFrame(left_frame, text="追踪状态", padding=ui_helper.get_padding(15))
+        status_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         # 当前状态
         self.status_label = tb.Label(
             status_frame, 
             text="就绪", 
-            bootstyle=INFO,
-            font=('Microsoft YaHei', 10, 'bold')
-        )
-        self.status_label.pack(pady=(0, 5))
+            bootstyle=INFO,        )
+        self.status_label.pack(pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
         # 进度信息
         progress_info_frame = tb.Frame(status_frame)
-        progress_info_frame.pack(fill=X, pady=(0, 5))
+        progress_info_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
         tb.Label(progress_info_frame, text="当前跳数:").pack(side=LEFT)
         self.current_hop_label = tb.Label(progress_info_frame, text="0", bootstyle=PRIMARY)
-        self.current_hop_label.pack(side=LEFT, padx=(10, 0))
+        self.current_hop_label.pack(side=LEFT, padx=(ui_helper.get_padding(10), ui_helper.get_padding(0)))
         
         # 开始时间
         start_time_frame = tb.Frame(status_frame)
@@ -109,10 +106,10 @@ class TracerouteFrame(tb.Frame):
         
         tb.Label(start_time_frame, text="开始时间:").pack(side=LEFT)
         self.start_time_label = tb.Label(start_time_frame, text="--", bootstyle=SECONDARY)
-        self.start_time_label.pack(side=LEFT, padx=(10, 0))
+        self.start_time_label.pack(side=LEFT, padx=(ui_helper.get_padding(10), ui_helper.get_padding(0)))
         
         # 常用目标快速选择
-        quick_frame = tb.LabelFrame(left_frame, text="常用目标", padding=10)
+        quick_frame = tb.LabelFrame(left_frame, text="常用目标", padding=ui_helper.get_padding(10))
         quick_frame.pack(fill=X)
         
         common_targets = [
@@ -129,39 +126,39 @@ class TracerouteFrame(tb.Frame):
                 text=target,
                 bootstyle=OUTLINE,
                 command=lambda t=target: self.set_target(t),
-                width=15
-            ).grid(row=row, column=col, padx=3, pady=2, sticky=W)
+                width=ui_helper.scale_size(15)
+            ).grid(row=row, column=col, padx=ui_helper.get_padding(3), pady=ui_helper.get_padding(2), sticky=W)
         
         # 右侧结果显示区域
         right_frame = tb.Frame(main_frame)
         right_frame.pack(side=RIGHT, fill=BOTH, expand=True)
         
-        result_frame = tb.LabelFrame(right_frame, text="追踪结果", padding=10)
+        result_frame = tb.LabelFrame(right_frame, text="追踪结果", padding=ui_helper.get_padding(10))
         result_frame.pack(fill=BOTH, expand=True)
         
         # 结果表头
         header_frame = tb.Frame(result_frame)
-        header_frame.pack(fill=X, pady=(0, 5))
+        header_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
         header_text = "跳数    响应时间1    响应时间2    响应时间3    IP地址           主机名"
         tb.Label(
             header_frame, 
             text=header_text,
-            font=('Consolas', 10, 'bold'),
+            font=('Consolas', ui_helper.scale_size(10), 'bold'),
             bootstyle=INFO
         ).pack(anchor=W)
         
         # 分隔线
         separator = tb.Separator(result_frame, orient=HORIZONTAL)
-        separator.pack(fill=X, pady=(0, 5))
+        separator.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
         # 结果文本框
         self.result_text = tb.Text(
             result_frame,
-            height=20,
+            height=ui_helper.scale_size(20),
             state=DISABLED,
             wrap=NONE,
-            font=('Consolas', 10)
+            font=('Consolas', ui_helper.scale_size(10))
         )
         
         # 滚动条
@@ -175,14 +172,14 @@ class TracerouteFrame(tb.Frame):
         
         # 清空结果按钮
         clear_btn_frame = tb.Frame(result_frame)
-        clear_btn_frame.pack(fill=X, pady=(5, 0))
+        clear_btn_frame.pack(fill=X, pady=(ui_helper.get_padding(5), ui_helper.get_padding(0)))
         
         tb.Button(
             clear_btn_frame,
             text="清空结果",
             bootstyle=LIGHT,
             command=self.clear_result,
-            width=12
+            width=ui_helper.scale_size(12)
         ).pack(side=RIGHT)
         
         # 初始化

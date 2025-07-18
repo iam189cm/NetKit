@@ -7,6 +7,7 @@ import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from netkit.utils.admin_check import ensure_admin
 from netkit.utils.network_monitor import start_network_monitoring, stop_network_monitoring
+from netkit.utils.ui_helper import ui_helper
 from gui.views.netconfig.netconfig_view import NetConfigView
 from gui.views.ping_view import PingFrame
 from gui.views.subnet_view import SubnetFrame
@@ -19,8 +20,19 @@ class MainWindow:
     def __init__(self):
         self.app = tb.Window(themename='darkly')
         self.app.title('NetKit v0.2.9 - 网络工程师工具箱')
-        self.app.geometry('1000x900')
-        self.app.resizable(False, False)  # 禁用窗口大小调整
+        
+        # 初始化 DPI 缩放
+        ui_helper.initialize_scaling(self.app)
+        
+        # 设置自适应窗口大小
+        ui_helper.center_window(self.app, 1000, 900)
+        
+        # 允许窗口大小调整（适应不同 DPI）
+        self.app.resizable(True, True)
+        
+        # 设置最小窗口大小
+        min_width, min_height = ui_helper.get_window_size(800, 600)
+        self.app.minsize(min_width, min_height)
         
         # 当前显示的内容框架
         self.current_frame = None
@@ -33,6 +45,10 @@ class MainWindow:
         
         # 启动网络监听
         start_network_monitoring()
+        
+        # 启动异步预加载以提升性能
+        from netkit.services.netconfig.interface_manager import start_preload
+        start_preload()
         
         # 绑定窗口关闭事件
         self.app.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -54,7 +70,8 @@ class MainWindow:
         """设置主界面布局"""
         # 创建主容器
         main_container = tb.Frame(self.app)
-        main_container.pack(fill=BOTH, expand=True, padx=10, pady=10)
+        padding = ui_helper.get_padding(10)
+        main_container.pack(fill=BOTH, expand=True, padx=padding, pady=padding)
         
         # 左侧导航栏
         self.setup_sidebar(main_container)
@@ -70,27 +87,28 @@ class MainWindow:
         
     def setup_sidebar(self, parent):
         """设置左侧导航栏"""
-        sidebar = tb.Frame(parent, width=200)
-        sidebar.pack(side=LEFT, fill=Y, padx=(0, 10))
+        sidebar_width = ui_helper.scale_size(200)
+        sidebar = tb.Frame(parent, width=sidebar_width)
+        sidebar.pack(side=LEFT, fill=Y, padx=(0, ui_helper.get_padding(10)))
         sidebar.pack_propagate(False)
         
         # 标题
         title_label = tb.Label(
             sidebar, 
-                            text="NetKit", 
-            font=('Microsoft YaHei', 16, 'bold'),
+            text="NetKit", 
+            font=ui_helper.get_font(16, "bold"),
             bootstyle=INFO
         )
-        title_label.pack(pady=(0, 10))
+        title_label.pack(pady=(0, ui_helper.get_padding(10)))
         
         # 版本信息
         version_label = tb.Label(
             sidebar,
             text="v0.1 网络工具箱",
-            font=('Microsoft YaHei', 9),
+            font=ui_helper.get_font(9),
             bootstyle=SECONDARY
         )
-        version_label.pack(pady=(0, 20))
+        version_label.pack(pady=(0, ui_helper.get_padding(20)))
         
         # 导航按钮
         nav_buttons = [
@@ -107,40 +125,40 @@ class MainWindow:
                 text=text,
                 command=command,
                 bootstyle=f"{style}-outline",
-                width=18
+                width=ui_helper.scale_size(18)
             )
-            btn.pack(pady=5, padx=5, fill=X)
+            btn.pack(pady=ui_helper.get_padding(5), padx=ui_helper.get_padding(5), fill=X)
             
             # 添加工具提示（简单实现）
             self.create_tooltip(btn, tooltip)
             
         # 分隔线
         separator = tb.Separator(sidebar, orient=HORIZONTAL)
-        separator.pack(fill=X, pady=20)
+        separator.pack(fill=X, pady=ui_helper.get_padding(20))
         
         # 系统信息
-        info_frame = tb.LabelFrame(sidebar, text="系统信息", padding=10)
-        info_frame.pack(fill=X, padx=5)
+        info_frame = tb.LabelFrame(sidebar, text="系统信息", padding=ui_helper.get_padding(10))
+        info_frame.pack(fill=X, padx=ui_helper.get_padding(5))
         
         # 管理员状态
         admin_status = "已获取管理员权限" if os.environ.get('NETKIT_TEST_MODE') != '1' else "测试模式"
         admin_label = tb.Label(
             info_frame,
             text=f"权限: {admin_status}",
-            font=('Microsoft YaHei', 8),
+            font=ui_helper.get_font(8),
             bootstyle=SUCCESS if admin_status == "已获取管理员权限" else WARNING
         )
-        admin_label.pack(anchor=W, pady=2)
+        admin_label.pack(anchor=W, pady=ui_helper.get_padding(2))
         
         # 启动时间
         start_time = datetime.now().strftime("%H:%M:%S")
         time_label = tb.Label(
             info_frame,
             text=f"启动: {start_time}",
-            font=('Microsoft YaHei', 8),
+            font=ui_helper.get_font(8),
             bootstyle=SECONDARY
         )
-        time_label.pack(anchor=W, pady=2)
+        time_label.pack(anchor=W, pady=ui_helper.get_padding(2))
             
     def setup_content_area(self, parent):
         """设置右侧内容区域"""
@@ -150,11 +168,12 @@ class MainWindow:
     def setup_status_bar(self):
         """设置状态栏"""
         status_frame = tb.Frame(self.app)
-        status_frame.pack(side=BOTTOM, fill=X, padx=10, pady=(0, 10))
+        padding = ui_helper.get_padding(10)
+        status_frame.pack(side=BOTTOM, fill=X, padx=padding, pady=(0, padding))
         
         # 分隔线
         separator = tb.Separator(status_frame, orient=HORIZONTAL)
-        separator.pack(fill=X, pady=(0, 5))
+        separator.pack(fill=X, pady=(0, ui_helper.get_padding(5)))
         
         # 状态栏内容
         status_content = tb.Frame(status_frame)
@@ -164,7 +183,7 @@ class MainWindow:
         status_label = tb.Label(
             status_content,
             text="状态:",
-            font=('Microsoft YaHei', 9),
+            font=ui_helper.get_font(9),
             bootstyle=SECONDARY
         )
         status_label.pack(side=LEFT)
@@ -172,23 +191,23 @@ class MainWindow:
         self.status_display = tb.Label(
             status_content,
             textvariable=self.status_var,
-            font=('Microsoft YaHei', 9),
+            font=ui_helper.get_font(9),
             bootstyle=INFO
         )
-        self.status_display.pack(side=LEFT, padx=(5, 0))
+        self.status_display.pack(side=LEFT, padx=(ui_helper.get_padding(5), 0))
         
         # 进度条（初始隐藏）
         self.progress_bar = tb.Progressbar(
             status_content,
             mode='indeterminate',
-            length=200
+            length=ui_helper.scale_size(200)
         )
         
         # 当前时间
         self.time_label = tb.Label(
             status_content,
             text="",
-            font=('Microsoft YaHei', 9),
+            font=ui_helper.get_font(9),
             bootstyle=SECONDARY
         )
         self.time_label.pack(side=RIGHT)
@@ -219,7 +238,7 @@ class MainWindow:
         self.status_var.set(message)
         
         if show_progress:
-            self.progress_bar.pack(side=LEFT, padx=(20, 0))
+            self.progress_bar.pack(side=LEFT, padx=(ui_helper.get_padding(20), 0))
             self.progress_bar.start()
         else:
             self.progress_bar.stop()
@@ -240,6 +259,18 @@ class MainWindow:
         self.set_status("正在加载IP地址切换功能...")
         
         try:
+            # 在创建界面之前就启动预加载，确保数据准备
+            from netkit.services.netconfig.interface_manager import start_preload
+            from netkit.services.netconfig.async_manager import get_async_manager
+            
+            # 获取异步管理器实例
+            async_manager = get_async_manager()
+            
+            # 如果预加载未完成，启动预加载
+            if not async_manager.preload_completed:
+                start_preload()
+            
+            # 创建界面
             self.current_frame = NetConfigView(self.content_area)
             self.current_frame.pack(fill=BOTH, expand=True)
             self.set_status("IP地址切换功能已加载")

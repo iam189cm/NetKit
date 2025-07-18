@@ -63,38 +63,47 @@ class NetworkMonitor:
         """尝试使用WMI事件监听"""
         try:
             import wmi
+            import pythoncom
             
-            # 创建WMI连接
-            c = wmi.WMI()
+            # 初始化COM环境
+            pythoncom.CoInitialize()
             
-            # 监听网络适配器配置变化事件
-            adapter_watcher = c.Win32_NetworkAdapterConfiguration.watch_for(
-                notification_type="modification"
-            )
-            
-            # 监听网络适配器状态变化事件
-            status_watcher = c.Win32_NetworkAdapter.watch_for(
-                notification_type="modification"
-            )
-            
-            print("WMI网络监听已启动")
-            
-            while self.is_monitoring:
-                try:
-                    # 检查配置变化事件（超时1秒）
-                    if adapter_watcher(timeout_ms=1000):
-                        self._trigger_callbacks("网络适配器配置变化")
-                    
-                    # 检查状态变化事件（超时1秒）
-                    if status_watcher(timeout_ms=1000):
-                        self._trigger_callbacks("网络适配器状态变化")
+            try:
+                # 创建WMI连接
+                c = wmi.WMI()
+                
+                # 监听网络适配器配置变化事件
+                adapter_watcher = c.Win32_NetworkAdapterConfiguration.watch_for(
+                    notification_type="modification"
+                )
+                
+                # 监听网络适配器状态变化事件
+                status_watcher = c.Win32_NetworkAdapter.watch_for(
+                    notification_type="modification"
+                )
+                
+                print("WMI网络监听已启动")
+                
+                while self.is_monitoring:
+                    try:
+                        # 检查配置变化事件（超时1秒）
+                        if adapter_watcher(timeout_ms=1000):
+                            self._trigger_callbacks("网络适配器配置变化")
                         
-                except Exception as e:
-                    if self.is_monitoring:
-                        print(f"WMI事件监听错误: {e}")
-                        time.sleep(1)
-            
-            return True
+                        # 检查状态变化事件（超时1秒）
+                        if status_watcher(timeout_ms=1000):
+                            self._trigger_callbacks("网络适配器状态变化")
+                            
+                    except Exception as e:
+                        if self.is_monitoring:
+                            print(f"WMI事件监听错误: {e}")
+                            time.sleep(1)
+                
+                return True
+                
+            finally:
+                # 清理COM环境
+                pythoncom.CoUninitialize()
             
         except ImportError:
             print("WMI模块未安装，使用轮询模式")

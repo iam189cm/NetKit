@@ -1,5 +1,6 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from netkit.utils.ui_helper import ui_helper
 from netkit.services.ping import PingService, ping_with_stats, parse_ip_range
 import tkinter.messagebox as mbox
 import threading
@@ -17,11 +18,9 @@ class PingFrame(tb.Frame):
         # 标题
         title = tb.Label(
             self, 
-            text="Ping 网络测试", 
-            font=('Microsoft YaHei', 18, 'bold'),
-            bootstyle=SUCCESS
+            text="Ping 网络测试",            bootstyle=SUCCESS
         )
-        title.pack(pady=(0, 20))
+        title.pack(pady=(0, ui_helper.get_padding(20)))
         
         # 主要内容区域
         main_frame = tb.Frame(self)
@@ -29,85 +28,83 @@ class PingFrame(tb.Frame):
         
         # 左侧配置区域
         left_frame = tb.Frame(main_frame)
-        left_frame.pack(side=LEFT, fill=Y, padx=(0, 10))
+        left_frame.pack(side=LEFT, fill=Y, padx=(0, ui_helper.get_padding(10)))
         
         # 目标配置
-        target_frame = tb.LabelFrame(left_frame, text="目标设置", padding=15)
-        target_frame.pack(fill=X, pady=(0, 10))
+        target_frame = tb.LabelFrame(left_frame, text="目标设置", padding=ui_helper.get_padding(15))
+        target_frame.pack(fill=X, pady=(0, ui_helper.get_padding(10)))
         
         # 目标地址/范围
         target_input_frame = tb.Frame(target_frame)
-        target_input_frame.pack(fill=X, pady=(0, 10))
+        target_input_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
-        tb.Label(target_input_frame, text="目标地址/范围:").pack(anchor=W, pady=(0, 5))
-        self.target_entry = tb.Entry(target_input_frame, width=30)
+        tb.Label(target_input_frame, text="目标地址/范围:").pack(anchor=W, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
+        self.target_entry = tb.Entry(target_input_frame, width=ui_helper.scale_size(30))
         self.target_entry.pack(fill=X)
         
         # 添加说明文本
         help_text = tb.Label(
             target_input_frame,
-            text="支持格式: 单个IP、IP范围(1.1.1.1-1.1.1.100)、CIDR(192.168.1.0/24)、主机名",
-            font=('Microsoft YaHei', 8),
-            bootstyle=SECONDARY
+            text="支持格式: 单个IP、IP范围(1.1.1.1-1.1.1.100)、CIDR(192.168.1.0/24)、主机名",            bootstyle=SECONDARY
         )
-        help_text.pack(anchor=W, pady=(5, 0))
+        help_text.pack(anchor=W, pady=(ui_helper.get_padding(5), ui_helper.get_padding(0)))
         
         # 测试参数配置
-        params_frame = tb.LabelFrame(left_frame, text="测试参数", padding=15)
-        params_frame.pack(fill=X, pady=(0, 10))
+        params_frame = tb.LabelFrame(left_frame, text="测试参数", padding=ui_helper.get_padding(15))
+        params_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         # 参数网格布局
         params_grid = tb.Frame(params_frame)
         params_grid.pack(fill=X)
         
         # Ping次数
-        tb.Label(params_grid, text="Ping次数:").grid(row=0, column=0, sticky=W, pady=5)
+        tb.Label(params_grid, text="Ping次数:").grid(row=0, column=0, sticky=W, pady=ui_helper.get_padding(5))
         self.count_var = tb.StringVar(value="5")
         count_spinbox = tb.Spinbox(
             params_grid, 
             from_=1, to=100, 
             textvariable=self.count_var,
-            width=10
+            width=ui_helper.scale_size(10)
         )
-        count_spinbox.grid(row=0, column=1, padx=(10, 0), pady=5, sticky=W)
+        count_spinbox.grid(row=0, column=1, padx=(ui_helper.get_padding(10), ui_helper.get_padding(0)), pady=ui_helper.get_padding(5), sticky=W)
         
         # 超时时间
-        tb.Label(params_grid, text="超时时间(ms):").grid(row=1, column=0, sticky=W, pady=5)
+        tb.Label(params_grid, text="超时时间(ms):").grid(row=1, column=0, sticky=W, pady=ui_helper.get_padding(5))
         self.timeout_var = tb.StringVar(value="300")
         timeout_spinbox = tb.Spinbox(
             params_grid, 
             from_=100, to=5000, 
             increment=100,
             textvariable=self.timeout_var,
-            width=10
+            width=ui_helper.scale_size(10)
         )
-        timeout_spinbox.grid(row=1, column=1, padx=(10, 0), pady=5, sticky=W)
+        timeout_spinbox.grid(row=1, column=1, padx=(ui_helper.get_padding(10), ui_helper.get_padding(0)), pady=ui_helper.get_padding(5), sticky=W)
         
         # 并发数
-        tb.Label(params_grid, text="并发数:").grid(row=2, column=0, sticky=W, pady=5)
+        tb.Label(params_grid, text="并发数:").grid(row=2, column=0, sticky=W, pady=ui_helper.get_padding(5))
         self.concurrent_var = tb.StringVar(value="25")
         concurrent_spinbox = tb.Spinbox(
             params_grid, 
             from_=1, to=100, 
             textvariable=self.concurrent_var,
-            width=10
+            width=ui_helper.scale_size(10)
         )
-        concurrent_spinbox.grid(row=2, column=1, padx=(10, 0), pady=5, sticky=W)
+        concurrent_spinbox.grid(row=2, column=1, padx=(ui_helper.get_padding(10), ui_helper.get_padding(0)), pady=ui_helper.get_padding(5), sticky=W)
         
         # 连续测试间隔
-        tb.Label(params_grid, text="连续间隔(s):").grid(row=3, column=0, sticky=W, pady=5)
+        tb.Label(params_grid, text="连续间隔(s):").grid(row=3, column=0, sticky=W, pady=ui_helper.get_padding(5))
         self.interval_var = tb.StringVar(value="1")
         interval_spinbox = tb.Spinbox(
             params_grid, 
             from_=1, to=60, 
             textvariable=self.interval_var,
-            width=10
+            width=ui_helper.scale_size(10)
         )
-        interval_spinbox.grid(row=3, column=1, padx=(10, 0), pady=5, sticky=W)
+        interval_spinbox.grid(row=3, column=1, padx=(ui_helper.get_padding(10), ui_helper.get_padding(0)), pady=ui_helper.get_padding(5), sticky=W)
         
         # 测试模式选择
-        mode_frame = tb.LabelFrame(left_frame, text="测试模式", padding=15)
-        mode_frame.pack(fill=X, pady=(0, 10))
+        mode_frame = tb.LabelFrame(left_frame, text="测试模式", padding=ui_helper.get_padding(15))
+        mode_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         # 单次测试按钮
         tb.Button(
@@ -115,8 +112,8 @@ class PingFrame(tb.Frame):
             text="单次测试",
             bootstyle=INFO,
             command=self.single_ping,
-            width=20
-        ).pack(fill=X, pady=(0, 5))
+            width=ui_helper.scale_size(20)
+        ).pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
         # 批量/范围测试按钮
         tb.Button(
@@ -124,8 +121,8 @@ class PingFrame(tb.Frame):
             text="批量/范围测试",
             bootstyle=SUCCESS,
             command=self.range_ping,
-            width=20
-        ).pack(fill=X, pady=(0, 5))
+            width=ui_helper.scale_size(20)
+        ).pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
         # 连续测试按钮
         tb.Button(
@@ -133,8 +130,8 @@ class PingFrame(tb.Frame):
             text="连续测试",
             bootstyle=WARNING,
             command=self.start_continuous_ping,
-            width=20
-        ).pack(fill=X, pady=(0, 5))
+            width=ui_helper.scale_size(20)
+        ).pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
         # 停止测试按钮
         tb.Button(
@@ -142,7 +139,7 @@ class PingFrame(tb.Frame):
             text="停止测试",
             bootstyle=DANGER,
             command=self.stop_ping,
-            width=20
+            width=ui_helper.scale_size(20)
         ).pack(fill=X)
         
         # 右侧结果显示区域
@@ -150,8 +147,8 @@ class PingFrame(tb.Frame):
         right_frame.pack(side=RIGHT, fill=BOTH, expand=True)
         
         # 统计信息显示
-        stats_frame = tb.LabelFrame(right_frame, text="统计信息", padding=10)
-        stats_frame.pack(fill=X, pady=(0, 10))
+        stats_frame = tb.LabelFrame(right_frame, text="统计信息", padding=ui_helper.get_padding(10))
+        stats_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         # 创建统计标签
         stats_grid = tb.Frame(stats_frame)
@@ -173,22 +170,22 @@ class PingFrame(tb.Frame):
             row = i // 2
             col = (i % 2) * 2
             
-            tb.Label(stats_grid, text=text).grid(row=row, column=col, sticky=W, padx=5, pady=2)
+            tb.Label(stats_grid, text=text).grid(row=row, column=col, sticky=W, padx=ui_helper.get_padding(5), pady=ui_helper.get_padding(2))
             label = tb.Label(stats_grid, text="--", bootstyle=INFO)
-            label.grid(row=row, column=col+1, sticky=W, padx=5, pady=2)
+            label.grid(row=row, column=col+1, sticky=W, padx=ui_helper.get_padding(5), pady=ui_helper.get_padding(2))
             setattr(self, attr_name, label)
         
         # 结果显示区域
-        result_frame = tb.LabelFrame(right_frame, text="测试结果", padding=10)
+        result_frame = tb.LabelFrame(right_frame, text="测试结果", padding=ui_helper.get_padding(10))
         result_frame.pack(fill=BOTH, expand=True)
         
         # 结果文本框
         self.result_text = tb.Text(
             result_frame,
-            height=20,
+            height=ui_helper.scale_size(20),
             state=DISABLED,
             wrap=WORD,
-            font=('Consolas', 9)
+            font=('Consolas', ui_helper.scale_size(9))
         )
         
         # 滚动条
@@ -200,14 +197,14 @@ class PingFrame(tb.Frame):
         
         # 清空结果按钮
         clear_btn_frame = tb.Frame(result_frame)
-        clear_btn_frame.pack(fill=X, pady=(10, 0))
+        clear_btn_frame.pack(fill=X, pady=(ui_helper.get_padding(10), ui_helper.get_padding(0)))
         
         tb.Button(
             clear_btn_frame,
             text="清空结果",
             bootstyle=LIGHT,
             command=self.clear_result,
-            width=12
+            width=ui_helper.scale_size(12)
         ).pack(side=RIGHT)
         
         # 初始化

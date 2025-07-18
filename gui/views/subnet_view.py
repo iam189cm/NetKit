@@ -1,5 +1,6 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from netkit.utils.ui_helper import ui_helper
 from netkit.services.subnet import SubnetCalculator, calculate_subnet_details, vlsm_subnetting
 import tkinter.messagebox as mbox
 import threading
@@ -16,11 +17,9 @@ class SubnetFrame(tb.Frame):
         # 标题
         title = tb.Label(
             self, 
-            text="子网与VLSM计算器", 
-            font=('Microsoft YaHei', 18, 'bold'),
-            bootstyle=INFO
+            text="子网与VLSM计算器",            bootstyle=INFO
         )
-        title.pack(pady=(0, 20))
+        title.pack(pady=(ui_helper.get_padding(0), ui_helper.get_padding(20)))
         
         # 主要内容区域
         main_frame = tb.Frame(self)
@@ -28,7 +27,7 @@ class SubnetFrame(tb.Frame):
         
         # 左侧功能区域
         left_frame = tb.Frame(main_frame)
-        left_frame.pack(side=LEFT, fill=Y, padx=(0, 10))
+        left_frame.pack(side=LEFT, fill=Y, padx=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         # 创建notebook来组织不同功能
         self.notebook = tb.Notebook(left_frame)
@@ -47,16 +46,16 @@ class SubnetFrame(tb.Frame):
         right_frame = tb.Frame(main_frame)
         right_frame.pack(side=RIGHT, fill=BOTH, expand=True)
         
-        result_frame = tb.LabelFrame(right_frame, text="计算结果", padding=15)
+        result_frame = tb.LabelFrame(right_frame, text="计算结果", padding=ui_helper.get_padding(15))
         result_frame.pack(fill=BOTH, expand=True)
         
         # 结果文本框
         self.result_text = tb.Text(
             result_frame,
-            height=25,
+            height=ui_helper.scale_size(25),
             state=DISABLED,
             wrap=WORD,
-            font=('Consolas', 10)
+            font=('Consolas', ui_helper.scale_size(10))
         )
         
         # 滚动条
@@ -68,14 +67,14 @@ class SubnetFrame(tb.Frame):
         
         # 清空结果按钮
         clear_btn_frame = tb.Frame(result_frame)
-        clear_btn_frame.pack(fill=X, pady=(10, 0))
+        clear_btn_frame.pack(fill=X, pady=(ui_helper.get_padding(10), ui_helper.get_padding(0)))
         
         tb.Button(
             clear_btn_frame,
             text="清空结果",
             bootstyle=LIGHT,
             command=self.clear_result,
-            width=12
+            width=ui_helper.scale_size(12)
         ).pack(side=RIGHT)
         
         # 初始化
@@ -88,23 +87,21 @@ class SubnetFrame(tb.Frame):
         self.notebook.add(subnet_info_frame, text="子网信息")
         
         # 网络地址输入
-        input_frame = tb.LabelFrame(subnet_info_frame, text="网络地址", padding=15)
-        input_frame.pack(fill=X, pady=(0, 10))
+        input_frame = tb.LabelFrame(subnet_info_frame, text="网络地址", padding=ui_helper.get_padding(15))
+        input_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
-        tb.Label(input_frame, text="网络地址 (CIDR):").pack(anchor=W, pady=(0, 5))
-        self.network_entry = tb.Entry(input_frame, width=30, font=('Consolas', 11))
-        self.network_entry.pack(fill=X, pady=(0, 10))
+        tb.Label(input_frame, text="网络地址 (CIDR):").pack(anchor=W, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
+        self.network_entry = tb.Entry(input_frame, width=ui_helper.scale_size(30), font=('Consolas', ui_helper.scale_size(11)))
+        self.network_entry.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         self.network_entry.insert(0, "192.168.1.0/24")
         
         # 示例说明
         example_frame = tb.Frame(input_frame)
-        example_frame.pack(fill=X, pady=(0, 10))
+        example_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         tb.Label(
             example_frame, 
-            text="示例: 192.168.1.0/24 或 10.0.0.0/8",
-            font=('Microsoft YaHei', 9),
-            bootstyle=SECONDARY
+            text="示例: 192.168.1.0/24 或 10.0.0.0/8",            bootstyle=SECONDARY
         ).pack(side=LEFT)
         
         # 计算按钮
@@ -113,11 +110,11 @@ class SubnetFrame(tb.Frame):
             text="计算子网信息",
             bootstyle=INFO,
             command=self.calculate_subnet_info,
-            width=20
-        ).pack(pady=(10, 0))
+            width=ui_helper.scale_size(20)
+        ).pack(pady=(ui_helper.get_padding(10), ui_helper.get_padding(0)))
         
         # 常用子网快速选择
-        quick_frame = tb.LabelFrame(subnet_info_frame, text="常用子网", padding=10)
+        quick_frame = tb.LabelFrame(subnet_info_frame, text="常用子网", padding=ui_helper.get_padding(10))
         quick_frame.pack(fill=X)
         
         common_networks = [
@@ -134,8 +131,8 @@ class SubnetFrame(tb.Frame):
                 text=network,
                 bootstyle=OUTLINE,
                 command=lambda net=network: self.set_network_address(net),
-                width=18
-            ).grid(row=row, column=col, padx=5, pady=3, sticky=W)
+                width=ui_helper.scale_size(18)
+            ).grid(row=row, column=col, padx=ui_helper.get_padding(5), pady=ui_helper.get_padding(3), sticky=W)
     
     def setup_vlsm_tab(self):
         """设置VLSM计算标签页"""
@@ -143,33 +140,33 @@ class SubnetFrame(tb.Frame):
         self.notebook.add(vlsm_frame, text="VLSM划分")
         
         # 基础网络输入
-        base_frame = tb.LabelFrame(vlsm_frame, text="基础网络", padding=15)
-        base_frame.pack(fill=X, pady=(0, 10))
+        base_frame = tb.LabelFrame(vlsm_frame, text="基础网络", padding=ui_helper.get_padding(15))
+        base_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
-        tb.Label(base_frame, text="基础网络 (CIDR):").pack(anchor=W, pady=(0, 5))
-        self.base_network_entry = tb.Entry(base_frame, width=30, font=('Consolas', 11))
-        self.base_network_entry.pack(fill=X, pady=(0, 5))
+        tb.Label(base_frame, text="基础网络 (CIDR):").pack(anchor=W, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
+        self.base_network_entry = tb.Entry(base_frame, width=ui_helper.scale_size(30), font=('Consolas', ui_helper.scale_size(11)))
+        self.base_network_entry.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         self.base_network_entry.insert(0, "192.168.1.0/24")
         
         # 子网需求输入
-        requirements_frame = tb.LabelFrame(vlsm_frame, text="子网需求", padding=15)
-        requirements_frame.pack(fill=X, pady=(0, 10))
+        requirements_frame = tb.LabelFrame(vlsm_frame, text="子网需求", padding=ui_helper.get_padding(15))
+        requirements_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
-        tb.Label(requirements_frame, text="主机数需求 (每行一个数字):").pack(anchor=W, pady=(0, 5))
+        tb.Label(requirements_frame, text="主机数需求 (每行一个数字):").pack(anchor=W, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
         self.requirements_text = tb.Text(
             requirements_frame,
-            height=8,
-            width=25,
+            height=ui_helper.scale_size(8),
+            width=ui_helper.scale_size(25),
             wrap=WORD,
-            font=('Consolas', 11)
+            font=('Consolas', ui_helper.scale_size(11))
         )
         
         req_scrollbar = tb.Scrollbar(requirements_frame, orient=VERTICAL, command=self.requirements_text.yview)
         self.requirements_text.configure(yscrollcommand=req_scrollbar.set)
         
         text_frame = tb.Frame(requirements_frame)
-        text_frame.pack(fill=BOTH, expand=True, pady=(0, 10))
+        text_frame.pack(fill=BOTH, expand=True, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         self.requirements_text.pack(side=LEFT, fill=BOTH, expand=True)
         req_scrollbar.pack(side=RIGHT, fill=Y)
@@ -184,11 +181,11 @@ class SubnetFrame(tb.Frame):
             text="计算VLSM划分",
             bootstyle=WARNING,
             command=self.calculate_vlsm,
-            width=20
-        ).pack(pady=(10, 0))
+            width=ui_helper.scale_size(20)
+        ).pack(pady=(ui_helper.get_padding(10), ui_helper.get_padding(0)))
         
         # 快速模板
-        template_frame = tb.LabelFrame(vlsm_frame, text="快速模板", padding=10)
+        template_frame = tb.LabelFrame(vlsm_frame, text="快速模板", padding=ui_helper.get_padding(10))
         template_frame.pack(fill=X)
         
         templates = [
@@ -207,8 +204,8 @@ class SubnetFrame(tb.Frame):
                 text=name,
                 bootstyle=OUTLINE,
                 command=lambda t=template: self.set_requirements_template(t),
-                width=12
-            ).grid(row=row, column=col, padx=5, pady=3)
+                width=ui_helper.scale_size(12)
+            ).grid(row=row, column=col, padx=ui_helper.get_padding(5), pady=ui_helper.get_padding(3))
     
     def setup_conversion_tab(self):
         """设置格式转换标签页"""
@@ -216,12 +213,12 @@ class SubnetFrame(tb.Frame):
         self.notebook.add(conversion_frame, text="格式转换")
         
         # CIDR转点分十进制
-        cidr_frame = tb.LabelFrame(conversion_frame, text="CIDR → 点分十进制", padding=15)
-        cidr_frame.pack(fill=X, pady=(0, 10))
+        cidr_frame = tb.LabelFrame(conversion_frame, text="CIDR → 点分十进制", padding=ui_helper.get_padding(15))
+        cidr_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
-        tb.Label(cidr_frame, text="CIDR地址:").pack(anchor=W, pady=(0, 5))
-        self.cidr_entry = tb.Entry(cidr_frame, width=25, font=('Consolas', 11))
-        self.cidr_entry.pack(fill=X, pady=(0, 10))
+        tb.Label(cidr_frame, text="CIDR地址:").pack(anchor=W, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
+        self.cidr_entry = tb.Entry(cidr_frame, width=ui_helper.scale_size(25), font=('Consolas', ui_helper.scale_size(11)))
+        self.cidr_entry.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         self.cidr_entry.insert(0, "192.168.1.0/24")
         
         tb.Button(
@@ -229,28 +226,28 @@ class SubnetFrame(tb.Frame):
             text="转换为点分十进制",
             bootstyle=INFO,
             command=self.convert_cidr_to_dotted,
-            width=20
+            width=ui_helper.scale_size(20)
         ).pack()
         
         # 点分十进制转CIDR
-        dotted_frame = tb.LabelFrame(conversion_frame, text="点分十进制 → CIDR", padding=15)
+        dotted_frame = tb.LabelFrame(conversion_frame, text="点分十进制 → CIDR", padding=ui_helper.get_padding(15))
         dotted_frame.pack(fill=X)
         
         # IP地址
         ip_input_frame = tb.Frame(dotted_frame)
-        ip_input_frame.pack(fill=X, pady=(0, 5))
+        ip_input_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
         tb.Label(ip_input_frame, text="IP地址:").pack(side=LEFT)
-        self.ip_entry = tb.Entry(ip_input_frame, width=15, font=('Consolas', 11))
+        self.ip_entry = tb.Entry(ip_input_frame, width=ui_helper.scale_size(15), font=('Consolas', ui_helper.scale_size(11)))
         self.ip_entry.pack(side=RIGHT)
         self.ip_entry.insert(0, "192.168.1.1")
         
         # 子网掩码
         mask_input_frame = tb.Frame(dotted_frame)
-        mask_input_frame.pack(fill=X, pady=(0, 10))
+        mask_input_frame.pack(fill=X, pady=(ui_helper.get_padding(0), ui_helper.get_padding(10)))
         
         tb.Label(mask_input_frame, text="子网掩码:").pack(side=LEFT)
-        self.mask_entry = tb.Entry(mask_input_frame, width=15, font=('Consolas', 11))
+        self.mask_entry = tb.Entry(mask_input_frame, width=ui_helper.scale_size(15), font=('Consolas', ui_helper.scale_size(11)))
         self.mask_entry.pack(side=RIGHT)
         self.mask_entry.insert(0, "255.255.255.0")
         
@@ -259,7 +256,7 @@ class SubnetFrame(tb.Frame):
             text="转换为CIDR",
             bootstyle=SUCCESS,
             command=self.convert_dotted_to_cidr,
-            width=20
+            width=ui_helper.scale_size(20)
         ).pack()
     
     def set_network_address(self, network):

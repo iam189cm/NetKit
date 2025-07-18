@@ -5,6 +5,7 @@
 
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from netkit.utils.ui_helper import ui_helper
 from .interface_selector import InterfaceSelectorWidget
 from .info_display import InfoDisplayWidget
 from .config_form import ConfigFormWidget
@@ -24,15 +25,13 @@ class NetConfigView(tb.Frame):
         # 标题
         title = tb.Label(
             self, 
-            text="网卡配置", 
-            font=('Microsoft YaHei', 18, 'bold'),
-            bootstyle=PRIMARY
+            text="网卡配置",            bootstyle=PRIMARY
         )
-        title.pack(pady=(0, 20))
+        title.pack(pady=(0, ui_helper.get_padding(20)))
         
         # 主要内容区域
         main_frame = tb.Frame(self)
-        main_frame.pack(fill=BOTH, expand=True, padx=20)
+        main_frame.pack(fill=BOTH, expand=True, padx=ui_helper.get_padding(20))
         
         # 创建状态显示组件（先创建，因为其他组件需要引用）
         self.status_display = StatusDisplayWidget(main_frame)
@@ -43,14 +42,14 @@ class NetConfigView(tb.Frame):
             on_interface_selected=self.on_interface_selected,
             on_status_update=self.status_display.append_status
         )
-        self.interface_selector.pack(fill=X, pady=(0, 15))
+        self.interface_selector.pack(fill=X, pady=(0, ui_helper.get_padding(15)))
         
         # 创建网卡信息显示
         self.info_display = InfoDisplayWidget(
             main_frame,
             on_status_update=self.status_display.append_status
         )
-        self.info_display.pack(fill=X, pady=(0, 15))
+        self.info_display.pack(fill=X, pady=(0, ui_helper.get_padding(15)))
         
         # 创建配置表单
         self.config_form = ConfigFormWidget(
@@ -58,7 +57,7 @@ class NetConfigView(tb.Frame):
             on_config_applied=self.on_config_applied,
             on_status_update=self.status_display.append_status
         )
-        self.config_form.pack(fill=X, pady=(0, 15))
+        self.config_form.pack(fill=X, pady=(0, ui_helper.get_padding(15)))
         
         # 状态显示区域
         self.status_display.pack(fill=BOTH, expand=True)
