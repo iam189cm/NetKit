@@ -72,11 +72,19 @@ class NetConfigView(tb.Frame):
     
     def on_config_applied(self, interface_name):
         """配置应用完成事件处理"""
-        # 刷新网卡信息显示
-        self.info_display.after(1000, lambda: self.info_display.update_interface_info(interface_name))
+        # 立即失效缓存，确保获取最新信息
+        from netkit.services.netconfig.async_manager import get_async_manager
+        async_manager = get_async_manager()
+        async_manager.invalidate_adapter_cache(interface_name)
         
-        # 触发网卡列表刷新
-        self.interface_selector.after(2000, lambda: self.interface_selector.refresh_interfaces())
+        # 立即强制刷新网卡信息显示（不延迟）
+        self.info_display.force_update_interface_info(interface_name)
+        
+        # 延迟刷新网卡列表（给系统一点时间完成配置）
+        self.interface_selector.after(1000, lambda: async_manager.force_refresh_adapter(interface_name))
+        
+        # 显示成功提示
+        self.status_display.append_status("配置已应用，正在刷新网卡信息...\n")
     
     def cleanup(self):
         """清理资源"""

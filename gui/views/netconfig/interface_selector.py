@@ -24,7 +24,7 @@ class InterfaceSelectorWidget(tb.Frame):
         
         # 异步管理器
         self.async_manager = get_async_manager()
-        self.async_manager.add_callback(self._on_async_event)
+        self.async_manager.add_callback(self._on_data_callback)
         
         # UI状态
         self.is_loading = False
@@ -98,17 +98,12 @@ class InterfaceSelectorWidget(tb.Frame):
         )
         self.refresh_button.pack(side=RIGHT)
         
-        # 进度条（初始隐藏）
-        self.progress_bar = tb.Progressbar(
-            right_frame,
-            mode='determinate',
-            length=ui_helper.scale_size(100)
-        )
+        # 进度条已移除
         
         # 状态标签
         self.status_label = tb.Label(
             main_frame,
-            text="正在加载网卡信息...",
+            text="",  # 初始为空，不显示加载提示
             font=ui_helper.get_font(8),
             foreground="gray"
         )
@@ -126,9 +121,7 @@ class InterfaceSelectorWidget(tb.Frame):
             self.refresh_button.config(state=NORMAL)
             self.interface_combo.config(state="readonly")
             self.update_interface_list()
-            self.status_label.config(text="网卡信息已就绪")
-            # 3秒后隐藏状态标签
-            self.after(3000, lambda: self.status_label.config(text=""))
+            # 预加载完成后不显示状态提示
             return
         
         # 检查是否正在加载
@@ -138,16 +131,9 @@ class InterfaceSelectorWidget(tb.Frame):
             self.refresh_button.config(state=DISABLED)
             self.interface_combo.config(state=DISABLED)
             
-            # 显示进度条
-            self.progress_bar.pack(side=RIGHT, padx=(ui_helper.get_padding(10), 0))
-            self.progress_bar.start()
+            # 进度条已移除
             
-            # 更新当前状态
-            current_message = self.async_manager.loading_state.message
-            if current_message:
-                self.status_label.config(text=current_message)
-            else:
-                self.status_label.config(text="正在加载网卡信息...")
+            # 不显示加载状态提示
             return
         
         # 需要启动新的预加载
@@ -155,9 +141,7 @@ class InterfaceSelectorWidget(tb.Frame):
         self.refresh_button.config(state=DISABLED)
         self.interface_combo.config(state=DISABLED)
         
-        # 显示进度条
-        self.progress_bar.pack(side=RIGHT, padx=(ui_helper.get_padding(10), 0))
-        self.progress_bar.start()
+        # 进度条已移除
         
         # 启动超时检测
         self._start_loading_timeout()
@@ -165,59 +149,29 @@ class InterfaceSelectorWidget(tb.Frame):
         # 启动预加载
         start_preload()
     
-    def _on_async_event(self, event_type: str, data=None):
-        """异步事件处理"""
-        # 确保在主线程中执行UI更新
-        self.after(0, lambda: self._handle_async_event(event_type, data))
-    
-    def _handle_async_event(self, event_type: str, data=None):
-        """处理异步事件（在主线程中）"""
-        try:
-            if event_type == "loading_started":
-                self.status_label.config(text="正在加载网卡信息...")
-                
-            elif event_type == "loading_progress":
-                progress = self.async_manager.loading_state.progress * 100
-                message = self.async_manager.loading_state.message
-                
-                self.progress_bar.config(value=progress)
-                self.status_label.config(text=message)
-                
-            elif event_type == "preload_completed":
-                self._on_preload_completed()
-                
-            elif event_type == "refresh_completed":
-                self._on_refresh_completed()
-                
-            elif event_type == "loading_error":
-                error = self.async_manager.loading_state.error
-                self.status_label.config(text=f"加载失败: {error}")
-                self._append_status(f"加载失败: {error}\n")
-                self._reset_loading_state()
-                
-            elif event_type == "adapter_updated":
-                self._on_adapter_updated(data)
-                
-            elif event_type == "loading_message_cleared":
-                # 只有在没有其他状态消息时才清除
-                if self.status_label.cget("text").startswith(("预加载完成", "刷新完成")):
-                    self.status_label.config(text="")
-                    
-        except Exception as e:
-            # 异常处理，避免事件处理失败导致界面卡死
-            self.status_label.config(text=f"事件处理失败: {str(e)}")
-            self._append_status(f"事件处理失败: {str(e)}\n")
-            # 确保在异常情况下也能重置状态
-            if self.is_loading:
-                self._reset_loading_state()
+    def _on_data_callback(self, event_type, data=None):
+        """异步数据管理器回调处理"""
+        if event_type == "preload_completed":
+            self.after(0, self._on_preload_completed)
+        elif event_type == "refresh_completed":
+            self.after(0, self._on_refresh_completed)
+        elif event_type == "adapter_updated":
+            self.after(0, lambda: self._on_adapter_updated(data))
+        elif event_type == "adapter_force_updated":
+            # 处理强制更新事件，立即刷新界面
+            self.after(0, lambda: self._on_adapter_force_updated(data))
+        elif event_type == "loading_error":
+            self.after(0, self._on_loading_error)
+        elif event_type == "loading_started":
+            self.after(0, self._on_loading_started)
+        elif event_type == "loading_message_cleared":
+            self.after(0, self._on_loading_message_cleared)
     
     def _on_preload_completed(self):
         """预加载完成处理"""
         self.is_loading = False
         
-        # 隐藏进度条
-        self.progress_bar.stop()
-        self.progress_bar.pack_forget()
+        # 进度条已移除
         
         # 启用控件
         self.refresh_button.config(state=NORMAL)
@@ -226,10 +180,7 @@ class InterfaceSelectorWidget(tb.Frame):
         # 更新网卡列表
         self.update_interface_list()
         
-        self.status_label.config(text="网卡信息加载完成")
-        
-        # 3秒后隐藏状态标签
-        self.after(3000, lambda: self.status_label.config(text=""))
+        # 不显示加载完成提示
         
         # 清除超时检测
         self._clear_loading_timeout()
@@ -238,9 +189,7 @@ class InterfaceSelectorWidget(tb.Frame):
         """手动刷新完成处理"""
         self.is_loading = False
         
-        # 隐藏进度条
-        self.progress_bar.stop()
-        self.progress_bar.pack_forget()
+        # 进度条已移除
         
         # 启用控件
         self.refresh_button.config(state=NORMAL)
@@ -249,10 +198,7 @@ class InterfaceSelectorWidget(tb.Frame):
         # 更新网卡列表
         self.update_interface_list()
         
-        self.status_label.config(text="网卡信息刷新完成")
-        
-        # 3秒后隐藏状态标签
-        self.after(3000, lambda: self.status_label.config(text=""))
+        # 不显示刷新完成提示
         
         # 清除超时检测
         self._clear_loading_timeout()
@@ -299,9 +245,7 @@ class InterfaceSelectorWidget(tb.Frame):
         self.is_loading = True
         self.refresh_button.config(state=DISABLED)
         
-        # 显示进度条
-        self.progress_bar.pack(side=RIGHT, padx=(ui_helper.get_padding(10), 0))
-        self.progress_bar.start()
+        # 进度条已移除
         
         # 启动超时检测
         self._start_loading_timeout()
@@ -309,7 +253,8 @@ class InterfaceSelectorWidget(tb.Frame):
         # 触发异步刷新
         self.async_manager.refresh_all_adapters()
         
-        self._append_status("手动刷新网卡信息...\n")
+        # 手动刷新时不显示状态提示
+        # self._append_status("手动刷新网卡信息...\n")
     
     def on_show_all_changed(self):
         """显示所有网卡选项改变"""
@@ -334,11 +279,32 @@ class InterfaceSelectorWidget(tb.Frame):
         # 更新网卡列表
         self.update_interface_list()
     
+    def _on_adapter_force_updated(self, connection_id):
+        """强制更新事件处理"""
+        # 强制更新意味着需要立即刷新界面
+        self.after(0, lambda: self._on_adapter_updated(connection_id))
+    
+    def _on_loading_error(self, error):
+        """加载错误事件处理"""
+        self.status_label.config(text=f"加载失败: {error}")
+        self._append_status(f"加载失败: {error}\n")
+        self._reset_loading_state()
+    
+    def _on_loading_started(self):
+        """加载开始事件处理"""
+        # 不显示加载开始提示
+        pass
+    
+    def _on_loading_message_cleared(self):
+        """加载消息清除事件处理"""
+        # 只有在没有其他状态消息时才清除
+        if self.status_label.cget("text").startswith(("预加载完成", "刷新完成")):
+            self.status_label.config(text="")
+    
     def _reset_loading_state(self):
         """重置加载状态"""
         self.is_loading = False
-        self.progress_bar.stop()
-        self.progress_bar.pack_forget()
+        # 进度条已移除
         self.refresh_button.config(state=NORMAL)
         self.interface_combo.config(state="readonly")
         
@@ -361,8 +327,8 @@ class InterfaceSelectorWidget(tb.Frame):
     def _on_loading_timeout(self):
         """加载超时处理"""
         if self.is_loading:
-            self.status_label.config(text="加载超时，正在重试...")
-            self._append_status("网卡信息加载超时，正在重试...\n")
+            # 不显示超时重试提示
+            # self._append_status("网卡信息加载超时，正在重试...\n")
             
             # 重置状态
             self._reset_loading_state()
@@ -373,8 +339,8 @@ class InterfaceSelectorWidget(tb.Frame):
     def _retry_loading(self):
         """重试加载"""
         try:
-            self.status_label.config(text="正在重试加载网卡信息...")
-            self._append_status("开始重试加载网卡信息...\n")
+            # 不显示重试加载提示
+            # self._append_status("开始重试加载网卡信息...\n")
             
             # 清除异步管理器的缓存，强制重新加载
             self.async_manager.clear_cache()
@@ -402,7 +368,7 @@ class InterfaceSelectorWidget(tb.Frame):
                 else:
                     # 异步加载可能失败了，重置UI状态
                     self._reset_loading_state()
-                    self.status_label.config(text="状态同步：加载已停止")
+                    # 不显示状态同步提示
                     
             # 如果异步管理器显示正在加载，但UI显示未在加载，需要同步
             elif async_loading and not self.is_loading:
@@ -410,18 +376,12 @@ class InterfaceSelectorWidget(tb.Frame):
                 self.refresh_button.config(state=DISABLED)
                 self.interface_combo.config(state=DISABLED)
                 
-                # 显示进度条
-                self.progress_bar.pack(side=RIGHT, padx=(ui_helper.get_padding(10), 0))
-                self.progress_bar.start()
+                # 进度条已移除
                 
                 # 启动超时检测
                 self._start_loading_timeout()
                 
-                current_message = self.async_manager.loading_state.message
-                if current_message:
-                    self.status_label.config(text=current_message)
-                else:
-                    self.status_label.config(text="状态同步：正在加载...")
+                # 不显示状态同步提示
                     
         except Exception as e:
             self._append_status(f"状态同步失败: {str(e)}\n")
@@ -488,7 +448,7 @@ class InterfaceSelectorWidget(tb.Frame):
         self._clear_loading_timeout()
         
         # 清理异步管理器回调
-        self.async_manager.remove_callback(self._on_async_event)
+        self.async_manager.remove_callback(self._on_data_callback)
         
         # 清理网络变化回调
         remove_network_change_callback(self.on_network_change) 

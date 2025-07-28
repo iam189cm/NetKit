@@ -150,6 +150,49 @@ class InfoDisplayWidget(tb.LabelFrame):
             self._update_text_display(error_content)
             self._append_status(f"获取网卡信息失败: {str(e)}\n")
     
+    def force_update_interface_info(self, interface_name):
+        """强制更新网卡信息显示，绕过缓存"""
+        if not interface_name:
+            self.show_no_selection_info()
+            return
+            
+        try:
+            # 强制刷新：先清除可能的缓存，然后获取最新信息
+            from netkit.services.netconfig.interface_info import get_network_info_service
+            service = get_network_info_service()
+            
+            # 清除WMI引擎缓存
+            service.wmi_engine.clear_cache()
+            
+            # 获取最新的网卡详细信息
+            info = service.get_network_card_info(interface_name, force_refresh=True)
+            
+            # 格式化信息显示
+            content_lines = [
+                f"网卡名称: {info.get('name', '未知')}",
+                f"描述: {info.get('description', '未知')}",
+                f"状态: {info.get('status', '未知')}",
+                f"物理地址: {info.get('mac', '未知')}",
+                f"速度: {info.get('speed', '未知')}",
+                "",
+                "网络配置:",
+                f"IP地址: {info.get('ip', '未配置')}",
+                f"子网掩码: {info.get('mask', '未配置')}",
+                f"默认网关: {info.get('gateway', '未配置')}",
+                f"DNS服务器1: {info.get('dns1', '未配置')}",
+                f"DNS服务器2: {info.get('dns2', '未配置')}"
+            ]
+            
+            content = '\n'.join(content_lines)
+            self._update_text_display(content)
+            
+            self._append_status(f"已强制刷新网卡信息: {info.get('name', interface_name)}\n")
+            
+        except Exception as e:
+            error_content = f"强制获取网卡信息失败: {str(e)}"
+            self._update_text_display(error_content)
+            self._append_status(f"强制获取网卡信息失败: {str(e)}\n")
+    
     def get_current_info(self):
         """获取当前显示的网卡信息（以字典形式返回）"""
         try:

@@ -246,15 +246,11 @@ class WMIQueryEngine:
         if not adapter:
             return False
         
-        # 检查是否为物理适配器
-        if hasattr(adapter, 'PhysicalAdapter') and adapter.PhysicalAdapter is not None:
-            return bool(adapter.PhysicalAdapter)
-        
-        # 如果PhysicalAdapter属性不可用，通过描述判断
+        # 获取基本信息
         name = (adapter.Name or "").lower()
         description = (adapter.Description or "").lower()
         
-        # 虚拟适配器关键字
+        # 虚拟适配器关键字 - 优先检查
         virtual_keywords = [
             'virtual', 'vmware', 'virtualbox', 'hyper-v', 'vethernet',
             'tap', 'tunnel', 'loopback', 'teredo', 'isatap', 'bluetooth',
@@ -264,12 +260,19 @@ class WMIQueryEngine:
             'wfp', 'qos', 'filter', 'miniport'
         ]
         
-        # 检查是否包含虚拟适配器关键字
+        # 检查是否包含虚拟适配器关键字 - 如果包含，直接返回False
         for keyword in virtual_keywords:
             if keyword in name or keyword in description:
                 return False
         
-        # 检查是否包含物理网卡的关键词
+        # 如果没有虚拟关键字，再检查PhysicalAdapter属性
+        if hasattr(adapter, 'PhysicalAdapter') and adapter.PhysicalAdapter is not None:
+            # 即使PhysicalAdapter为True，也要通过关键字检查确认
+            physical_attr = bool(adapter.PhysicalAdapter)
+            if not physical_attr:
+                return False
+        
+        # 检查是否包含物理网卡的关键词（作为额外确认）
         physical_keywords = [
             'intel', 'realtek', 'broadcom', 'qualcomm', 'atheros',
             'marvell', 'nvidia', 'mediatek', 'ethernet', 'wi-fi', 'wireless'

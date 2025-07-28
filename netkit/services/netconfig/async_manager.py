@@ -304,6 +304,31 @@ class AsyncNetworkDataManager:
         self.loading_state = LoadingState()
         self._notify_callbacks("cache_cleared")
     
+    def invalidate_adapter_cache(self, connection_id: str):
+        """立即失效指定网卡的缓存"""
+        if connection_id in self.adapters_cache:
+            # 将缓存时间设置为很久以前，强制下次获取时刷新
+            adapter = self.adapters_cache[connection_id]
+            adapter.last_updated = 0
+            self.logger.info(f"已失效网卡 {connection_id} 的缓存")
+    
+    def force_refresh_adapter(self, connection_id: str):
+        """强制刷新指定网卡信息并通知回调"""
+        def worker():
+            try:
+                # 强制从WMI获取最新信息
+                adapter = self.wmi_engine.get_adapter_info(connection_id, force_refresh=True)
+                if adapter:
+                    self.adapters_cache[connection_id] = adapter
+                    self._notify_callbacks("adapter_force_updated", connection_id)
+                    self.logger.info(f"强制刷新网卡 {connection_id} 成功")
+                else:
+                    self.logger.warning(f"强制刷新网卡 {connection_id} 失败：网卡不存在")
+            except Exception as e:
+                self.logger.error(f"强制刷新网卡 {connection_id} 失败: {e}")
+        
+        threading.Thread(target=worker, daemon=True).start()
+
     def _notify_callbacks(self, event_type: str, data: Any = None):
         """通知回调函数"""
         for callback in self.callbacks:
