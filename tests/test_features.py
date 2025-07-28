@@ -146,7 +146,7 @@ def test_ping_service():
     最短 = 24ms，最长 = 26ms，平均 = 25ms
         """
         
-        stats = service.parse_ping_result(test_output)
+        stats = service.parser.parse_ping_result(test_output)
         if stats['success']:
             print("✓ Ping结果解析成功")
             print(f"  目标: {stats['host']}")

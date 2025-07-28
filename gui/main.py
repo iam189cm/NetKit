@@ -9,7 +9,7 @@ from netkit.utils.admin_check import ensure_admin
 from netkit.utils.network_monitor import start_network_monitoring, stop_network_monitoring
 from netkit.utils.ui_helper import ui_helper
 from gui.views.netconfig.netconfig_view import NetConfigView
-from gui.views.ping import PingFrame
+from gui.views.ping import VisualPingView
 from gui.views.subnet_view import SubnetFrame
 from gui.views.traceroute_view import TracerouteFrame
 from gui.views.route_view import RouteFrame
@@ -283,7 +283,7 @@ class MainWindow:
         self.set_status("正在加载Ping测试功能...")
         
         try:
-            self.current_frame = PingFrame(self.content_area)
+            self.current_frame = VisualPingView(self.content_area)
             self.current_frame.pack(fill=BOTH, expand=True)
             self.set_status("Ping测试功能已加载")
         except Exception as e:

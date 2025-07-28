@@ -12,18 +12,11 @@ NetKit Ping服务模块
 from .ip_parser import parse_ip_range
 from .ping_executor import PingExecutor
 from .result_parser import PingResultParser
-from .stats_manager import PingStatsManager
 from .ping_service import PingService
-
-# 向后兼容的简单函数
-from .ping_service import ping, ping_with_stats
 
 __all__ = [
     'PingService',
     'PingExecutor', 
     'PingResultParser',
-    'PingStatsManager',
-    'parse_ip_range',
-    'ping',
-    'ping_with_stats'
+    'parse_ip_range'
 ] 

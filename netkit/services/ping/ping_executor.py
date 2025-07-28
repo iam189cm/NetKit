@@ -149,62 +149,7 @@ class PingExecutor:
         
         return results
     
-    def continuous_ping(self, host, interval=1, timeout=3000, callback=None):
-        """
-        连续ping测试
-        
-        Args:
-            host (str): 目标主机地址
-            interval (int): ping间隔时间(秒)
-            timeout (int): 超时时间(毫秒)
-            callback (callable): 结果回调函数
-        """
-        self.is_running = True
-        self.stop_event.clear()
-        
-        sequence = 0
-        start_time = time.time()
-        
-        while self.is_running and not self.stop_event.is_set():
-            sequence += 1
-            
-            # 执行单次ping
-            result = self.ping_single(host, count=1, timeout=timeout)
-            result['sequence'] = sequence
-            result['timestamp'] = time.time()
-            result['elapsed_time'] = time.time() - start_time
-            
-            # 调用回调函数
-            if callback:
-                callback(result)
-            
-            # 等待间隔时间
-            if not self.stop_event.wait(interval):
-                continue
-            else:
-                break
-    
-    def start_continuous_ping(self, host, interval=1, timeout=3000, callback=None):
-        """
-        在后台线程中启动连续ping测试
-        
-        Args:
-            host (str): 目标主机地址
-            interval (int): ping间隔时间(秒)
-            timeout (int): 超时时间(毫秒)
-            callback (callable): 结果回调函数
-            
-        Returns:
-            bool: 是否成功启动
-        """
-        if self.is_running:
-            return False
-            
-        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-        future = self.executor.submit(
-            self.continuous_ping, host, interval, timeout, callback
-        )
-        return True
+
     
     def stop_ping(self):
         """停止ping测试"""
