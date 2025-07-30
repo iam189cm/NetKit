@@ -26,29 +26,34 @@ jobs:
         
     - name: Run basic tests
       run: |
-        echo "🧪 Running basic tests..."
+        Write-Host "🧪 Running basic tests..." -ForegroundColor Cyan
         python -m pytest tests/ -v --tb=short
       continue-on-error: true
+      shell: powershell
       
     - name: Code style check
       run: |
-        echo "🔍 Checking code style..."
+        Write-Host "🔍 Checking code style..." -ForegroundColor Cyan
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
       continue-on-error: true
+      shell: powershell
       
     - name: Build test
       run: |
-        echo "🔨 Testing build process..."
+        Write-Host "🔨 Testing build process..." -ForegroundColor Cyan
         python scripts/build.py
-        if [ -f "dist/NetKit.exe" ]; then
-          echo "✅ Build test passed"
-        else
-          echo "❌ Build test failed"
+        if (Test-Path "dist/NetKit.exe") {
+          Write-Host "✅ Build test passed" -ForegroundColor Green
+        } else {
+          Write-Host "❌ Build test failed" -ForegroundColor Red
           exit 1
-        fi
-      shell: bash
+        }
+      shell: powershell
       
     - name: Cleanup
       run: |
-        rm -rf dist build __pycache__ *.pyc
-      shell: bash 
+        if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
+        if (Test-Path "build") { Remove-Item -Recurse -Force "build" }
+        Get-ChildItem -Recurse -Name "__pycache__" | Remove-Item -Recurse -Force
+        Get-ChildItem -Name "*.pyc" | Remove-Item -Force
+      shell: powershell 

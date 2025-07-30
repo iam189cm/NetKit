@@ -17,7 +17,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-2019, windows-2022]  # Windows 10 and 11 equivalent
+        os: [windows-2022, windows-latest]  # 移除已弃用的windows-2019
         python-version: ['3.12']
       fail-fast: false
     
@@ -37,8 +37,9 @@ jobs:
         
     - name: Create test directories
       run: |
-        mkdir -p reports
-        mkdir -p htmlcov
+        if (!(Test-Path "reports")) { New-Item -ItemType Directory -Path "reports" -Force }
+        if (!(Test-Path "htmlcov")) { New-Item -ItemType Directory -Path "htmlcov" -Force }
+      shell: powershell
         
     - name: Run unit tests
       run: |
@@ -73,7 +74,7 @@ jobs:
         retention-days: 30
         
     - name: Upload coverage reports
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       if: success()
       with:
         file: ./coverage.xml
@@ -137,16 +138,16 @@ jobs:
       
     - name: Test executable
       run: |
-        if [ -f "dist/NetKit.exe" ]; then
-          echo "✅ NetKit executable built successfully"
-          file_size=$(stat -c%s "dist/NetKit.exe" 2>/dev/null || stat -f%z "dist/NetKit.exe" 2>/dev/null || echo "0")
-          file_size_mb=$(echo "scale=1; $file_size / 1048576" | bc -l 2>/dev/null || echo "Unknown")
-          echo "📦 File size: ${file_size_mb} MB"
-        else
-          echo "❌ NetKit executable build failed"
+        if (Test-Path "dist/NetKit.exe") {
+          Write-Host "✅ NetKit executable built successfully" -ForegroundColor Green
+          $fileSize = (Get-Item "dist/NetKit.exe").Length
+          $fileSizeMB = [math]::Round($fileSize / 1MB, 1)
+          Write-Host "📦 File size: $fileSizeMB MB" -ForegroundColor Cyan
+        } else {
+          Write-Host "❌ NetKit executable build failed" -ForegroundColor Red
           exit 1
-        fi
-      shell: bash
+        }
+      shell: powershell
       
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
