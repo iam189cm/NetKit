@@ -18,12 +18,13 @@ class StatusDisplayWidget(tb.LabelFrame):
         
     def setup_ui(self):
         """设置UI组件"""
-        # 状态文本框（调小高度）
+        # 状态文本框（固定合理高度，不使用DPI缩放）
         self.status_text = tb.Text(
             self,
-            height=ui_helper.scale_size(4),  # 从6调整为4
+            height=3,  # 固定3行，确保状态栏可见但不占用过多空间
             state=DISABLED,
-            wrap=WORD,        )
+            wrap=WORD,
+        )
         
         # 滚动条
         scrollbar = tb.Scrollbar(self, orient=VERTICAL, command=self.status_text.yview)

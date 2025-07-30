@@ -29,6 +29,7 @@ class UIHelper:
             self._base_font_size = 9
             self._font_family = "Microsoft YaHei"
             self._font_cache = {}
+            self._scale_fonts = False  # 默认字体不随DPI缩放
             self._initialized = True
     
     def enable_dpi_awareness(self) -> bool:
@@ -69,8 +70,8 @@ class UIHelper:
         # 获取系统DPI设置
         system_scaling_factor = self._get_system_dpi_scaling()
         
-        # 固定缩放因子为 1.0
-        self._scaling_factor = 1.0
+        # 使用系统实际的缩放因子
+        self._scaling_factor = system_scaling_factor
         
         # 计算 DPI（默认 DPI 为 96）
         self._dpi = int(96 * self._scaling_factor)
@@ -80,6 +81,15 @@ class UIHelper:
         print(f"  实际使用缩放因子: {self._scaling_factor:.2f}")
         print(f"  DPI: {self._dpi}")
         print(f"  基础字体大小: {self._base_font_size}")
+        print(f"  字体DPI缩放: {'启用' if self._scale_fonts else '禁用'}")
+        
+        # 提供DPI范围说明
+        if 1.0 <= self._scaling_factor <= 2.0:
+            print(f"  DPI状态: 正常范围 (100%-200%)")
+        elif self._scaling_factor < 1.0:
+            print(f"  DPI状态: 异常 - 缩放因子小于100%，将使用100%")
+        else:
+            print(f"  DPI状态: 超高DPI (>{self._scaling_factor*100:.0f}%)，窗口大小将限制为200%")
     
     def _get_system_dpi_scaling(self) -> float:
         """
@@ -160,7 +170,7 @@ class UIHelper:
     
     def get_font(self, size: int = None, weight: str = "normal", family: str = None) -> Tuple[str, int, str]:
         """
-        获取适配 DPI 的字体
+        获取字体配置
         
         Args:
             size: 字体大小（如果为 None，使用基础字体大小）
@@ -175,14 +185,41 @@ class UIHelper:
         if family is None:
             family = self._font_family
         
-        # 缓存键
-        cache_key = (family, size, weight)
+        # 缓存键包含是否缩放的信息
+        cache_key = (family, size, weight, self._scale_fonts)
         
         if cache_key not in self._font_cache:
-            scaled_size = self.scale_size(size)
+            if self._scale_fonts:
+                # 如果启用字体缩放，根据DPI调整字体大小
+                scaled_size = self.scale_size(size)
+            else:
+                # 如果禁用字体缩放，保持原始大小
+                scaled_size = size
             self._font_cache[cache_key] = (family, scaled_size, weight)
         
         return self._font_cache[cache_key]
+    
+    def set_font_scaling(self, enabled: bool) -> None:
+        """
+        设置是否启用字体DPI缩放
+        
+        Args:
+            enabled: True启用字体缩放，False保持字体固定大小
+        """
+        if self._scale_fonts != enabled:
+            self._scale_fonts = enabled
+            # 清空字体缓存，以便重新计算
+            self._font_cache.clear()
+            print(f"字体DPI缩放: {'启用' if enabled else '禁用'}")
+    
+    def is_font_scaling_enabled(self) -> bool:
+        """
+        检查是否启用了字体DPI缩放
+        
+        Returns:
+            bool: True表示启用，False表示禁用
+        """
+        return self._scale_fonts
     
     def get_window_size(self, base_width: int, base_height: int) -> Tuple[int, int]:
         """
@@ -195,12 +232,19 @@ class UIHelper:
         Returns:
             Tuple[int, int]: (宽度, 高度)
         """
-        # 对于窗口大小，使用稍微保守的缩放策略
-        # 避免在高 DPI 下窗口过大
-        conservative_factor = min(self._scaling_factor, 1.5)
+        # 针对常用DPI范围（100%-200%）进行优化
+        if 1.0 <= self._scaling_factor <= 2.0:
+            # 对于常用DPI范围（100%-200%），直接使用系统缩放因子
+            scaling_factor = self._scaling_factor
+        elif self._scaling_factor < 1.0:
+            # 对于低于100%的情况（理论上不应该出现），使用最小值1.0
+            scaling_factor = 1.0
+        else:
+            # 对于超过200%的极少数情况，限制最大缩放为2.0，避免窗口过大
+            scaling_factor = 2.0
         
-        width = int(base_width * conservative_factor)
-        height = int(base_height * conservative_factor)
+        width = int(base_width * scaling_factor)
+        height = int(base_height * scaling_factor)
         
         return width, height
     

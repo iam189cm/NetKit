@@ -41,9 +41,9 @@ class ConfigFormWidget(tb.LabelFrame):
     
     def setup_ip_config_group(self, parent):
         """设置IP地址配置分组"""
-        # IP地址配置分组框（左侧）
+        # IP地址配置分组框（左侧，平分水平空间）
         ip_group = tb.LabelFrame(parent, text="IP地址配置", padding=ui_helper.get_padding(15))
-        ip_group.pack(side=LEFT, fill=BOTH, expand=True, padx=(0, ui_helper.get_padding(10)))
+        ip_group.pack(side=LEFT, fill=BOTH, expand=True, padx=(0, ui_helper.get_padding(5)))
         
         # IP配置模式选择变量
         self.ip_mode_var = tb.StringVar(value="manual")  # 默认选择手动配置
@@ -95,9 +95,9 @@ class ConfigFormWidget(tb.LabelFrame):
     
     def setup_dns_config_group(self, parent):
         """设置DNS服务器配置分组"""
-        # DNS服务器配置分组框（右侧）
+        # DNS服务器配置分组框（右侧，平分水平空间）
         dns_group = tb.LabelFrame(parent, text="DNS服务器配置", padding=ui_helper.get_padding(15))
-        dns_group.pack(side=LEFT, fill=BOTH, expand=True, padx=(ui_helper.get_padding(10), 0))
+        dns_group.pack(side=LEFT, fill=BOTH, expand=True, padx=(ui_helper.get_padding(5), 0))
         
         # DNS配置模式选择变量
         self.dns_mode_var = tb.StringVar(value="manual")  # 默认选择手动配置

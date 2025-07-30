@@ -22,12 +22,7 @@ class NetConfigView(tb.Frame):
         
     def setup_ui(self):
         """设置UI组件"""
-        # 标题
-        title = tb.Label(
-            self, 
-            text="网卡配置",            bootstyle=PRIMARY
-        )
-        title.pack(pady=(0, ui_helper.get_padding(20)))
+        # 删除了"网卡配置"标题
         
         # 主要内容区域
         main_frame = tb.Frame(self)
@@ -44,12 +39,12 @@ class NetConfigView(tb.Frame):
         )
         self.interface_selector.pack(fill=X, pady=(0, ui_helper.get_padding(15)))
         
-        # 创建网卡信息显示
+        # 创建网卡信息显示（设置为弹性布局，承担空间变化）
         self.info_display = InfoDisplayWidget(
             main_frame,
             on_status_update=self.status_display.append_status
         )
-        self.info_display.pack(fill=X, pady=(0, ui_helper.get_padding(15)))
+        self.info_display.pack(fill=BOTH, expand=True, pady=(0, ui_helper.get_padding(15)))
         
         # 创建配置表单
         self.config_form = ConfigFormWidget(
@@ -59,8 +54,8 @@ class NetConfigView(tb.Frame):
         )
         self.config_form.pack(fill=X, pady=(0, ui_helper.get_padding(15)))
         
-        # 状态显示区域
-        self.status_display.pack(fill=BOTH, expand=True)
+        # 状态显示区域（固定高度）
+        self.status_display.pack(fill=X, expand=False, pady=(ui_helper.get_padding(15), 0))
     
     def on_interface_selected(self, interface_name, display_name):
         """网卡选择事件处理"""

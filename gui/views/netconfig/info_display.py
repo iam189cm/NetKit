@@ -26,12 +26,12 @@ class InfoDisplayWidget(tb.LabelFrame):
         main_container = tb.Frame(self)
         main_container.pack(fill=BOTH, expand=True)
         
-        # 创建可选择的文本显示区域
+        # 创建可选择的文本显示区域（设置合理高度，确保下方状态区域可见）
         self.info_text = tb.Text(
             main_container,
-            height=ui_helper.scale_size(12),
-            width=ui_helper.scale_size(50),            state=DISABLED,
-            wrap=NONE,
+            height=8,  # 设置固定高度8行，确保状态区域可见
+            wrap=WORD,  # 自动换行
+            state=DISABLED,
             relief=FLAT,
             borderwidth=ui_helper.scale_size(1),
             background='#f8f9fa',
@@ -124,15 +124,13 @@ class InfoDisplayWidget(tb.LabelFrame):
             # 获取网卡详细信息
             info = get_network_card_info(interface_name)
             
-            # 格式化信息显示（左对齐，删除硬件信息分组）
+            # 格式化信息显示（紧凑格式，移除换行和"网络配置"标题）
             content_lines = [
                 f"网卡名称: {info.get('name', '未知')}",
                 f"描述: {info.get('description', '未知')}",
                 f"状态: {info.get('status', '未知')}",
                 f"物理地址: {info.get('mac', '未知')}",
                 f"速度: {info.get('speed', '未知')}",
-                "",
-                "网络配置:",
                 f"IP地址: {info.get('ip', '未配置')}",
                 f"子网掩码: {info.get('mask', '未配置')}",
                 f"默认网关: {info.get('gateway', '未配置')}",
@@ -174,8 +172,6 @@ class InfoDisplayWidget(tb.LabelFrame):
                 f"状态: {info.get('status', '未知')}",
                 f"物理地址: {info.get('mac', '未知')}",
                 f"速度: {info.get('speed', '未知')}",
-                "",
-                "网络配置:",
                 f"IP地址: {info.get('ip', '未配置')}",
                 f"子网掩码: {info.get('mask', '未配置')}",
                 f"默认网关: {info.get('gateway', '未配置')}",

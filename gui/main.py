@@ -24,8 +24,8 @@ class MainWindow:
         # 初始化 DPI 缩放
         ui_helper.initialize_scaling(self.app)
         
-        # 设置自适应窗口大小
-        ui_helper.center_window(self.app, 1000, 900)
+        # 设置自适应窗口大小（进一步调整高度，确保完全适配2880x1800分辨率）
+        ui_helper.center_window(self.app, 1300, 800)
         
         # 允许窗口大小调整（适应不同 DPI）
         self.app.resizable(True, True)
@@ -37,9 +37,7 @@ class MainWindow:
         # 当前显示的内容框架
         self.current_frame = None
         
-        # 状态栏变量
-        self.status_var = tb.StringVar()
-        self.status_var.set("就绪")
+        # 状态栏变量已删除
         
         self.setup_ui()
         
@@ -79,15 +77,16 @@ class MainWindow:
         # 右侧内容区域
         self.setup_content_area(main_container)
         
-        # 底部状态栏
-        self.setup_status_bar()
+        # 底部状态栏已删除
         
         # 默认显示IP切换功能
         self.show_ip_switcher()
         
     def setup_sidebar(self, parent):
         """设置左侧导航栏"""
-        sidebar_width = ui_helper.scale_size(200)
+        # 根据DPI动态调整导航栏宽度
+        base_width = 180 if ui_helper.get_scaling_factor() >= 1.5 else 200
+        sidebar_width = ui_helper.scale_size(base_width)
         sidebar = tb.Frame(parent, width=sidebar_width)
         sidebar.pack(side=LEFT, fill=Y, padx=(0, ui_helper.get_padding(10)))
         sidebar.pack_propagate(False)
@@ -165,84 +164,19 @@ class MainWindow:
         self.content_area = tb.Frame(parent)
         self.content_area.pack(side=RIGHT, fill=BOTH, expand=True)
         
-    def setup_status_bar(self):
-        """设置状态栏"""
-        status_frame = tb.Frame(self.app)
-        padding = ui_helper.get_padding(10)
-        status_frame.pack(side=BOTTOM, fill=X, padx=padding, pady=(0, padding))
+    # setup_status_bar 方法已删除
         
-        # 分隔线
-        separator = tb.Separator(status_frame, orient=HORIZONTAL)
-        separator.pack(fill=X, pady=(0, ui_helper.get_padding(5)))
-        
-        # 状态栏内容
-        status_content = tb.Frame(status_frame)
-        status_content.pack(fill=X)
-        
-        # 状态文本
-        status_label = tb.Label(
-            status_content,
-            text="状态:",
-            font=ui_helper.get_font(9),
-            bootstyle=SECONDARY
-        )
-        status_label.pack(side=LEFT)
-        
-        self.status_display = tb.Label(
-            status_content,
-            textvariable=self.status_var,
-            font=ui_helper.get_font(9),
-            bootstyle=INFO
-        )
-        self.status_display.pack(side=LEFT, padx=(ui_helper.get_padding(5), 0))
-        
-        # 进度条（初始隐藏）
-        self.progress_bar = tb.Progressbar(
-            status_content,
-            mode='indeterminate',
-            length=ui_helper.scale_size(200)
-        )
-        
-        # 当前时间
-        self.time_label = tb.Label(
-            status_content,
-            text="",
-            font=ui_helper.get_font(9),
-            bootstyle=SECONDARY
-        )
-        self.time_label.pack(side=RIGHT)
-        
-        # 更新时间
-        self.update_time()
-        
-    def update_time(self):
-        """更新时间显示"""
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.time_label.config(text=current_time)
-        # 每秒更新一次
-        self.app.after(1000, self.update_time)
+    # update_time 方法已删除
         
     def create_tooltip(self, widget, text):
-        """创建简单的工具提示"""
-        def on_enter(event):
-            self.set_status(text)
-        
-        def on_leave(event):
-            self.set_status("就绪")
-        
-        widget.bind("<Enter>", on_enter)
-        widget.bind("<Leave>", on_leave)
+        """创建简单的工具提示（状态栏已删除，暂时保留空实现）"""
+        # 原本用于在状态栏显示提示信息，现在状态栏已删除
+        pass
         
     def set_status(self, message, show_progress=False):
-        """设置状态栏消息"""
-        self.status_var.set(message)
-        
-        if show_progress:
-            self.progress_bar.pack(side=LEFT, padx=(ui_helper.get_padding(20), 0))
-            self.progress_bar.start()
-        else:
-            self.progress_bar.stop()
-            self.progress_bar.pack_forget()
+        """设置状态栏消息（状态栏已删除，保留空实现以保持兼容性）"""
+        # 原本用于设置底部状态栏消息，现在状态栏已删除
+        pass
             
     def clear_content_area(self):
         """清空内容区域"""
