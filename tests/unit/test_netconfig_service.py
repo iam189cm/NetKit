@@ -27,32 +27,32 @@ class TestNetworkInterfaceOperations:
     @pytest.mark.unit
     def test_get_network_interfaces_success(self):
         """测试成功获取网络接口列表"""
-        with mock.patch('subprocess.run') as mock_run:
-            mock_run.return_value.returncode = 0
-            mock_run.return_value.stdout = """
-Admin State    State          Type             Interface Name
--------------------------------------------------------------------------
-已启用         已连接          专用             以太网
-已启用         已连接          专用             Wi-Fi
-已禁用         已断开连接      专用             蓝牙网络连接
-"""
+        with mock.patch('netkit.services.netconfig.interface_manager.get_async_manager') as mock_get_manager:
+            # 模拟异步管理器
+            mock_manager = mock.Mock()
+            mock_get_manager.return_value = mock_manager
+            
+            # 模拟适配器对象
+            mock_adapter1 = mock.Mock()
+            mock_adapter1.connection_id = "以太网"
+            mock_adapter2 = mock.Mock()
+            mock_adapter2.connection_id = "Wi-Fi"
+            
+            mock_manager.get_all_adapters_fast.return_value = [mock_adapter1, mock_adapter2]
             
             interfaces = get_network_interfaces()
             
             assert isinstance(interfaces, list)
             assert "以太网" in interfaces
             assert "Wi-Fi" in interfaces
-            assert "蓝牙网络连接" not in interfaces  # 已禁用的不应该包含
     
     @pytest.mark.unit
     def test_get_network_interfaces_empty(self):
         """测试空接口列表"""
-        with mock.patch('subprocess.run') as mock_run:
-            mock_run.return_value.returncode = 0
-            mock_run.return_value.stdout = """
-Admin State    State          Type             Interface Name
--------------------------------------------------------------------------
-"""
+        with mock.patch('netkit.services.netconfig.interface_manager.get_async_manager') as mock_get_manager:
+            mock_manager = mock.Mock()
+            mock_get_manager.return_value = mock_manager
+            mock_manager.get_all_adapters_fast.return_value = []
             
             interfaces = get_network_interfaces()
             
@@ -61,9 +61,8 @@ Admin State    State          Type             Interface Name
     @pytest.mark.unit
     def test_get_network_interfaces_command_failure(self):
         """测试命令执行失败的情况"""
-        with mock.patch('subprocess.run') as mock_run:
-            mock_run.return_value.returncode = 1
-            mock_run.return_value.stdout = ""
+        with mock.patch('netkit.services.netconfig.interface_manager.get_async_manager') as mock_get_manager:
+            mock_get_manager.side_effect = Exception("获取失败")
             
             interfaces = get_network_interfaces()
             
