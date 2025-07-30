@@ -18,8 +18,8 @@ def test_imports():
     
     try:
         # 测试核心服务导入
-        from netkit.services.ip_switcher import validate_ip_config
-        print("✓ IP切换服务导入成功")
+        from netkit.services.netconfig import validate_ip_config
+        print("✓ 网络配置服务导入成功")
         
         from netkit.services.ping import PingService
         print("✓ Ping服务导入成功")
@@ -50,7 +50,7 @@ def test_ip_validation():
     print("\n=== 测试IP配置验证 ===")
     
     try:
-        from netkit.services.ip_switcher import validate_ip_config
+        from netkit.services.netconfig import validate_ip_config
         
         # 测试有效配置
         result = validate_ip_config("192.168.1.100", "255.255.255.0", "192.168.1.1", "8.8.8.8")
