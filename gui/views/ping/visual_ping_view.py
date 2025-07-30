@@ -50,33 +50,28 @@ class VisualPingView(tb.Frame):
         control_frame = tb.LabelFrame(self, text="扫描设置", padding=ui_helper.get_padding(15))
         control_frame.pack(fill=X, pady=(0, ui_helper.get_padding(15)))
         
-        # IP范围输入
-        input_frame = tb.Frame(control_frame)
-        input_frame.pack(fill=X, pady=(0, ui_helper.get_padding(10)))
+        # 主控制行 - 包含网段输入和按钮
+        main_control_frame = tb.Frame(control_frame)
+        main_control_frame.pack(fill=X, pady=(0, ui_helper.get_padding(10)))
         
-        tb.Label(input_frame, text="网段:").pack(side=LEFT)
+        # 左侧：网段输入区域
+        input_section = tb.Frame(main_control_frame)
+        input_section.pack(side=LEFT, fill=X, expand=True)
         
-        self.network_entry = tb.Entry(input_frame, width=15)
+        tb.Label(input_section, text="网段:").pack(side=LEFT)
+        
+        self.network_entry = tb.Entry(input_section, width=15)
         self.network_entry.pack(side=LEFT, padx=(ui_helper.get_padding(10), 0))
         self.network_entry.insert(0, self.network_prefix)
         
-        tb.Label(input_frame, text="/24", bootstyle=SECONDARY).pack(side=LEFT, padx=(ui_helper.get_padding(5), 0))
+        tb.Label(input_section, text="/24", bootstyle=SECONDARY).pack(side=LEFT, padx=(ui_helper.get_padding(5), 0))
         
-        # 参数说明
-        param_label = tb.Label(
-            input_frame, 
-            text="(超时: 1000ms, 并发: 25个)",
-            font=('微软雅黑', ui_helper.scale_size(8)),
-            bootstyle=SECONDARY
-        )
-        param_label.pack(side=LEFT, padx=(ui_helper.get_padding(20), 0))
-        
-        # 控制按钮
-        button_frame = tb.Frame(control_frame)
-        button_frame.pack(fill=X)
+        # 右侧：控制按钮
+        button_section = tb.Frame(main_control_frame)
+        button_section.pack(side=RIGHT)
         
         self.start_btn = tb.Button(
-            button_frame,
+            button_section,
             text="开始扫描",
             bootstyle=SUCCESS,
             width=ui_helper.scale_size(12),
@@ -85,7 +80,7 @@ class VisualPingView(tb.Frame):
         self.start_btn.pack(side=LEFT, padx=(0, ui_helper.get_padding(10)))
         
         self.stop_btn = tb.Button(
-            button_frame,
+            button_section,
             text="停止扫描", 
             bootstyle=DANGER,
             width=ui_helper.scale_size(12),
