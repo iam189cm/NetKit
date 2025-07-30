@@ -76,12 +76,11 @@ class IPDetailWindow:
 class IPContextMenu:
     """IP右键菜单"""
     
-    def __init__(self, parent, ip_address, ip_suffix, event, ping_callback, detail_callback):
+    def __init__(self, parent, ip_address, ip_suffix, event, ping_callback):
         self.parent = parent
         self.ip_address = ip_address
         self.ip_suffix = ip_suffix
         self.ping_callback = ping_callback
-        self.detail_callback = detail_callback
         
         # 创建右键菜单
         self.menu = tk.Menu(parent, tearoff=0)
@@ -98,11 +97,6 @@ class IPContextMenu:
         self.menu.add_command(
             label=f"单独ping {self.ip_address}",
             command=lambda: self.ping_callback(self.ip_suffix)
-        )
-        self.menu.add_separator()
-        self.menu.add_command(
-            label="查看详细信息",
-            command=lambda: self.detail_callback(self.ip_suffix)
         )
 
 

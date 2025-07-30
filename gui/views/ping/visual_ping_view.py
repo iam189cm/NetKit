@@ -30,7 +30,7 @@ class VisualPingView(tb.Frame):
         # 标题
         title = tb.Label(
             self, 
-            text="网络扫描 - 可视化Ping测试",
+            text="Ping测试",
             font=('微软雅黑', ui_helper.scale_size(16), 'bold'),
             bootstyle=SUCCESS
         )
@@ -96,17 +96,87 @@ class VisualPingView(tb.Frame):
     
     def setup_grid_area(self):
         """设置方格显示区域"""
-        grid_frame = tb.LabelFrame(self, text="网络状态 (16x16)", padding=ui_helper.get_padding(10))
+        grid_frame = tb.LabelFrame(self, text="网络状态", padding=ui_helper.get_padding(10))
         grid_frame.pack(fill=BOTH, expand=True, pady=(0, ui_helper.get_padding(15)))
         
         # 创建网格容器
         self.grid_container = tb.Frame(grid_frame)
         self.grid_container.pack(fill=BOTH, expand=True)
         
-        # 计算方格大小
-        cell_size = ui_helper.scale_size(25)
+        # 初始化网格，延迟到窗口显示后再创建
+        self.grid_cells = {}
+        self.grid_frame = grid_frame
         
-        # 创建16x16网格
+        # 绑定容器大小变化事件
+        self.grid_container.bind('<Configure>', self.on_grid_container_configure)
+        
+        # 为网格容器添加回调方法
+        self.grid_container.ping_single_ip = self.ping_single_ip
+        self.grid_container.show_context_menu = self.show_context_menu
+        
+        # 延迟创建网格（确保容器已经有实际尺寸）
+        self.after(100, self.create_adaptive_grid)
+    
+    def on_grid_container_configure(self, event):
+        """处理网格容器大小变化事件"""
+        # 只响应网格容器本身的配置事件，避免子控件事件干扰
+        if event.widget == self.grid_container:
+            # 延迟调整，避免频繁触发
+            if hasattr(self, '_resize_job'):
+                self.after_cancel(self._resize_job)
+            self._resize_job = self.after(50, self.create_adaptive_grid)
+    
+    def calculate_adaptive_cell_size(self):
+        """计算自适应的方格大小"""
+        try:
+            # 获取容器的实际尺寸
+            container_width = self.grid_container.winfo_width()
+            container_height = self.grid_container.winfo_height()
+            
+            # 如果容器还没有实际尺寸，使用默认值
+            if container_width <= 1 or container_height <= 1:
+                return ui_helper.scale_size(25)
+            
+            # 计算可用空间（减去内边距和间距）
+            padding = ui_helper.get_padding(10) * 2  # 左右内边距
+            available_width = container_width - padding
+            available_height = container_height - padding
+            
+            # 16x16网格，每个方格之间有1px间距
+            grid_spacing = 15 * 2  # 15个间距，每个2px（padx=1, pady=1）
+            
+            # 计算单个方格的最大尺寸
+            max_cell_width = (available_width - grid_spacing) // 16
+            max_cell_height = (available_height - grid_spacing) // 16
+            
+            # 取较小值确保方格是正方形，并设置最小和最大限制
+            cell_size = min(max_cell_width, max_cell_height)
+            cell_size = max(ui_helper.scale_size(44), cell_size)  # 最小44px
+            cell_size = min(ui_helper.scale_size(44), cell_size)  # 最大44px
+            
+            return int(cell_size)
+        except:
+            # 出错时返回默认大小
+            return ui_helper.scale_size(25)
+    
+    def create_adaptive_grid(self):
+        """创建自适应大小的网格"""
+        # 计算自适应方格大小
+        cell_size = self.calculate_adaptive_cell_size()
+        
+        # 如果网格已存在，只调整大小而不重建
+        if self.grid_cells:
+            # 智能优化：只有大小真正改变时才调整
+            if hasattr(self, '_last_cell_size') and self._last_cell_size == cell_size:
+                return  # 大小未变，跳过调整
+            
+            # 优化：只调整现有控件的大小，保持状态
+            for cell in self.grid_cells.values():
+                cell.resize(cell_size)
+            self._last_cell_size = cell_size
+            return
+        
+        # 首次创建：创建16x16网格
         for row in range(16):
             for col in range(16):
                 ip_suffix = row * 16 + col + 1
@@ -120,10 +190,22 @@ class VisualPingView(tb.Frame):
                 
                 self.grid_cells[ip_suffix] = cell
         
-        # 为网格容器添加回调方法
-        self.grid_container.show_ip_details = self.show_ip_details
-        self.grid_container.ping_single_ip = self.ping_single_ip
-        self.grid_container.show_context_menu = self.show_context_menu
+        # 记录当前方格大小
+        self._last_cell_size = cell_size
+    
+    def force_rebuild_grid(self):
+        """强制重建网格（用于异常情况）"""
+        # 清除现有网格
+        for cell in self.grid_cells.values():
+            cell.destroy()
+        self.grid_cells.clear()
+        
+        # 清除缓存的大小
+        if hasattr(self, '_last_cell_size'):
+            delattr(self, '_last_cell_size')
+        
+        # 重新创建
+        self.create_adaptive_grid()
     
     def setup_stats_panel(self):
         """设置统计面板"""
@@ -256,41 +338,24 @@ class VisualPingView(tb.Frame):
         
         # 更新状态
         self.status_label.config(text="扫描完成", bootstyle=SUCCESS)
-        
-        # 显示完成对话框
-        ScanResultDialog.show_scan_completed(self, self.network_prefix, stats)
     
     # 方格交互回调方法
-    def show_ip_details(self, ip_suffix, event):
-        """显示IP详细信息弹窗"""
-        if ip_suffix not in self.grid_cells:
-            return
-            
-        cell = self.grid_cells[ip_suffix]
-        ip_address = f"{self.network_prefix}.{ip_suffix}"
-        
-        # 创建详细信息弹窗
-        IPDetailWindow(self, ip_address, cell, event)
     
     def ping_single_ip(self, ip_suffix):
         """单独ping某个IP"""
         ip_address = f"{self.network_prefix}.{ip_suffix}"
         
-        # 显示正在ping的提示
-        ScanResultDialog.show_ping_in_progress(self, ip_address)
-        
-        # 执行ping
+        # 直接执行ping，不显示提示窗口
         self.scan_controller.ping_single_ip(self.network_prefix, ip_suffix)
     
     def show_context_menu(self, ip_suffix, event):
-        """显示右键菜单"""
+        """显示右键菜单（只有单独ping功能）"""
         ip_address = f"{self.network_prefix}.{ip_suffix}"
         
-        # 创建右键菜单
+        # 创建简化的右键菜单
         IPContextMenu(
             self, ip_address, ip_suffix, event,
-            self.ping_single_ip, 
-            lambda suffix: self.show_ip_details(suffix, event)
+            self.ping_single_ip
         )
     
     # UI组件回调方法
