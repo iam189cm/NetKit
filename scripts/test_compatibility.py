@@ -41,21 +41,71 @@ def test_wmi_compatibility():
     """测试WMI功能兼容性"""
     print("\n🔍 WMI兼容性测试")
     try:
-        from netkit.services.netconfig.wmi_engine import WMIQueryEngine
-        wmi_engine = WMIQueryEngine()
+        import wmi
+        import pythoncom
         
-        # 测试网络适配器查询
-        print("测试网络适配器查询...")
-        adapters = wmi_engine.get_network_adapters()
-        print(f"✅ 找到 {len(adapters)} 个网络适配器")
+        # 详细的WMI测试
+        pythoncom.CoInitialize()
+        c = wmi.WMI()
         
-        # 测试网络配置查询
-        print("测试网络配置查询...")
-        configs = wmi_engine.get_network_adapter_configurations()
-        print(f"✅ 找到 {len(configs)} 个网络配置")
+        print("1. 测试原始WMI适配器查询...")
+        all_adapters = list(c.Win32_NetworkAdapter())
+        print(f"   发现 {len(all_adapters)} 个网络适配器")
+        
+        # 检查有NetConnectionID的适配器
+        named_adapters = [a for a in all_adapters if a.NetConnectionID]
+        print(f"   其中 {len(named_adapters)} 个有连接名称")
+        
+        if named_adapters:
+            print("   前几个适配器:")
+            for adapter in named_adapters[:3]:
+                print(f"     - {adapter.NetConnectionID}: {adapter.Description}")
+        
+        # 测试适配器配置
+        print("2. 测试适配器配置查询...")
+        configs = list(c.Win32_NetworkAdapterConfiguration())
+        ip_enabled_configs = [cfg for cfg in configs if cfg.IPEnabled]
+        print(f"   发现 {len(configs)} 个配置，{len(ip_enabled_configs)} 个启用IP")
+        
+        # 测试SetGateways方法兼容性
+        print("3. 测试WMI方法兼容性...")
+        if ip_enabled_configs:
+            test_config = ip_enabled_configs[0]
+            print(f"   测试配置: {test_config.Description}")
+            
+            # 检查SetGateways方法
+            try:
+                method = getattr(test_config, 'SetGateways', None)
+                if method:
+                    print("   ✅ SetGateways方法存在")
+                    # 注意：不实际调用，只检查存在性
+                else:
+                    print("   ❌ SetGateways方法不存在")
+            except Exception as method_error:
+                print(f"   ⚠️ 方法检查失败: {method_error}")
+        
+        # 现在测试NetKit的WMI引擎
+        print("4. 测试NetKit WMI引擎...")
+        from netkit.services.netconfig.wmi_engine import get_wmi_engine
+        wmi_engine = get_wmi_engine()
+        
+        adapters_info = wmi_engine.get_all_adapters_info(show_all=True)
+        print(f"   NetKit引擎找到 {len(adapters_info)} 个适配器")
+        
+        # 检查物理适配器过滤
+        physical_adapters = wmi_engine.get_all_adapters_info(show_all=False)
+        print(f"   其中 {len(physical_adapters)} 个被识别为物理适配器")
+        
+        pythoncom.CoUninitialize()
         
     except Exception as e:
         print(f"❌ WMI测试失败: {e}")
+        import traceback
+        traceback.print_exc()
+        try:
+            pythoncom.CoUninitialize()
+        except:
+            pass
 
 def test_network_interfaces():
     """测试网络接口管理"""
@@ -63,14 +113,38 @@ def test_network_interfaces():
     try:
         from netkit.services.netconfig.interface_manager import get_network_interfaces
         
-        interfaces = get_network_interfaces()
-        print(f"✅ 找到 {len(interfaces)} 个网络接口")
+        # 测试show_all=False (默认，只显示物理接口)
+        interfaces = get_network_interfaces(show_all=False)
+        print(f"物理接口: {len(interfaces)} 个")
         
-        for i, interface in enumerate(interfaces[:3]):  # 只显示前3个
-            print(f"  {i+1}. {interface}")
+        # 测试show_all=True (显示所有接口)
+        all_interfaces = get_network_interfaces(show_all=True)
+        print(f"所有接口: {len(all_interfaces)} 个")
+        
+        if interfaces:
+            print("物理接口列表:")
+            for i, interface in enumerate(interfaces[:5]):
+                print(f"  {i+1}. {interface}")
+        else:
+            print("⚠️ 没有找到物理网络接口")
+            print("这可能表明适配器过滤逻辑在当前环境中过于严格")
+            
+        if all_interfaces:
+            print("所有接口列表 (前5个):")
+            for i, interface in enumerate(all_interfaces[:5]):
+                print(f"  {i+1}. {interface}")
+                
+        # 检查环境特定问题
+        is_server = "Server" in platform.version()
+        if is_server and len(interfaces) == 0:
+            print("🚨 Server环境兼容性问题检测:")
+            print("   - 物理适配器过滤可能过于严格")
+            print("   - 建议在集成测试中使用show_all=True")
             
     except Exception as e:
         print(f"❌ 网络接口测试失败: {e}")
+        import traceback
+        traceback.print_exc()
 
 def test_gui_components():
     """测试GUI组件兼容性"""
