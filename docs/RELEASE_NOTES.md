@@ -79,7 +79,7 @@
 
 #### 构建系统优化
 - **单文件打包**: 使用PyInstaller生成单个exe文件
-- **统一构建脚本**: `build_single.bat`一键构建
+- **统一构建脚本**: `scripts/build.bat`一键构建
 - **自动化流程**: 自动复制到发布目录
 - **依赖管理**: 规范的requirements.txt
 

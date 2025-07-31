@@ -37,6 +37,11 @@ def setup_test_environment():
     """设置测试环境"""
     print("🔧 设置测试环境...")
     
+    # 切换到项目根目录（测试脚本在tests子目录中）
+    script_dir = Path(__file__).parent
+    project_root = script_dir.parent
+    os.chdir(project_root)
+    
     # 创建必要的目录
     os.makedirs("reports", exist_ok=True)
     os.makedirs("htmlcov", exist_ok=True)
@@ -232,13 +237,13 @@ def main():
     
     args = parser.parse_args()
     
-    # 检查是否在项目根目录
-    if not Path("start_netkit.py").exists():
-        print("❌ 请在项目根目录运行此脚本")
-        sys.exit(1)
-    
-    # 设置测试环境
+    # 设置测试环境（包含切换到项目根目录）
     setup_test_environment()
+    
+    # 检查是否在项目根目录（更新检查方式）
+    if not Path("scripts/start.py").exists():
+        print("❌ 无法找到项目启动脚本，请确保在正确的项目目录中运行")
+        sys.exit(1)
     
     # 仅生成覆盖率报告
     if args.coverage_only:
@@ -276,4 +281,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main() 
+    main()

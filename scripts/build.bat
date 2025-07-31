@@ -3,6 +3,9 @@ echo ================================
 echo 正在构建 NetKit 单文件版本...
 echo ================================
 
+REM 切换到项目根目录（脚本文件在scripts子目录中）
+cd /d "%~dp0.."
+
 python scripts/build.py
 
 if exist "dist\NetKit.exe" (
@@ -10,7 +13,6 @@ if exist "dist\NetKit.exe" (
     echo ================================
     echo 构建成功！
     echo 可执行文件位置: dist\NetKit.exe
-    echo 发布文件位置: releases\NetKit.exe
     echo ================================
     
     echo.
@@ -18,7 +20,7 @@ if exist "dist\NetKit.exe" (
     set /p choice=
     if /i "%choice%"=="Y" (
         echo 正在启动程序进行测试...
-        start "" "releases\NetKit.exe"
+        start "" "dist\NetKit.exe"
     )
 ) else (
     echo.
@@ -29,4 +31,4 @@ if exist "dist\NetKit.exe" (
 
 echo.
 echo 构建完成，按任意键退出...
-pause > nul 
+pause > nul

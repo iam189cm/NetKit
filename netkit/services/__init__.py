@@ -8,7 +8,7 @@ NetKit Services - 网络服务模块
 try:
     from . import netconfig
     from . import ping
-    from . import route
+    from .route import route
 except ImportError:
     # 在某些测试环境中可能无法导入所有模块
     pass

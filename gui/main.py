@@ -10,7 +10,7 @@ from netkit.utils.network_monitor import start_network_monitoring, stop_network_
 from netkit.utils.ui_helper import ui_helper
 from gui.views.netconfig.netconfig_view import NetConfigView
 from gui.views.ping import VisualPingView
-from gui.views.route_view import RouteFrame
+from gui.views.route.route_view import RouteFrame
 from datetime import datetime
 
 

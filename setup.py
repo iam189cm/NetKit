@@ -62,7 +62,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "netkit=start_netkit:main",
+            "netkit=scripts.start:main",
         ],
     },
     include_package_data=True,

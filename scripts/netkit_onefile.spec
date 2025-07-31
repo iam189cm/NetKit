@@ -10,7 +10,7 @@ block_cipher = None
 
 # 分析主程序
 a = Analysis(
-    [os.path.join(root_dir, 'start_netkit.py')],  # 使用绝对路径
+    [os.path.join(root_dir, 'scripts', 'start.py')],  # 使用绝对路径
     pathex=[root_dir],
     binaries=[],
     datas=[
@@ -74,20 +74,18 @@ a = Analysis(
         'gui',
         'gui.main',
         'gui.views',
-        'gui.views.ip_switcher_view',
-        'gui.views.ping_view',
-        'gui.views.subnet_view',
-        'gui.views.traceroute_view',
-        'gui.views.route_view',
+        'gui.views.netconfig',
+        'gui.views.ping',
+        'gui.views.route.route_view',
         'netkit',
         'netkit.services',
-        'netkit.services.ip_switcher',
+        'netkit.services.netconfig',
         'netkit.services.ping',
-        'netkit.services.subnet',
-        'netkit.services.traceroute',
         'netkit.services.route',
         'netkit.utils',
         'netkit.utils.admin_check',
+        'netkit.utils.network_monitor',
+        'netkit.utils.ui_helper',
     ],
     hookspath=[],
     hooksconfig={},

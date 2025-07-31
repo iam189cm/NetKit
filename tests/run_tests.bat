@@ -12,12 +12,8 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM 检查是否在项目根目录
-if not exist "start_netkit.py" (
-    echo 错误: 请在项目根目录运行此脚本
-    pause
-    exit /b 1
-)
+REM 切换到项目根目录（脚本文件在tests子目录中）
+cd /d "%~dp0.."
 
 REM 显示菜单
 echo.
@@ -37,28 +33,28 @@ set /p choice=请输入选择 (1-9):
 
 if "%choice%"=="1" (
     echo 运行单元测试...
-    python scripts/run_tests.py --type unit --verbose
+    python tests/run_tests.py --type unit --verbose
 ) else if "%choice%"=="2" (
     echo 运行集成测试...
-    python scripts/run_tests.py --type integration --verbose
+    python tests/run_tests.py --type integration --verbose
 ) else if "%choice%"=="3" (
     echo 运行GUI测试...
-    python scripts/run_tests.py --type gui --verbose
+    python tests/run_tests.py --type gui --verbose
 ) else if "%choice%"=="4" (
     echo 运行性能测试...
-    python scripts/run_tests.py --type performance --verbose
+    python tests/run_tests.py --type performance --verbose
 ) else if "%choice%"=="5" (
     echo 运行压力测试...
-    python scripts/run_tests.py --type stress --verbose
+    python tests/run_tests.py --type stress --verbose
 ) else if "%choice%"=="6" (
     echo 运行所有测试（包含慢速测试）...
-    python scripts/run_tests.py --type all --verbose --include-slow
+    python tests/run_tests.py --type all --verbose --include-slow
 ) else if "%choice%"=="7" (
     echo 运行快速测试...
-    python scripts/run_tests.py --type all --verbose
+    python tests/run_tests.py --type all --verbose
 ) else if "%choice%"=="8" (
     echo 生成覆盖率报告...
-    python scripts/run_tests.py --coverage-only
+    python tests/run_tests.py --coverage-only
 ) else if "%choice%"=="9" (
     echo 退出
     exit /b 0
@@ -78,4 +74,4 @@ echo   HTML报告: reports\
 echo   覆盖率报告: htmlcov\index.html
 echo.
 
-pause 
+pause

@@ -8,11 +8,12 @@ echo    Netkit 网络工程师工具箱
 echo ==========================================
 echo.
 
-cd /d "%~dp0"
+REM 切换到项目根目录（脚本文件在scripts子目录中）
+cd /d "%~dp0.."
 
 echo 正在启动程序...
-python start_netkit.py
+python scripts/start.py
 
 echo.
 echo 程序已退出，按任意键关闭窗口...
-pause > nul 
+pause > nul

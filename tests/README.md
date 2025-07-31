@@ -60,7 +60,10 @@
 
 ```bash
 # Windows
-run_tests.bat
+tests\run_tests.bat
+
+# 或使用Python脚本
+python tests/run_tests.py
 ```
 
 选择相应的测试类型：
@@ -77,16 +80,16 @@ run_tests.bat
 
 ```bash
 # 运行所有测试
-python scripts/run_tests.py --type all --verbose
+python tests/run_tests.py --type all --verbose
 
 # 运行单元测试
-python scripts/run_tests.py --type unit --verbose
+python tests/run_tests.py --type unit --verbose
 
 # 运行性能测试（包含慢速测试）
-python scripts/run_tests.py --type performance --verbose --include-slow
+python tests/run_tests.py --type performance --verbose --include-slow
 
 # 仅生成覆盖率报告
-python scripts/run_tests.py --coverage-only
+python tests/run_tests.py --coverage-only
 ```
 
 ### 方法3: 直接使用pytest

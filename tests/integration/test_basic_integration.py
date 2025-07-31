@@ -125,7 +125,7 @@ class TestModuleImportIntegration:
             # 测试各个服务模块
             from netkit.services.ping.ping_service import PingService
 
-            from netkit.services.route import RouteService
+            from netkit.services.route.route import RouteService
             
             # 验证类可实例化
             ping_service = PingService()

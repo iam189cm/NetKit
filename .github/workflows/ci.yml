@@ -58,6 +58,19 @@ jobs:
       run: |
         pytest tests/performance/ -v --tb=short -m "performance and not slow" --html=reports/performance_report.html --self-contained-html
         
+    - name: Environment compatibility warning
+      run: |
+        Write-Host "⚠️  测试环境与用户环境差异提醒 ⚠️" -ForegroundColor Yellow
+        Write-Host "当前测试环境: Windows Server 2022" -ForegroundColor Cyan
+        Write-Host "用户实际环境: Windows 10/11 桌面版" -ForegroundColor Cyan
+        Write-Host "可能的差异: WMI查询结果、网络接口、GUI字体等" -ForegroundColor Yellow
+        Write-Host "建议: 在实际环境中进行最终测试验证" -ForegroundColor Green
+      shell: powershell
+      
+    - name: Run compatibility tests
+      run: |
+        python scripts/test_compatibility.py
+        
     - name: Check test coverage
       run: |
         coverage report --fail-under=85

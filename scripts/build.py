@@ -162,8 +162,8 @@ def main():
     print("=" * 50)
     
     # 检查是否在正确的目录
-    if not Path('start_netkit.py').exists():
-        print("Error: start_netkit.py not found! Please run from project root.")
+    if not Path('scripts/start.py').exists():
+        print("Error: scripts/start.py not found! Please run from project root.")
         return False
     
     # 构建步骤
