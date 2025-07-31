@@ -1,12 +1,14 @@
 """
 可视化Ping测试主界面
 
-采用16x16方格布局，直观显示网段内所有IP的ping状态
+采用智能动态布局，根据窗口大小自动调整行列数，直观显示网段内所有IP的ping状态
 设计简洁，交互友好，适合快速网络扫描
 """
 
+import math
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from ttkbootstrap.scrolled import ScrolledFrame
 from netkit.utils.ui_helper import ui_helper
 from .grid_cell import IPGridCell
 from .scan_controller import ScanController
@@ -23,23 +25,19 @@ class VisualPingView(tb.Frame):
         self.grid_cells = {}  # IP后缀 -> IPGridCell
         self.scan_controller = ScanController(self)
         
+        # 布局缓存和性能优化
+        self.layout_cache = {}  # 容器尺寸 -> 布局参数
+        self.last_layout = None  # 上次使用的布局
+        self._last_cell_size = None
+        
         self.setup_ui()
         
     def setup_ui(self):
-        """设置界面"""
-        # 标题
-        title = tb.Label(
-            self, 
-            text="Ping测试",
-            font=('微软雅黑', ui_helper.scale_size(16), 'bold'),
-            bootstyle=SUCCESS
-        )
-        title.pack(pady=(0, ui_helper.get_padding(15)))
-        
+        """设置界面"""        
         # 上部分 - 设置区域
         self.setup_control_panel()
         
-        # 中部分 - 16x16方格显示区域
+        # 中部分 - 智能动态方格显示区域
         self.setup_grid_area()
         
         # 下部分 - 统计信息
@@ -94,16 +92,19 @@ class VisualPingView(tb.Frame):
         grid_frame = tb.LabelFrame(self, text="网络状态", padding=ui_helper.get_padding(10))
         grid_frame.pack(fill=BOTH, expand=True, pady=(0, ui_helper.get_padding(15)))
         
-        # 创建网格容器
-        self.grid_container = tb.Frame(grid_frame)
-        self.grid_container.pack(fill=BOTH, expand=True)
+        # 创建滚动框架容器
+        self.scrolled_frame = ScrolledFrame(grid_frame, autohide=True)
+        self.scrolled_frame.pack(fill=BOTH, expand=True)
+        
+        # 获取滚动框架内的实际容器
+        self.grid_container = self.scrolled_frame
         
         # 初始化网格，延迟到窗口显示后再创建
         self.grid_cells = {}
         self.grid_frame = grid_frame
         
-        # 绑定容器大小变化事件
-        self.grid_container.bind('<Configure>', self.on_grid_container_configure)
+        # 绑定容器大小变化事件（绑定到外层容器）
+        grid_frame.bind('<Configure>', self.on_grid_container_configure)
         
         # 为网格容器添加回调方法
         self.grid_container.ping_single_ip = self.ping_single_ip
@@ -113,80 +114,157 @@ class VisualPingView(tb.Frame):
         self.after(100, self.create_adaptive_grid)
     
     def on_grid_container_configure(self, event):
-        """处理网格容器大小变化事件"""
-        # 只响应网格容器本身的配置事件，避免子控件事件干扰
-        if event.widget == self.grid_container:
+        """响应容器大小变化"""
+        # 只响应外层框架的配置事件，避免子控件事件干扰
+        if event.widget == self.grid_frame:
+            # 扫描期间阻止网格重建
+            if hasattr(self, 'scan_controller') and self.scan_controller.is_scanning:
+                return
+                
             # 延迟调整，避免频繁触发
             if hasattr(self, '_resize_job'):
                 self.after_cancel(self._resize_job)
             self._resize_job = self.after(50, self.create_adaptive_grid)
     
     def calculate_adaptive_cell_size(self):
-        """计算自适应的方格大小"""
-        try:
-            # 获取容器的实际尺寸
-            container_width = self.grid_container.winfo_width()
-            container_height = self.grid_container.winfo_height()
-            
-            # 如果容器还没有实际尺寸，使用默认值
-            if container_width <= 1 or container_height <= 1:
-                return ui_helper.scale_size(25)
-            
-            # 计算可用空间（减去内边距和间距）
-            padding = ui_helper.get_padding(10) * 2  # 左右内边距
-            available_width = container_width - padding
-            available_height = container_height - padding
-            
-            # 16x16网格，每个方格之间有1px间距
-            grid_spacing = 15 * 2  # 15个间距，每个2px（padx=1, pady=1）
-            
-            # 计算单个方格的最大尺寸
-            max_cell_width = (available_width - grid_spacing) // 16
-            max_cell_height = (available_height - grid_spacing) // 16
-            
-            # 取较小值确保方格是正方形，并设置最小和最大限制
-            cell_size = min(max_cell_width, max_cell_height)
-            cell_size = max(ui_helper.scale_size(44), cell_size)  # 最小44px
-            cell_size = min(ui_helper.scale_size(44), cell_size)  # 最大44px
-            
-            return int(cell_size)
-        except:
-            # 出错时返回默认大小
-            return ui_helper.scale_size(25)
+        """固定返回44px的方格大小（适配DPI）"""
+        return ui_helper.scale_size(44)
+    
+    def calculate_optimal_grid_layout(self, container_width, container_height):
+        """计算最优的网格布局"""
+        # 使用缓存避免重复计算
+        cache_key = f"{container_width}x{container_height}"
+        if cache_key in self.layout_cache:
+            return self.layout_cache[cache_key]
+        
+        cell_size = ui_helper.scale_size(44)  # 固定44px方格
+        spacing = 2  # padx=1, pady=1，总间距2px
+        padding = ui_helper.get_padding(10) * 2  # 左右内边距
+        total_ips = 254
+        
+        # 计算可用空间
+        available_width = max(0, container_width - padding)
+        available_height = max(0, container_height - padding)
+        
+        # 计算理想列数（12-30列限制）
+        if available_width <= 0:
+            cols = 12  # 最小列数
+        else:
+            ideal_cols = (available_width + spacing) // (cell_size + spacing)
+            cols = max(12, min(30, ideal_cols))
+        
+        # 计算所需行数
+        rows = math.ceil(total_ips / cols)
+        
+        # 计算网格总高度
+        total_height = rows * cell_size + (rows - 1) * spacing
+        
+        layout = {
+            'cols': cols,
+            'rows': rows, 
+            'cell_size': cell_size,
+            'total_height': total_height,
+            'available_width': available_width,
+            'available_height': available_height
+        }
+        
+        # 缓存结果
+        self.layout_cache[cache_key] = layout
+        return layout
     
     def create_adaptive_grid(self):
-        """创建自适应大小的网格"""
-        # 计算自适应方格大小
-        cell_size = self.calculate_adaptive_cell_size()
-        
-        # 如果网格已存在，只调整大小而不重建
-        if self.grid_cells:
-            # 智能优化：只有大小真正改变时才调整
-            if hasattr(self, '_last_cell_size') and self._last_cell_size == cell_size:
-                return  # 大小未变，跳过调整
+        """创建智能动态布局的网格"""
+        print(f"DEBUG: create_adaptive_grid被调用，当前网格数量：{len(self.grid_cells)}")
+        try:
+            # 获取容器的实际尺寸
+            container_width = self.grid_frame.winfo_width()
+            container_height = self.grid_frame.winfo_height()
+            print(f"DEBUG: 容器尺寸 {container_width}x{container_height}")
             
-            # 优化：只调整现有控件的大小，保持状态
-            for cell in self.grid_cells.values():
-                cell.resize(cell_size)
-            self._last_cell_size = cell_size
-            return
-        
-        # 首次创建：创建16x16网格
-        for row in range(16):
-            for col in range(16):
-                ip_suffix = row * 16 + col + 1
+            # 如果容器还没有实际尺寸，延迟执行
+            if container_width <= 1 or container_height <= 1:
+                self.after(50, self.create_adaptive_grid)
+                return
+            
+            # 扫描保护机制：如果正在扫描，不允许重建网格
+            if hasattr(self, 'scan_controller') and self.scan_controller and self.scan_controller.is_scanning:
+                print("DEBUG: 扫描正在进行，跳过网格重建")
+                return
                 
-                # 跳过大于254的IP
-                if ip_suffix > 254:
-                    continue
-                    
-                cell = IPGridCell(self.grid_container, ip_suffix, size=cell_size)
-                cell.grid(row=row, column=col, padx=1, pady=1)
-                
-                self.grid_cells[ip_suffix] = cell
+            # 时间戳保护机制
+            import time
+            current_time = time.time()
+            protection_timestamp = getattr(self, '_grid_protection_timestamp', 0)
+            if current_time - protection_timestamp < 5.0:  # 5秒保护期
+                print(f"DEBUG: 保护期内({current_time - protection_timestamp:.1f}s)，跳过网格重建")
+                return
+            
+            # 计算最优布局
+            layout = self.calculate_optimal_grid_layout(container_width, container_height)
+            
+            # 性能优化：检查布局是否真正改变
+            if (self.last_layout and 
+                self.last_layout['cols'] == layout['cols'] and 
+                self.last_layout['rows'] == layout['rows'] and
+                self.grid_cells):
+                print("DEBUG: 布局未变，跳过重建")
+                return  # 布局未变，跳过重建
+            
+            # 如果有现有网格且只是重新排列，智能调整
+            if (self.grid_cells and self.last_layout and 
+                len(self.grid_cells) == 254):  # 现有cell数量正确
+                self._rearrange_existing_grid(layout)
+            else:
+                self._create_new_grid(layout)
+            
+            # ScrolledFrame会自动管理滚动区域，无需手动设置scrollregion
+            
+            # 记录当前布局
+            self.last_layout = layout
+            
+        except Exception as e:
+            # 异常情况下强制重建
+            print(f"DEBUG: 网格创建异常: {e}")
+            self.force_rebuild_grid()
+    
+    def _rearrange_existing_grid(self, layout):
+        """重新排列现有网格cell的位置"""
+        cols = layout['cols']
+        cell_size = layout['cell_size']
         
-        # 记录当前方格大小
-        self._last_cell_size = cell_size
+        # 重新排列所有cell
+        for ip_suffix, cell in self.grid_cells.items():
+            row = (ip_suffix - 1) // cols
+            col = (ip_suffix - 1) % cols
+            
+            # 更新方格大小和位置
+            cell.configure(width=cell_size, height=cell_size)
+            cell.grid(row=row, column=col, padx=1, pady=1)
+    
+    def _create_new_grid(self, layout):
+        """创建全新的网格"""
+        print("DEBUG: ===== 开始销毁现有网格 =====")
+        # 清除现有网格
+        for cell in self.grid_cells.values():
+            cell.destroy()
+        self.grid_cells.clear()
+        print("DEBUG: ===== 网格销毁完成 =====")
+        
+        cols = layout['cols']
+        rows = layout['rows']
+        cell_size = layout['cell_size']
+        
+        # 创建新网格：动态行列数
+        for ip_suffix in range(1, 255):  # IP 1-254
+            row = (ip_suffix - 1) // cols
+            col = (ip_suffix - 1) % cols
+            
+            cell = IPGridCell(self.grid_container, ip_suffix, size=cell_size)
+            cell.grid(row=row, column=col, padx=1, pady=1)
+            
+            self.grid_cells[ip_suffix] = cell
+        
+        print("DEBUG: 网格创建完成")
     
     def force_rebuild_grid(self):
         """强制重建网格（用于异常情况）"""
@@ -195,7 +273,9 @@ class VisualPingView(tb.Frame):
             cell.destroy()
         self.grid_cells.clear()
         
-        # 清除缓存的大小
+        # 清除缓存
+        self.layout_cache.clear()
+        self.last_layout = None
         if hasattr(self, '_last_cell_size'):
             delattr(self, '_last_cell_size')
         
@@ -226,14 +306,7 @@ class VisualPingView(tb.Frame):
         self.total_label = tb.Label(stats_grid, text="254", bootstyle=INFO, font=('微软雅黑', ui_helper.scale_size(12), 'bold'))
         self.total_label.grid(row=0, column=5, sticky=W)
         
-        # 扫描状态
-        self.status_label = tb.Label(
-            stats_frame, 
-            text="就绪", 
-            bootstyle=SECONDARY,
-            font=('微软雅黑', ui_helper.scale_size(10))
-        )
-        self.status_label.pack(pady=(ui_helper.get_padding(10), 0))
+
     
     def start_scan(self):
         """开始扫描"""
@@ -251,8 +324,7 @@ class VisualPingView(tb.Frame):
         # 重置方格状态
         self.reset_grid_state()
         
-        # 更新状态
-        self.status_label.config(text="正在扫描...", bootstyle=WARNING)
+
         
         # 启动扫描
         self.scan_controller.start_scan(network_prefix)
@@ -270,8 +342,7 @@ class VisualPingView(tb.Frame):
         for cell in self.grid_cells.values():
             cell.stop_blinking()
         
-        # 更新状态
-        self.status_label.config(text="扫描已停止", bootstyle=SECONDARY)
+
     
     def validate_network_input(self, network_prefix):
         """验证网络输入"""
@@ -331,8 +402,11 @@ class VisualPingView(tb.Frame):
         self.start_btn.config(state=NORMAL)
         self.stop_btn.config(state=DISABLED)
         
-        # 更新状态
-        self.status_label.config(text="扫描完成", bootstyle=SUCCESS)
+        # 清理缓存保护时间戳，允许正常清理
+        if hasattr(self, '_from_cache_timestamp'):
+            delattr(self, '_from_cache_timestamp')
+        
+
     
     # 方格交互回调方法
     
@@ -360,4 +434,16 @@ class VisualPingView(tb.Frame):
     
     def show_error(self, message):
         """显示错误信息"""
-        ScanResultDialog.show_error(self, message) 
+        ScanResultDialog.show_error(self, message)
+    
+    def cleanup(self):
+        """清理资源，停止正在进行的扫描"""
+        if self.scan_controller:
+            self.scan_controller.stop_scan()
+        
+        # 停止所有闪烁效果
+        for cell in self.grid_cells.values():
+            try:
+                cell.stop_blinking()
+            except:
+                pass  # 忽略已销毁的控件错误 

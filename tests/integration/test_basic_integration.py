@@ -124,19 +124,12 @@ class TestModuleImportIntegration:
         try:
             # 测试各个服务模块
             from netkit.services.ping.ping_service import PingService
-            from netkit.services.subnet import SubnetCalculator
-            from netkit.services.traceroute import TracerouteService
+
             from netkit.services.route import RouteService
             
             # 验证类可实例化
             ping_service = PingService()
             assert ping_service is not None
-            
-            subnet_calc = SubnetCalculator()
-            assert subnet_calc is not None
-            
-            traceroute_service = TracerouteService()
-            assert traceroute_service is not None
             
             route_service = RouteService()
             assert route_service is not None

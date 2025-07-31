@@ -10,8 +10,6 @@ from netkit.utils.network_monitor import start_network_monitoring, stop_network_
 from netkit.utils.ui_helper import ui_helper
 from gui.views.netconfig.netconfig_view import NetConfigView
 from gui.views.ping import VisualPingView
-from gui.views.subnet_view import SubnetFrame
-from gui.views.traceroute_view import TracerouteFrame
 from gui.views.route_view import RouteFrame
 from datetime import datetime
 
@@ -37,6 +35,9 @@ class MainWindow:
         # 当前显示的内容框架
         self.current_frame = None
         
+        # 视图实例缓存（防止扫描期间实例被销毁）
+        self.cached_views = {}
+        
         # 状态栏变量已删除
         
         self.setup_ui()
@@ -60,6 +61,16 @@ class MainWindow:
         if hasattr(self, 'current_frame') and self.current_frame:
             if hasattr(self.current_frame, 'cleanup'):
                 self.current_frame.cleanup()
+        
+        # 清理缓存的视图
+        if hasattr(self, 'cached_views'):
+            for view in self.cached_views.values():
+                if hasattr(view, 'cleanup'):
+                    view.cleanup()
+                try:
+                    view.destroy()
+                except:
+                    pass  # 忽略已销毁的控件错误
         
         # 关闭窗口
         self.app.destroy()
@@ -113,8 +124,6 @@ class MainWindow:
         nav_buttons = [
             ("网卡配置", self.show_ip_switcher, PRIMARY, "快速切换网络配置"),
             ("Ping测试", self.show_ping, SUCCESS, "网络连通性测试"),
-            ("子网计算", self.show_subnet, INFO, "子网划分与计算"),
-            ("路由追踪", self.show_traceroute, WARNING, "追踪网络路径"),
             ("静态路由", self.show_route, DANGER, "管理静态路由"),
         ]
         
@@ -181,11 +190,40 @@ class MainWindow:
     def clear_content_area(self):
         """清空内容区域"""
         if self.current_frame:
-            # 如果当前框架有清理方法，先调用清理
-            if hasattr(self.current_frame, 'cleanup'):
-                self.current_frame.cleanup()
-            self.current_frame.destroy()
+            # 检查是否是正在扫描的VisualPingView
+            if self._is_scanning_ping_view():
+                # 隐藏而不是销毁正在扫描的ping实例
+                self.current_frame.pack_forget()
+                self.cached_views['ping'] = self.current_frame
+            else:
+                # 正常清理其他实例
+                if hasattr(self.current_frame, 'cleanup'):
+                    self.current_frame.cleanup()
+                self.current_frame.destroy()
+            
             self.current_frame = None
+            
+    def _is_scanning_ping_view(self):
+        """检查当前是否是正在扫描的VisualPingView"""
+        # 检查是否是VisualPingView实例
+        if not hasattr(self.current_frame, 'scan_controller'):
+            return False
+        
+        # 检查缓存保护时间戳（3秒保护期）
+        if hasattr(self.current_frame, '_from_cache_timestamp'):
+            import time
+            current_time = time.time()
+            time_since_cache = current_time - self.current_frame._from_cache_timestamp
+            if time_since_cache < 3.0:  # 3秒保护期
+                return True
+            
+        # 检查扫描状态
+        try:
+            is_scanning = (hasattr(self.current_frame.scan_controller, 'is_scanning') and 
+                          self.current_frame.scan_controller.is_scanning)
+            return is_scanning
+        except (AttributeError, Exception):
+            return False
             
     def show_ip_switcher(self):
         """显示IP切换功能"""
@@ -217,35 +255,21 @@ class MainWindow:
         self.set_status("正在加载Ping测试功能...")
         
         try:
-            self.current_frame = VisualPingView(self.content_area)
+            # 优先使用缓存的实例
+            if 'ping' in self.cached_views:
+                self.current_frame = self.cached_views['ping']
+                del self.cached_views['ping']  # 从缓存中移除
+                
+                # 标记为从缓存恢复，短时间内保护不被清理
+                import time
+                self.current_frame._from_cache_timestamp = time.time()
+            else:
+                self.current_frame = VisualPingView(self.content_area)
+            
             self.current_frame.pack(fill=BOTH, expand=True)
             self.set_status("Ping测试功能已加载")
         except Exception as e:
             self.set_status(f"加载Ping测试功能失败: {str(e)}")
-        
-    def show_subnet(self):
-        """显示子网计算功能"""
-        self.clear_content_area()
-        self.set_status("正在加载子网计算功能...")
-        
-        try:
-            self.current_frame = SubnetFrame(self.content_area)
-            self.current_frame.pack(fill=BOTH, expand=True)
-            self.set_status("子网计算功能已加载")
-        except Exception as e:
-            self.set_status(f"加载子网计算功能失败: {str(e)}")
-        
-    def show_traceroute(self):
-        """显示路由追踪功能"""
-        self.clear_content_area()
-        self.set_status("正在加载路由追踪功能...")
-        
-        try:
-            self.current_frame = TracerouteFrame(self.content_area)
-            self.current_frame.pack(fill=BOTH, expand=True)
-            self.set_status("路由追踪功能已加载")
-        except Exception as e:
-            self.set_status(f"加载路由追踪功能失败: {str(e)}")
         
     def show_route(self):
         """显示静态路由功能"""

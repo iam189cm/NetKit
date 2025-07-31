@@ -5,6 +5,7 @@
 """
 
 import threading
+import tkinter as tk
 from netkit.services.ping import PingService
 
 
@@ -24,22 +25,49 @@ class ScanController:
             'total_count': 254
         }
     
+    def get_root_window(self):
+        """获取主窗口引用"""
+        try:
+            return self.view.winfo_toplevel()
+        except (tk.TclError, AttributeError):
+            return None
+    
+    def safe_ui_update(self, callback, delay=0):
+        """安全的UI更新调度，使用主窗口的after方法"""
+        try:
+            # 检查view是否还存在
+            if not self.view.winfo_exists():
+                return
+            
+            root = self.get_root_window()
+            if root:
+                root.after(delay, callback)
+        except (tk.TclError, AttributeError):
+            # 控件已销毁或不可访问，忽略更新
+            pass
+    
     def start_scan(self, network_prefix):
         """开始扫描"""
         if self.is_scanning:
             return False
+        
+        try:
+            # 立即设置扫描状态
+            self.is_scanning = True
+            self.network_prefix = network_prefix
             
-        self.network_prefix = network_prefix
-        self.is_scanning = True
-        
-        # 重置统计
-        self.reset_stats()
-        
-        # 启动扫描线程
-        self.scan_thread = threading.Thread(target=self.scan_network, daemon=True)
-        self.scan_thread.start()
-        
-        return True
+            # 重置统计
+            self.reset_stats()
+            
+            # 启动扫描线程
+            self.scan_thread = threading.Thread(target=self.scan_network, daemon=True)
+            self.scan_thread.start()
+            
+            return True
+        except Exception as e:
+            # 如果启动失败，重置状态
+            self.is_scanning = False
+            return False
     
     def stop_scan(self):
         """停止扫描"""
@@ -71,8 +99,8 @@ class ScanController:
                 # 提取IP后缀
                 ip_suffix = int(host.split('.')[-1])
                 
-                # 在主线程中更新UI
-                self.view.after(0, lambda: self.update_cell_result(ip_suffix, result, stats))
+                # 在主线程中更新UI（使用主窗口调度）
+                self.safe_ui_update(lambda: self.update_cell_result(ip_suffix, result, stats))
             
             # 执行批量ping
             self.ping_service.batch_ping(
@@ -84,30 +112,58 @@ class ScanController:
             )
             
         except Exception as e:
-            self.view.after(0, lambda: self.view.show_error(f"扫描过程中出现错误: {str(e)}"))
+            self.safe_ui_update(lambda: self.view.show_error(f"扫描过程中出现错误: {str(e)}"))
         finally:
             if self.is_scanning:
-                self.view.after(0, self.scan_completed)
+                # 延迟500ms调用scan_completed，确保用户有时间切换tab
+                self.safe_ui_update(self.scan_completed, 500)
     
     def update_cell_result(self, ip_suffix, result, stats):
-        """更新方格扫描结果"""
-        # 通知视图更新方格状态
-        self.view.update_cell_scanning(ip_suffix)
+        """更新方格扫描结果"""        
+        # 通知视图更新方格状态（使用主窗口调度）
+        def update_scanning():
+            try:
+                # 检查特定IP的控件是否存在
+                if ip_suffix not in self.view.grid_cells:
+                    return
+                
+                cell = self.view.grid_cells[ip_suffix]
+                if not cell.winfo_exists():
+                    return
+                
+                self.view.update_cell_scanning(ip_suffix)
+            except (tk.TclError, AttributeError):
+                # 控件已销毁或不可访问，忽略更新
+                pass
+        
+        self.safe_ui_update(update_scanning)
         
         # 延迟显示结果，让用户看到扫描过程
         def show_result():
-            if stats['success']:
-                self.view.update_cell_online(ip_suffix, stats)
-                self.stats['online_count'] += 1
-            else:
-                self.view.update_cell_offline(ip_suffix, stats)
-                self.stats['offline_count'] += 1
-            
-            # 更新统计显示
-            self.view.update_stats(self.stats)
+            try:
+                # 检查特定IP的控件是否存在
+                if ip_suffix not in self.view.grid_cells:
+                    return
+                
+                cell = self.view.grid_cells[ip_suffix]
+                if not cell.winfo_exists():
+                    return
+                
+                if stats['success']:
+                    self.view.update_cell_online(ip_suffix, stats)
+                    self.stats['online_count'] += 1
+                else:
+                    self.view.update_cell_offline(ip_suffix, stats)
+                    self.stats['offline_count'] += 1
+                
+                # 更新统计显示
+                self.view.update_stats(self.stats)
+            except (tk.TclError, AttributeError):
+                # 控件已销毁或不可访问，忽略更新
+                pass
         
-        # 延迟500ms显示结果
-        self.view.after(500, show_result)
+        # 延迟500ms显示结果（使用主窗口调度）
+        self.safe_ui_update(show_result, 500)
     
     def scan_completed(self):
         """扫描完成"""
@@ -124,11 +180,11 @@ class ScanController:
             try:
                 result = self.ping_service.ping_with_stats(ip_address, count=4, timeout=1000)
                 
-                # 在主线程中显示结果
-                self.view.after(0, lambda: self.view.show_single_ping_result(ip_address, result))
+                # 在主线程中显示结果（使用主窗口调度）
+                self.safe_ui_update(lambda: self.view.show_single_ping_result(ip_address, result))
                 
             except Exception as e:
-                self.view.after(0, lambda: self.view.show_error(f"Ping {ip_address} 失败: {str(e)}"))
+                self.safe_ui_update(lambda: self.view.show_error(f"Ping {ip_address} 失败: {str(e)}"))
         
         # 在后台线程中执行ping
         threading.Thread(target=do_ping, daemon=True).start()

@@ -24,11 +24,7 @@ def test_imports():
         from netkit.services.ping import PingService
         print("✓ Ping服务导入成功")
         
-        from netkit.services.subnet import SubnetCalculator
-        print("✓ 子网计算服务导入成功")
-        
-        from netkit.services.traceroute import TracerouteService
-        print("✓ 路由追踪服务导入成功")
+
         
         from netkit.services.route import RouteService
         print("✓ 路由管理服务导入成功")
@@ -81,46 +77,7 @@ def test_ip_validation():
         return False
 
 
-def test_subnet_calculation():
-    """测试子网计算"""
-    print("\n=== 测试子网计算 ===")
-    
-    try:
-        from netkit.services.subnet import SubnetCalculator
-        
-        calculator = SubnetCalculator()
-        
-        # 测试基本子网信息计算
-        result = calculator.calculate_subnet_info("192.168.1.0/24")
-        if result['success']:
-            print("✓ 基本子网信息计算成功")
-            print(f"  网络地址: {result['network_address']}")
-            print(f"  可用主机数: {result['usable_hosts']}")
-        else:
-            print(f"❌ 基本子网信息计算失败: {result['error']}")
-            
-        # 测试VLSM计算
-        result = calculator.vlsm_calculation("192.168.1.0/24", [50, 25, 10])
-        if result['success']:
-            print("✓ VLSM计算成功")
-            print(f"  划分了 {len(result['subnets'])} 个子网")
-        else:
-            print(f"❌ VLSM计算失败: {result['error']}")
-            
-        # 测试格式转换
-        result = calculator.cidr_to_dotted("192.168.1.0/24")
-        if result['success']:
-            print("✓ CIDR转换成功")
-            print(f"  子网掩码: {result['dotted_mask']}")
-        else:
-            print(f"❌ CIDR转换失败: {result['error']}")
-            
-        return True
-        
-    except Exception as e:
-        print(f"❌ 子网计算测试失败: {e}")
-        traceback.print_exc()
-        return False
+
 
 
 def test_ping_service():
@@ -194,42 +151,7 @@ def test_route_service():
         return False
 
 
-def test_traceroute_service():
-    """测试路由追踪服务"""
-    print("\n=== 测试路由追踪服务 ===")
-    
-    try:
-        from netkit.services.traceroute import TracerouteService
-        
-        service = TracerouteService()
-        
-        # 测试tracert输出解析
-        test_line = "  1    <1 ms    <1 ms    <1 ms  192.168.1.1"
-        result = service.parse_tracert_line(test_line, 0)
-        
-        if result:
-            print("✓ Traceroute输出解析成功")
-            print(f"  跳数: {result['hop']}")
-            print(f"  IP地址: {result['ip']}")
-            print(f"  平均时间: {result['avg_time']}")
-        else:
-            print("❌ Traceroute输出解析失败")
-            
-        # 测试超时行解析
-        timeout_line = "  2     *        *        *     Request timed out."
-        result = service.parse_tracert_line(timeout_line, 0)
-        
-        if result and result['timeout']:
-            print("✓ 超时行解析成功")
-        else:
-            print("❌ 超时行解析失败")
-            
-        return True
-        
-    except Exception as e:
-        print(f"❌ 路由追踪服务测试失败: {e}")
-        traceback.print_exc()
-        return False
+
 
 
 def main():
@@ -240,10 +162,8 @@ def main():
     tests = [
         ("模块导入", test_imports),
         ("IP配置验证", test_ip_validation),
-        ("子网计算", test_subnet_calculation),
         ("Ping服务", test_ping_service),
         ("路由服务", test_route_service),
-        ("路由追踪服务", test_traceroute_service),
     ]
     
     passed = 0
