@@ -44,11 +44,11 @@ jobs:
         
     - name: Run unit tests
       run: |
-        pytest tests/unit/ -v --tb=short -m "unit" --cov=netkit --cov=gui --cov-report=xml --cov-report=html --html=reports/unit_report.html --self-contained-html
+        python tests/run_tests_ascii.py --type unit --verbose
         
     - name: Run integration tests
       run: |
-        pytest tests/integration/ -v --tb=short -m "integration" --html=reports/integration_report.html --self-contained-html
+        python tests/run_tests_ascii.py --type integration --verbose
         
     - name: Run GUI tests
       run: |
