@@ -12,12 +12,17 @@ from netkit.services.netconfig.ip_configurator import apply_profile, validate_ip
 class ConfigFormWidget(tb.LabelFrame):
     """IP配置表单组件"""
     
-    def __init__(self, master, on_config_applied=None, on_status_update=None, **kwargs):
-        super().__init__(master, text="网络配置", padding=ui_helper.get_padding(20), **kwargs)
+    def __init__(self, master, on_config_applied=None, on_status_update=None, readonly_mode=False, **kwargs):
+        # 设置标题，只读模式下显示提示
+        title = "网络配置（只读模式）" if readonly_mode else "网络配置"
+        super().__init__(master, text=title, padding=ui_helper.get_padding(20), **kwargs)
         
         # 回调函数
         self.on_config_applied = on_config_applied
         self.on_status_update = on_status_update
+        
+        # 只读模式标志
+        self.readonly_mode = readonly_mode
         
         # 当前选择的网卡
         self.current_interface = None
@@ -38,6 +43,10 @@ class ConfigFormWidget(tb.LabelFrame):
         
         # 应用配置按钮
         self.setup_apply_button()
+        
+        # 设置只读模式状态
+        if self.readonly_mode:
+            self.set_readonly_state()
     
     def setup_ip_config_group(self, parent):
         """设置IP地址配置分组"""
@@ -145,13 +154,35 @@ class ConfigFormWidget(tb.LabelFrame):
         button_frame = tb.Frame(self)
         button_frame.pack(fill=X, pady=(ui_helper.get_padding(20), 0))
         
-        tb.Button(
+        self.apply_button = tb.Button(
             button_frame,
             text="应用配置",
             bootstyle=SUCCESS,
             command=self.apply_config,
             width=ui_helper.scale_size(15)
-        ).pack(anchor=CENTER)
+        )
+        self.apply_button.pack(anchor=CENTER)
+        
+        # 在只读模式下禁用应用按钮
+        if self.readonly_mode:
+            self.apply_button.config(state=DISABLED)
+    
+    def set_readonly_state(self):
+        """设置只读模式状态，禁用所有输入控件"""
+        # 禁用IP配置相关控件
+        self.ip_auto_radio.config(state=DISABLED)
+        self.ip_manual_radio.config(state=DISABLED)
+        self.ip_entry.config(state=DISABLED)
+        self.mask_entry.config(state=DISABLED)
+        self.gateway_entry.config(state=DISABLED)
+        
+        # 禁用DNS配置相关控件
+        self.dns_auto_radio.config(state=DISABLED)
+        self.dns_manual_radio.config(state=DISABLED)
+        self.dns1_entry.config(state=DISABLED)
+        self.dns2_entry.config(state=DISABLED)
+        
+        # 应用按钮已在setup_apply_button中处理
     
     def on_ip_mode_changed(self):
         """IP配置模式改变时的处理"""

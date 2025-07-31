@@ -2,6 +2,7 @@
 import subprocess
 import re
 import ipaddress
+import platform
 from typing import List, Dict, Optional
 
 
@@ -16,7 +17,20 @@ class RouteService:
         try:
             # 使用route print命令获取路由表
             cmd = ['route', 'print']
-            result = subprocess.run(cmd, capture_output=True, text=True, encoding='gbk')
+            
+            # Windows平台下隐藏控制台窗口，避免弹出黑色命令行窗口
+            if platform.system() == 'Windows':
+                creationflags = subprocess.CREATE_NO_WINDOW
+            else:
+                creationflags = 0
+            
+            result = subprocess.run(
+                cmd, 
+                capture_output=True, 
+                text=True, 
+                encoding='gbk',
+                creationflags=creationflags  # 隐藏Windows控制台窗口
+            )
             
             if result.returncode != 0:
                 return {
@@ -155,7 +169,19 @@ class RouteService:
                 'metric', str(metric)
             ]
             
-            result = subprocess.run(cmd, capture_output=True, text=True, encoding='gbk')
+            # Windows平台下隐藏控制台窗口，避免弹出黑色命令行窗口
+            if platform.system() == 'Windows':
+                creationflags = subprocess.CREATE_NO_WINDOW
+            else:
+                creationflags = 0
+            
+            result = subprocess.run(
+                cmd, 
+                capture_output=True, 
+                text=True, 
+                encoding='gbk',
+                creationflags=creationflags  # 隐藏Windows控制台窗口
+            )
             
             if result.returncode == 0:
                 return {
@@ -197,7 +223,19 @@ class RouteService:
             if gateway:
                 cmd.append(gateway)
             
-            result = subprocess.run(cmd, capture_output=True, text=True, encoding='gbk')
+            # Windows平台下隐藏控制台窗口，避免弹出黑色命令行窗口
+            if platform.system() == 'Windows':
+                creationflags = subprocess.CREATE_NO_WINDOW
+            else:
+                creationflags = 0
+            
+            result = subprocess.run(
+                cmd, 
+                capture_output=True, 
+                text=True, 
+                encoding='gbk',
+                creationflags=creationflags  # 隐藏Windows控制台窗口
+            )
             
             if result.returncode == 0:
                 return {

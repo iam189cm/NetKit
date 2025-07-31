@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
-from netkit.utils.admin_check import ensure_admin
+from netkit.utils.admin_check import ensure_admin, check_admin_without_exit, auto_elevate
 from netkit.utils.network_monitor import start_network_monitoring, stop_network_monitoring
 from netkit.utils.ui_helper import ui_helper
 from gui.views.netconfig.netconfig_view import NetConfigView
@@ -15,9 +15,21 @@ from datetime import datetime
 
 
 class MainWindow:
-    def __init__(self):
+    def __init__(self, admin_status=None):
         self.app = tb.Window(themename='darkly')
         self.app.title('NetKit v0.2.9 - 网络工程师工具箱')
+        
+        # 权限状态管理
+        if admin_status is None:
+            self.is_admin = check_admin_without_exit()
+        else:
+            self.is_admin = admin_status
+        
+        # 权限相关UI组件引用
+        self.admin_label = None
+        self.elevate_button = None
+        self.nav_buttons = []
+        self.nav_button_configs = []  # 保存按钮配置信息
         
         # 初始化 DPI 缩放
         ui_helper.initialize_scaling(self.app)
@@ -106,36 +118,42 @@ class MainWindow:
         title_label = tb.Label(
             sidebar, 
             text="NetKit", 
-            font=ui_helper.get_font(16, "bold"),
+            font=ui_helper.get_font(18, "bold"),  # 稍微增大标题字体
             bootstyle=INFO
         )
-        title_label.pack(pady=(0, ui_helper.get_padding(10)))
+        title_label.pack(pady=(0, ui_helper.get_padding(8)))
         
         # 版本信息
         version_label = tb.Label(
             sidebar,
-            text="v0.1 网络工具箱",
-            font=ui_helper.get_font(9),
+            text="v0.2 网络工具箱",  # 更新版本号
+            font=ui_helper.get_font(10),  # 稍微增大版本字体
             bootstyle=SECONDARY
         )
-        version_label.pack(pady=(0, ui_helper.get_padding(20)))
+        version_label.pack(pady=(0, ui_helper.get_padding(25)))  # 增加与按钮区域的间距
         
         # 导航按钮
-        nav_buttons = [
-            ("网卡配置", self.show_ip_switcher, PRIMARY, "快速切换网络配置"),
-            ("Ping测试", self.show_ping, SUCCESS, "网络连通性测试"),
-            ("静态路由", self.show_route, DANGER, "管理静态路由"),
+        nav_button_configs = [
+            ("网卡配置", self.show_ip_switcher, PRIMARY, "快速切换网络配置", True),  # 需要管理员权限
+            ("Ping测试", self.show_ping, SUCCESS, "网络连通性测试", False),      # 不需要管理员权限
+            ("静态路由", self.show_route, DANGER, "管理静态路由", True),         # 需要管理员权限
         ]
         
-        for text, command, style, tooltip in nav_buttons:
+        # 保存按钮配置
+        self.nav_button_configs = nav_button_configs
+        
+        for text, command, style, tooltip, requires_admin in nav_button_configs:
             btn = tb.Button(
                 sidebar,
                 text=text,
                 command=command,
-                bootstyle=f"{style}-outline",
-                width=ui_helper.scale_size(18)
+                bootstyle=style,  # 使用实心样式，更现代化
+                width=ui_helper.scale_size(20)  # 稍微增加宽度
             )
-            btn.pack(pady=ui_helper.get_padding(5), padx=ui_helper.get_padding(5), fill=X)
+            btn.pack(pady=ui_helper.get_padding(8), padx=ui_helper.get_padding(5), fill=X)  # 增加垂直间距
+            
+            # 保存按钮引用
+            self.nav_buttons.append(btn)
             
             # 添加工具提示（简单实现）
             self.create_tooltip(btn, tooltip)
@@ -144,29 +162,35 @@ class MainWindow:
         separator = tb.Separator(sidebar, orient=HORIZONTAL)
         separator.pack(fill=X, pady=ui_helper.get_padding(20))
         
-        # 系统信息
-        info_frame = tb.LabelFrame(sidebar, text="系统信息", padding=ui_helper.get_padding(10))
+        # 权限模式
+        info_frame = tb.LabelFrame(
+            sidebar, 
+            text="权限模式", 
+            padding=ui_helper.get_padding(10),
+            bootstyle=SECONDARY  # 添加样式
+        )
         info_frame.pack(fill=X, padx=ui_helper.get_padding(5))
         
-        # 管理员状态
-        admin_status = "已获取管理员权限" if os.environ.get('NETKIT_TEST_MODE') != '1' else "测试模式"
-        admin_label = tb.Label(
+        # 权限状态显示
+        self.admin_label = tb.Label(
             info_frame,
-            text=f"权限: {admin_status}",
-            font=ui_helper.get_font(8),
-            bootstyle=SUCCESS if admin_status == "已获取管理员权限" else WARNING
+            text="",
+            font=ui_helper.get_font(9),  # 稍微增大字体
+            bootstyle=SUCCESS
         )
-        admin_label.pack(anchor=W, pady=ui_helper.get_padding(2))
+        self.admin_label.pack(anchor=W, pady=ui_helper.get_padding(2))
         
-        # 启动时间
-        start_time = datetime.now().strftime("%H:%M:%S")
-        time_label = tb.Label(
+        # 权限提升按钮（仅在受限模式下显示）
+        self.elevate_button = tb.Button(
             info_frame,
-            text=f"启动: {start_time}",
-            font=ui_helper.get_font(8),
-            bootstyle=SECONDARY
+            text="使用管理员方式运行",
+            command=self.request_admin_elevation,
+            bootstyle="primary-outline",
+            width=ui_helper.scale_size(18)
         )
-        time_label.pack(anchor=W, pady=ui_helper.get_padding(2))
+        
+        # 初始化权限状态显示
+        self.update_permission_ui()
             
     def setup_content_area(self, parent):
         """设置右侧内容区域"""
@@ -242,10 +266,17 @@ class MainWindow:
             if not async_manager.preload_completed:
                 start_preload()
             
-            # 创建界面
-            self.current_frame = NetConfigView(self.content_area)
+            # 创建界面，传递权限状态
+            self.current_frame = NetConfigView(
+                self.content_area, 
+                readonly_mode=not self.is_admin
+            )
             self.current_frame.pack(fill=BOTH, expand=True)
-            self.set_status("IP地址切换功能已加载")
+            
+            if not self.is_admin:
+                self.set_status("IP地址切换功能已加载（只读模式）")
+            else:
+                self.set_status("IP地址切换功能已加载")
         except Exception as e:
             self.set_status(f"加载IP切换功能失败: {str(e)}")
         
@@ -277,11 +308,107 @@ class MainWindow:
         self.set_status("正在加载静态路由管理功能...")
         
         try:
-            self.current_frame = RouteFrame(self.content_area)
+            # 创建路由管理界面，传递权限状态
+            self.current_frame = RouteFrame(
+                self.content_area,
+                readonly_mode=not self.is_admin
+            )
             self.current_frame.pack(fill=BOTH, expand=True)
-            self.set_status("静态路由管理功能已加载")
+            
+            if not self.is_admin:
+                self.set_status("静态路由管理功能已加载（只读模式）")
+            else:
+                self.set_status("静态路由管理功能已加载")
         except Exception as e:
             self.set_status(f"加载静态路由管理功能失败: {str(e)}")
+    
+    def update_permission_ui(self):
+        """更新权限状态显示"""
+        if self.is_admin:
+            # 管理员模式
+            self.admin_label.config(
+                text="✅ 管理员模式",
+                bootstyle=SUCCESS
+            )
+            # 隐藏权限提升按钮
+            self.elevate_button.pack_forget()
+        else:
+            # 受限模式
+            self.admin_label.config(
+                text="⚠️ 受限模式",
+                bootstyle=WARNING
+            )
+            # 显示权限提升按钮
+            self.elevate_button.pack(pady=ui_helper.get_padding(5), fill=X)
+        
+        # 更新导航按钮状态
+        self.update_nav_buttons_state()
+    
+    def update_nav_buttons_state(self):
+        """根据权限状态更新导航按钮"""
+        for i, (btn, (text, command, style, tooltip, requires_admin)) in enumerate(zip(self.nav_buttons, self.nav_button_configs)):
+            if requires_admin and not self.is_admin:
+                # 需要管理员权限但当前是受限模式 - 变灰但可点击进入只读模式
+                btn.config(
+                    bootstyle="secondary",  # 灰色样式
+                    state="normal"  # 保持可点击
+                )
+            else:
+                # 恢复正常样式
+                btn.config(
+                    bootstyle=style,
+                    state="normal"
+                )
+    
+    def request_admin_elevation(self):
+        """请求管理员权限提升"""
+        try:
+            # 更新按钮文字为提示状态
+            self.elevate_button.config(text="正在请求权限...")
+            self.elevate_button.update()
+            
+            # 尝试自动提升权限
+            success = auto_elevate()
+            
+            if success:
+                # 成功触发UAC，程序会重启，这里实际不会执行到
+                sys.exit(0)
+            else:
+                # 提升失败（用户取消或系统限制）
+                self.show_elevation_failure()
+                
+        except Exception as e:
+            # 发生异常
+            self.show_elevation_failure(f"权限提升异常: {str(e)}")
+    
+    def show_elevation_failure(self, error_msg=None):
+        """显示权限提升失败的反馈"""
+        # 在权限标签上显示失败信息
+        original_text = self.admin_label.cget("text")
+        
+        if error_msg:
+            self.admin_label.config(
+                text="❌ 权限获取失败",
+                bootstyle=DANGER
+            )
+        else:
+            self.admin_label.config(
+                text="❌ 权限获取失败",
+                bootstyle=DANGER
+            )
+        
+        # 更新按钮文字
+        self.elevate_button.config(text="重试获取权限")
+        
+        # 3秒后恢复正常状态
+        def restore_normal_state():
+            self.admin_label.config(
+                text="⚠️ 受限模式",
+                bootstyle=WARNING
+            )
+            self.elevate_button.config(text="使用管理员方式运行")
+        
+        self.app.after(3000, restore_normal_state)
         
     def run(self):
         """运行应用程序"""
@@ -290,8 +417,9 @@ class MainWindow:
 
 
 def main():
-    ensure_admin()
-    app = MainWindow()
+    # 检查管理员权限但不强制退出
+    admin_status = check_admin_without_exit()
+    app = MainWindow(admin_status)
     app.run()
 
 

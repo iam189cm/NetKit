@@ -15,8 +15,10 @@ from .status_display import StatusDisplayWidget
 class NetConfigView(tb.Frame):
     """网络配置主视图"""
     
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, readonly_mode=False, **kwargs):
         super().__init__(master, **kwargs)
+        
+        self.readonly_mode = readonly_mode
         
         self.setup_ui()
         
@@ -50,7 +52,8 @@ class NetConfigView(tb.Frame):
         self.config_form = ConfigFormWidget(
             main_frame,
             on_config_applied=self.on_config_applied,
-            on_status_update=self.status_display.append_status
+            on_status_update=self.status_display.append_status,
+            readonly_mode=self.readonly_mode
         )
         self.config_form.pack(fill=X, pady=(0, ui_helper.get_padding(15)))
         

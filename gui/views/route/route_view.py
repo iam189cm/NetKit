@@ -8,8 +8,9 @@ from tkinter import ttk
 
 
 class RouteFrame(tb.Frame):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, readonly_mode=False, **kwargs):
         super().__init__(master, **kwargs)
+        self.readonly_mode = readonly_mode
         self.route_service = RouteService()
         self.routes_data = []
         self.filtered_routes = []
@@ -19,9 +20,12 @@ class RouteFrame(tb.Frame):
     def setup_ui(self):
         """设置静态路由管理界面"""
         # 标题
+        title_text = "静态路由管理（只读模式）" if self.readonly_mode else "静态路由管理"
         title = tb.Label(
             self, 
-            text="静态路由管理",            bootstyle=DANGER
+            text=title_text,
+            font=ui_helper.get_font(16, "bold"),
+            bootstyle=DANGER
         )
         title.pack(pady=(ui_helper.get_padding(0), ui_helper.get_padding(20)))
         
@@ -128,21 +132,28 @@ class RouteFrame(tb.Frame):
             width=ui_helper.scale_size(12)
         ).pack(side=LEFT, padx=(ui_helper.get_padding(0), ui_helper.get_padding(5)))
         
-        tb.Button(
+        self.add_button = tb.Button(
             btn_frame,
             text="添加路由",
             bootstyle=SUCCESS,
             command=self.add_route,
             width=ui_helper.scale_size(12)
-        ).pack(side=LEFT, padx=ui_helper.get_padding(5))
+        )
+        self.add_button.pack(side=LEFT, padx=ui_helper.get_padding(5))
         
-        tb.Button(
+        self.delete_button = tb.Button(
             btn_frame,
             text="删除选中",
             bootstyle=DANGER,
             command=self.delete_selected_route,
             width=ui_helper.scale_size(12)
-        ).pack(side=LEFT, padx=ui_helper.get_padding(5))
+        )
+        self.delete_button.pack(side=LEFT, padx=ui_helper.get_padding(5))
+        
+        # 在只读模式下禁用操作按钮
+        if self.readonly_mode:
+            self.add_button.config(state=DISABLED)
+            self.delete_button.config(state=DISABLED)
         
         # 结果显示区域
         result_frame = tb.LabelFrame(main_frame, text="操作结果", padding=ui_helper.get_padding(10))

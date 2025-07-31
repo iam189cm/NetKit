@@ -9,6 +9,7 @@ import subprocess
 import concurrent.futures
 import threading
 import time
+import platform
 
 
 class PingExecutor:
@@ -69,12 +70,19 @@ class PingExecutor:
         
         for encoding in encodings:
             try:
+                # Windows平台下隐藏控制台窗口，避免弹出黑色命令行窗口
+                if platform.system() == 'Windows':
+                    creationflags = subprocess.CREATE_NO_WINDOW
+                else:
+                    creationflags = 0
+                
                 result = subprocess.run(
                     cmd, 
                     capture_output=True, 
                     text=True, 
                     encoding=encoding,
-                    timeout=30  # 防止命令hang住
+                    timeout=30,  # 防止命令hang住
+                    creationflags=creationflags  # 隐藏Windows控制台窗口
                 )
                 return result
             except (UnicodeDecodeError, UnicodeError):
