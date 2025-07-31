@@ -56,7 +56,7 @@ class TestCICompatibility:
             assert "CI-Ethernet" in interfaces
             print("✅ Mock网络接口工作正常")
         else:
-            pytest.skip("非Mock模式，跳过Mock测试")
+            pytest.skip("Non-mock mode, skip mock test")
     
     @pytest.mark.parametrize("gateway_format", [
         # Desktop版本格式

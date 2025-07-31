@@ -135,7 +135,7 @@ class TestModuleImportIntegration:
             assert route_service is not None
             
         except ImportError as e:
-            pytest.skip(f"服务模块导入失败，可能未完全实现: {e}")
+            pytest.skip(f"Service module import failed, may not be fully implemented: {e}")
     
     def test_utils_modules_import(self):
         """测试工具模块导入"""

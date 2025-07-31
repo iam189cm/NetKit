@@ -174,7 +174,7 @@ class TestPingServiceReal:
                         assert 0 <= int(part) <= 255
                         
             except Exception as e:
-                pytest.skip(f"IP范围解析功能可能未完全实现: {e}")
+                pytest.skip(f"IP range parsing feature may not be fully implemented: {e}")
     
     @patch('subprocess.run')
     def test_ping_executor_direct_integration(self, mock_subprocess):
@@ -219,7 +219,7 @@ class TestPingServiceReal:
             # 具体字段验证依赖于PingResultParser的实现
             
         except Exception as e:
-            pytest.skip(f"Ping结果解析功能可能未完全实现: {e}")
+            pytest.skip(f"Ping result parsing feature may not be fully implemented: {e}")
 
 
 @pytest.mark.integration

@@ -78,7 +78,7 @@ class TestNetworkConfigReal:
         assert isinstance(interfaces, list)
         if test_environment['is_ci'] and test_environment['is_server']:
             # CI Server环境可能返回0个接口，这是预期的
-            pytest.skip("CI Server环境兼容性: 网络接口检测差异")
+            pytest.skip("CI Server compatibility: Network interface detection differences")
         else:
             assert len(interfaces) > 0
             assert "以太网" in interfaces
@@ -93,7 +93,7 @@ class TestNetworkConfigReal:
         
         # 在CI Server环境中跳过或使用mock
         if test_environment['is_ci'] and test_environment['is_server'] and not test_environment['has_interfaces']:
-            pytest.skip("CI Server环境兼容性: 跳过真实网络接口测试")
+            pytest.skip("CI Server compatibility: Skip real network interface tests")
         # 模拟适配器信息
         mock_adapter = Mock()
         mock_adapter.connection_id = "以太网"
