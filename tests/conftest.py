@@ -83,6 +83,8 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "real_network: 需要真实网络环境的测试")
     config.addinivalue_line("markers", "integration: 集成测试")
     config.addinivalue_line("markers", "ci_skip: 在CI环境中跳过的测试")
+    config.addinivalue_line("markers", "performance: 性能测试")
+    config.addinivalue_line("markers", "slow: 运行时间较长的测试")
     
     # 输出环境信息 (使用ASCII安全的格式)
     env_info = {
