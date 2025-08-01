@@ -56,7 +56,7 @@ jobs:
         
     - name: Run integration tests
       run: |
-        python tests/run_tests_ascii.py --type integration --verbose
+        pytest tests/integration/ -v --tb=short -m "integration and not real_network" --html=reports/integration_report.html --self-contained-html
         
     - name: Generate test summary
       if: always()
@@ -142,17 +142,13 @@ jobs:
           $coverage = Select-Xml -Path "coverage.xml" -XPath "//coverage/@line-rate" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty Value
           $coveragePercent = [math]::Round([double]$coverage * 100, 1)
           
-          # 存储覆盖率历史（简单实现）
-          $coverageHistory = @{
-            "commit" = "${{ github.sha }}"
-            "coverage" = $coveragePercent
-            "timestamp" = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-            "branch" = "${{ github.ref_name }}"
-          }
+          $coverageColor = if($coveragePercent -ge 85) { "Green" } elseif($coveragePercent -ge 70) { "Yellow" } else { "Red" }
+          $statusColor = if($coveragePercent -ge 85) { "Green" } else { "Yellow" }
+          $statusText = if($coveragePercent -ge 85) { "✅ 达标" } else { "⚠️ 需要改进" }
           
-          Write-Host "当前覆盖率: $coveragePercent%" -ForegroundColor $(if($coveragePercent -ge 85) { "Green" } elseif($coveragePercent -ge 70) { "Yellow" } else { "Red" })
+          Write-Host "当前覆盖率: $coveragePercent%" -ForegroundColor $coverageColor
           Write-Host "目标覆盖率: 85%" -ForegroundColor Cyan
-          Write-Host "覆盖率状态: $(if($coveragePercent -ge 85) { "✅ 达标" } else { "⚠️ 需要改进" })" -ForegroundColor $(if($coveragePercent -ge 85) { "Green" } else { "Yellow" })
+          Write-Host "覆盖率状态: $statusText" -ForegroundColor $statusColor
         } else {
           Write-Host "❌ 无法获取覆盖率数据" -ForegroundColor Red
         }
