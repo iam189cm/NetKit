@@ -17,7 +17,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-2019, windows-2022, windows-latest]  # Win10/Server2019/Server2022/Win11
+        os: [windows-2022, windows-latest]  # Server2022/Win11 (移除已弃用的2019)
         python-version: ['3.12']
       fail-fast: false
     
@@ -56,7 +56,7 @@ jobs:
         
     - name: Run integration tests
       run: |
-        python tests/run_tests_ascii.py --type integration --verbose
+        python tests/run_tests_ascii.py --type integration --verbose --ci-safe
         
     - name: Run GUI tests
       run: |
