@@ -1,10 +1,9 @@
 
-# NetKit v0.2.9
+# NetKit v2.0.0
 
-[![CI/CD Pipeline](https://github.com/iam189cm/NetKit/actions/workflows/ci.yml/badge.svg)](https://github.com/iam189cm/NetKit/actions/workflows/ci.yml)
 [![Release Build](https://github.com/iam189cm/NetKit/actions/workflows/release.yml/badge.svg)](https://github.com/iam189cm/NetKit/actions/workflows/release.yml)
 [![GitHub release](https://img.shields.io/github/release/iam189cm/NetKit.svg)](https://github.com/iam189cm/NetKit/releases)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](#-许可证)
 
 一款面向网络工程师的Windows图形化工具箱，提供网络配置管理、连通性测试和路由管理等功能。
 
@@ -13,6 +12,8 @@
 - **网络配置管理**: 完整的网卡管理、信息显示、IP/DNS配置，支持DHCP和静态配置
 - **可视化Ping测试**: 智能动态方格网络状态显示，支持批量IP范围扫描和连续监控
 - **静态路由管理**: 路由表查看、添加、删除和修改功能
+- **子网计算** (预留): 子网地址计算功能 - 开发中
+- **路由跟踪** (预留): 网络路径跟踪功能 - 开发中
 
 ## 📁 项目结构
 
@@ -31,8 +32,10 @@ NetKit/
 │   │   │   ├── ping_executor.py        # Ping执行器
 │   │   │   ├── result_parser.py        # 结果解析器
 │   │   │   └── ip_parser.py           # IP范围解析
-│   │   └── route/            # 静态路由管理服务
-│   │       └── route.py      # 路由管理核心服务
+│   │   ├── route/            # 静态路由管理服务
+│   │   │   └── route.py      # 路由管理核心服务
+│   │   ├── subnet/           # 子网计算服务（预留）
+│   │   └── tracert/          # 路由跟踪服务（预留）
 │   └── utils/                # 工具模块
 │       ├── admin_check.py    # 管理员权限检测
 │       ├── network_monitor.py # 网络状态监控
@@ -51,8 +54,10 @@ NetKit/
 │   │   │   ├── grid_cell.py           # 网格单元格组件
 │   │   │   ├── scan_controller.py      # 扫描控制器
 │   │   │   └── ui_components.py        # UI辅助组件
-│   │   └── route/            # 路由管理UI组件
-│   │       └── route_view.py      # 路由管理界面
+│   │   ├── route/            # 路由管理UI组件
+│   │   │   └── route_view.py      # 路由管理界面
+│   │   ├── subnet/           # 子网计算UI组件（预留）
+│   │   └── tracert/          # 路由跟踪UI组件（预留）
 │   └── assets/              # 资源文件
 │       └── style.tcl        # ttkbootstrap样式配置
 ├── scripts/                 # 构建和工具脚本
@@ -62,13 +67,21 @@ NetKit/
 │   ├── start.bat           # Windows启动脚本
 │   ├── netkit_onefile.spec # 单文件PyInstaller配置
 │   ├── netkit_debug.spec   # 调试版PyInstaller配置
-│   └── performance_*.py    # 性能测试脚本
+│   ├── performance_benchmark.py    # 性能测试脚本
+│   ├── test_quick.bat      # 快速测试脚本
+│   ├── test_all.bat        # 完整测试脚本
+│   ├── test_netconfig.bat  # 网络配置测试脚本
+│   ├── test_ping.bat       # Ping功能测试脚本
+│   └── test_compatibility.py # 兼容性测试脚本
 ├── tests/                   # 测试文件
-│   ├── unit/                # 单元测试
-│   ├── integration/         # 集成测试
-│   ├── performance/         # 性能测试
-│   ├── run_tests.py        # 测试运行器
-│   └── run_tests.bat       # Windows测试启动脚本
+│   ├── netconfig/          # 网络配置功能测试
+│   ├── ping/               # Ping功能测试
+│   ├── route/              # 路由功能测试
+│   ├── gui/                # GUI功能测试
+│   ├── utils/              # 工具类测试
+│   ├── fixtures/           # 测试数据和工具
+│   ├── scripts/            # 测试脚本
+│   └── conftest.py         # pytest配置
 ├── docs/                    # 文档目录
 │   ├── README.md           # 项目说明文档
 │   └── RELEASE_NOTES.md    # 版本发布说明
@@ -103,7 +116,7 @@ python scripts/build.py
 pyinstaller scripts/netkit_onefile.spec
 ```
 
-构建成功后，可执行文件将生成在 `dist/NetKit.exe`。
+构建成功后，可执行文件将生成在 `dist/NetKit.exe`，发布时会重命名为 `NetKit-v2.0.0.exe`。
 
 ### 调试版本构建
 ```bash
@@ -136,11 +149,15 @@ dist\NetKit.exe
 
 ### 测试运行
 ```bash
-# 运行测试套件（Windows）
-tests\run_tests.bat
+# 快速测试（Windows）
+scripts\test_quick.bat
 
-# 或使用Python测试脚本
-python tests/run_tests.py
+# 完整测试套件
+scripts\test_all.bat
+
+# 分模块测试
+scripts\test_netconfig.bat  # 网络配置测试
+scripts\test_ping.bat       # Ping功能测试
 
 # 或使用pytest直接运行
 python -m pytest
@@ -172,6 +189,10 @@ python -m pytest
 - 支持路由的添加、删除和修改
 - 自动路由冲突检测和验证
 - 支持各种路由类型（默认、静态、直连等）
+
+### 预留功能模块
+- **子网计算器**: 子网地址计算和VLSM支持（开发中）
+- **路由跟踪**: 网络路径跟踪和可视化分析（开发中）
 
 ## 📖 文档
 

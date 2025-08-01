@@ -40,10 +40,36 @@ jobs:
       run: |
         python scripts/build.py
         
+    - name: Rename executable with version
+      run: |
+        # Get tag name
+        if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+          $tag = "${{ github.event.inputs.tag }}"
+        } else {
+          $tag = "${{ github.ref_name }}"
+        }
+        
+        # Rename the executable to include version
+        if (Test-Path "dist/NetKit.exe") {
+          Rename-Item "dist/NetKit.exe" "NetKit-$tag.exe"
+          Write-Host "Renamed to NetKit-$tag.exe" -ForegroundColor Green
+        } else {
+          Write-Host "NetKit.exe not found!" -ForegroundColor Red
+          exit 1
+        }
+      shell: powershell
+        
     - name: Verify build
       run: |
-        if (Test-Path "dist/NetKit.exe") {
-          $fileSize = (Get-Item "dist/NetKit.exe").Length
+        # Get tag name
+        if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+          $tag = "${{ github.event.inputs.tag }}"
+        } else {
+          $tag = "${{ github.ref_name }}"
+        }
+        
+        if (Test-Path "dist/NetKit-$tag.exe") {
+          $fileSize = (Get-Item "dist/NetKit-$tag.exe").Length
           $fileSizeMB = [math]::Round($fileSize / 1MB, 1)
           Write-Host "Build successful! File size: $fileSizeMB MB" -ForegroundColor Green
         } else {
@@ -67,17 +93,17 @@ jobs:
         $commitSha = "${{ github.sha }}"
         
         # Get file size
-        $fileSize = (Get-Item "dist/NetKit.exe").Length
+        $fileSize = (Get-Item "dist/NetKit-$tag.exe").Length
         $fileSizeMB = [math]::Round($fileSize / 1MB, 1)
         
-        $releaseBody = "## NetKit $tag - Network Engineer Toolkit`n`n### Download`n- **NetKit.exe** - Windows single file version ($fileSizeMB MB)`n- Compatible with Windows 10/11/Server`n`n### Quick Start`n1. Download NetKit.exe file`n2. Right-click and select 'Run as administrator'`n3. Start using network management features`n`n### System Requirements`n- Windows 10/11 or Windows Server`n- Administrator privileges (recommended for network configuration)`n`n### Core Features`n- IP address quick switching`n- Ping network testing`n- Subnet address calculation`n- Route tracing analysis`n- Static route management`n`n### Target Users`n Practical tool designed for network engineers and system administrators`n`n---`n**Build Time**: $buildTime  `n**Version Hash**: $($commitSha.Substring(0,8))  `n**Tested on**: Windows 2019/2022/Latest platforms"
+        $releaseBody = "## NetKit $tag - 网络工程师工具箱`n`n### 下载`n- **NetKit-$tag.exe** - Windows 单文件版本 ($fileSizeMB MB)`n- 兼容 Windows 10/11/Server`n`n### 快速开始`n1. 下载 NetKit-$tag.exe 文件`n2. 右键选择"以管理员身份运行"`n3. 开始使用网络管理功能`n`n### 系统要求`n- Windows 10/11 或 Windows Server`n- 管理员权限（推荐用于网络配置）`n`n### 核心功能`n- IP地址快速切换`n- Ping网络测试`n- 静态路由管理`n`n### 目标用户`n专为网络工程师和系统管理员设计的实用工具`n`n---`n**构建时间**: $buildTime  `n**版本哈希**: $($commitSha.Substring(0,8))  `n**测试平台**: Windows 2019/2022/Latest"
         
         # Only create Release when pushing tags or manual trigger
         if ("${{ github.event_name }}" -eq "push" -or "${{ github.event_name }}" -eq "workflow_dispatch") {
-          gh release create $tag dist/NetKit.exe --title "NetKit $tag" --notes $releaseBody
+          gh release create $tag "dist/NetKit-$tag.exe" --title "NetKit $tag" --notes $releaseBody
         } else {
           # For release events, only upload files to existing release
-          gh release upload $tag dist/NetKit.exe --clobber
+          gh release upload $tag "dist/NetKit-$tag.exe" --clobber
         }
         
         # Upload documentation
