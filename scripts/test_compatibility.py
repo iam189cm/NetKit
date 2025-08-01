@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NetKit 兼容性测试脚本
-测试在不同Windows环境下的关键功能
+NetKit Compatibility Test Script
+Test key functionality across different Windows environments
 """
 
 import os
@@ -11,95 +11,95 @@ import platform
 import subprocess
 from pathlib import Path
 
-# 切换到项目根目录
+# Switch to project root directory
 script_dir = Path(__file__).parent
 project_root = script_dir.parent
 os.chdir(project_root)
 sys.path.insert(0, str(project_root))
 
 def test_system_info():
-    """测试系统信息获取"""
-    print("🔍 系统信息测试")
-    print(f"操作系统: {platform.system()}")
-    print(f"版本: {platform.version()}")
-    print(f"发行版: {platform.release()}")
-    print(f"架构: {platform.architecture()}")
+    """Test system information retrieval"""
+    print("[INFO] System Information Test")
+    print(f"Operating System: {platform.system()}")
+    print(f"Version: {platform.version()}")
+    print(f"Release: {platform.release()}")
+    print(f"Architecture: {platform.architecture()}")
     
-    # 检测是否为Server版本
+    # Detect if Server version
     try:
         import winreg
         key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, 
                            r"SOFTWARE\Microsoft\Windows NT\CurrentVersion")
         product_name = winreg.QueryValueEx(key, "ProductName")[0]
-        print(f"产品名称: {product_name}")
-        print(f"是否Server版本: {'Server' in product_name}")
+        print(f"Product Name: {product_name}")
+        print(f"Is Server Version: {'Server' in product_name}")
         winreg.CloseKey(key)
     except Exception as e:
-        print(f"⚠️ 无法获取产品信息: {e}")
+        print(f"[WARN] Cannot get product info: {e}")
 
 def test_wmi_compatibility():
-    """测试WMI功能兼容性"""
-    print("\n🔍 WMI兼容性测试")
+    """Test WMI functionality compatibility"""
+    print("\n[INFO] WMI Compatibility Test")
     try:
         import wmi
         import pythoncom
         
-        # 详细的WMI测试
+        # Detailed WMI testing
         pythoncom.CoInitialize()
         c = wmi.WMI()
         
-        print("1. 测试原始WMI适配器查询...")
+        print("1. Test raw WMI adapter query...")
         all_adapters = list(c.Win32_NetworkAdapter())
-        print(f"   发现 {len(all_adapters)} 个网络适配器")
+        print(f"   Found {len(all_adapters)} network adapters")
         
-        # 检查有NetConnectionID的适配器
+        # Check adapters with NetConnectionID
         named_adapters = [a for a in all_adapters if a.NetConnectionID]
-        print(f"   其中 {len(named_adapters)} 个有连接名称")
+        print(f"   {len(named_adapters)} have connection names")
         
         if named_adapters:
-            print("   前几个适配器:")
+            print("   First few adapters:")
             for adapter in named_adapters[:3]:
                 print(f"     - {adapter.NetConnectionID}: {adapter.Description}")
         
-        # 测试适配器配置
-        print("2. 测试适配器配置查询...")
+        # Test adapter configuration
+        print("2. Test adapter configuration query...")
         configs = list(c.Win32_NetworkAdapterConfiguration())
         ip_enabled_configs = [cfg for cfg in configs if cfg.IPEnabled]
-        print(f"   发现 {len(configs)} 个配置，{len(ip_enabled_configs)} 个启用IP")
+        print(f"   Found {len(configs)} configs, {len(ip_enabled_configs)} IP-enabled")
         
-        # 测试SetGateways方法兼容性
-        print("3. 测试WMI方法兼容性...")
+        # Test SetGateways method compatibility
+        print("3. Test WMI method compatibility...")
         if ip_enabled_configs:
             test_config = ip_enabled_configs[0]
-            print(f"   测试配置: {test_config.Description}")
+            print(f"   Test config: {test_config.Description}")
             
-            # 检查SetGateways方法
+            # Check SetGateways method
             try:
                 method = getattr(test_config, 'SetGateways', None)
                 if method:
-                    print("   ✅ SetGateways方法存在")
-                    # 注意：不实际调用，只检查存在性
+                    print("   [PASS] SetGateways method exists")
+                    # Note: Not actually calling, just checking existence
                 else:
-                    print("   ❌ SetGateways方法不存在")
+                    print("   [FAIL] SetGateways method does not exist")
             except Exception as method_error:
-                print(f"   ⚠️ 方法检查失败: {method_error}")
+                print(f"   [WARN] Method check failed: {method_error}")
         
-        # 现在测试NetKit的WMI引擎
-        print("4. 测试NetKit WMI引擎...")
+        # Now test NetKit's WMI engine
+        print("4. Test NetKit WMI engine...")
         from netkit.services.netconfig.wmi_engine import get_wmi_engine
         wmi_engine = get_wmi_engine()
         
         adapters_info = wmi_engine.get_all_adapters_info(show_all=True)
-        print(f"   NetKit引擎找到 {len(adapters_info)} 个适配器")
+        print(f"   NetKit engine found {len(adapters_info)} adapters")
         
-        # 检查物理适配器过滤
+        # Check physical adapter filtering
         physical_adapters = wmi_engine.get_all_adapters_info(show_all=False)
-        print(f"   其中 {len(physical_adapters)} 个被识别为物理适配器")
+        print(f"   {len(physical_adapters)} identified as physical adapters")
         
         pythoncom.CoUninitialize()
         
     except Exception as e:
-        print(f"❌ WMI测试失败: {e}")
+        print(f"[ERROR] WMI test failed: {e}")
         import traceback
         traceback.print_exc()
         try:
@@ -108,81 +108,81 @@ def test_wmi_compatibility():
             pass
 
 def test_network_interfaces():
-    """测试网络接口管理"""
-    print("\n🔍 网络接口测试")
+    """Test network interface management"""
+    print("\n[INFO] Network Interface Test")
     try:
         from netkit.services.netconfig.interface_manager import get_network_interfaces
         
-        # 测试show_all=False (默认，只显示物理接口)
+        # Test show_all=False (default, physical interfaces only)
         interfaces = get_network_interfaces(show_all=False)
-        print(f"物理接口: {len(interfaces)} 个")
+        print(f"Physical interfaces: {len(interfaces)}")
         
-        # 测试show_all=True (显示所有接口)
+        # Test show_all=True (show all interfaces)
         all_interfaces = get_network_interfaces(show_all=True)
-        print(f"所有接口: {len(all_interfaces)} 个")
+        print(f"All interfaces: {len(all_interfaces)}")
         
         if interfaces:
-            print("物理接口列表:")
+            print("Physical interface list:")
             for i, interface in enumerate(interfaces[:5]):
                 print(f"  {i+1}. {interface}")
         else:
-            print("⚠️ 没有找到物理网络接口")
-            print("这可能表明适配器过滤逻辑在当前环境中过于严格")
+            print("[WARN] No physical network interfaces found")
+            print("This may indicate adapter filtering logic is too strict in current environment")
             
         if all_interfaces:
-            print("所有接口列表 (前5个):")
+            print("All interfaces list (first 5):")
             for i, interface in enumerate(all_interfaces[:5]):
                 print(f"  {i+1}. {interface}")
                 
-        # 检查环境特定问题
+        # Check environment-specific issues
         is_server = "Server" in platform.version()
         if is_server and len(interfaces) == 0:
-            print("🚨 Server环境兼容性问题检测:")
-            print("   - 物理适配器过滤可能过于严格")
-            print("   - 建议在集成测试中使用show_all=True")
+            print("[ALERT] Server environment compatibility issue detected:")
+            print("   - Physical adapter filtering may be too strict")
+            print("   - Recommend using show_all=True in integration tests")
             
     except Exception as e:
-        print(f"❌ 网络接口测试失败: {e}")
+        print(f"[ERROR] Network interface test failed: {e}")
         import traceback
         traceback.print_exc()
 
 def test_gui_components():
-    """测试GUI组件兼容性"""
-    print("\n🔍 GUI组件测试")
+    """Test GUI component compatibility"""
+    print("\n[INFO] GUI Component Test")
     try:
         import ttkbootstrap as tb
-        print("✅ ttkbootstrap导入成功")
+        print("[PASS] ttkbootstrap import successful")
         
-        # 测试主题
+        # Test themes
         themes = tb.Style().theme_names()
-        print(f"✅ 可用主题: {len(themes)} 个")
+        print(f"[PASS] Available themes: {len(themes)}")
         
-        # 测试字体
+        # Test fonts
         try:
             import tkinter.font as tkfont
             root = tb.Window()
-            root.withdraw()  # 隐藏窗口
+            root.withdraw()  # Hide window
             
             default_font = tkfont.nametofont("TkDefaultFont")
-            print(f"✅ 默认字体: {default_font['family']} {default_font['size']}")
+            print(f"[PASS] Default font: {default_font['family']} {default_font['size']}")
             
             root.destroy()
             
         except Exception as e:
-            print(f"⚠️ 字体测试失败: {e}")
+            print(f"[WARN] Font test failed: {e}")
             
     except Exception as e:
-        print(f"❌ GUI组件测试失败: {e}")
+        print(f"[ERROR] GUI component test failed: {e}")
 
 def test_system_commands():
-    """测试系统命令兼容性"""
-    print("\n🔍 系统命令测试")
+    """Test system command compatibility"""
+    print("\n[INFO] System Command Test")
     
     commands = [
-        ("ipconfig", "IP配置命令"),
-        ("route", "路由命令"),
-        ("ping", "Ping命令"),
-        ("netsh", "网络Shell命令")
+        ("ipconfig", "IP Configuration Command"),
+        ("route", "Route Command"),
+        ("ping", "Ping Command"),
+        ("netsh", "Network Shell Command")
     ]
     
     for cmd, desc in commands:
@@ -192,15 +192,15 @@ def test_system_commands():
                                   text=True, 
                                   timeout=5)
             if result.returncode == 0:
-                print(f"✅ {desc} 可用")
+                print(f"[PASS] {desc} available")
             else:
-                print(f"⚠️ {desc} 返回码: {result.returncode}")
+                print(f"[WARN] {desc} return code: {result.returncode}")
         except Exception as e:
-            print(f"❌ {desc} 测试失败: {e}")
+            print(f"[ERROR] {desc} test failed: {e}")
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("NetKit 兼容性测试")
+    print("NetKit Compatibility Test")
     print("=" * 60)
     
     test_system_info()
@@ -210,5 +210,5 @@ if __name__ == "__main__":
     test_system_commands()
     
     print("\n" + "=" * 60)
-    print("兼容性测试完成")
+    print("Compatibility Test Completed")
     print("=" * 60)
