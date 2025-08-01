@@ -10,6 +10,9 @@ import sys
 import platform
 import pytest
 
+# 导入测试Fixture
+from tests.fixtures import *
+
 # 设置测试模式
 os.environ['NETKIT_TEST_MODE'] = '1'
 

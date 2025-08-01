@@ -58,6 +58,31 @@ jobs:
       run: |
         python tests/run_tests_ascii.py --type integration --verbose
         
+    - name: Generate test summary
+      if: always()
+      run: |
+        Write-Host "📊 测试执行总结" -ForegroundColor Cyan
+        Write-Host "==================" -ForegroundColor Cyan
+        
+        # 检查测试报告文件
+        $reportFiles = @("reports/unit_report.html", "reports/integration_report.html", "reports/gui_report.html")
+        foreach ($file in $reportFiles) {
+          if (Test-Path $file) {
+            $size = (Get-Item $file).Length
+            Write-Host "✅ $file ($([math]::Round($size/1KB, 1)) KB)" -ForegroundColor Green
+          } else {
+            Write-Host "❌ $file (不存在)" -ForegroundColor Red
+          }
+        }
+        
+        # 检查覆盖率文件
+        if (Test-Path "coverage.xml") {
+          $coverage = Select-Xml -Path "coverage.xml" -XPath "//coverage/@line-rate" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty Value
+          $coveragePercent = [math]::Round([double]$coverage * 100, 1)
+          Write-Host "📈 代码覆盖率: $coveragePercent%" -ForegroundColor $(if($coveragePercent -ge 85) { "Green" } else { "Yellow" })
+        }
+      shell: powershell
+        
     - name: Run GUI tests
       run: |
         pytest tests/gui/ -v --tb=short -m "gui" --html=reports/gui_report.html --self-contained-html
@@ -84,6 +109,10 @@ jobs:
         coverage report --fail-under=85
         coverage xml
         
+    - name: Run quality check
+      run: |
+        python scripts/test_quality_check.py
+        
     - name: Upload test reports
       uses: actions/upload-artifact@v4
       if: always()
@@ -102,6 +131,47 @@ jobs:
         file: ./coverage.xml
         flags: ${{ matrix.os }}
         name: codecov-${{ matrix.os }}
+        
+    - name: Coverage trend analysis
+      if: always()
+      run: |
+        Write-Host "📈 覆盖率趋势分析" -ForegroundColor Cyan
+        Write-Host "==================" -ForegroundColor Cyan
+        
+        if (Test-Path "coverage.xml") {
+          $coverage = Select-Xml -Path "coverage.xml" -XPath "//coverage/@line-rate" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty Value
+          $coveragePercent = [math]::Round([double]$coverage * 100, 1)
+          
+          # 存储覆盖率历史（简单实现）
+          $coverageHistory = @{
+            "commit" = "${{ github.sha }}"
+            "coverage" = $coveragePercent
+            "timestamp" = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+            "branch" = "${{ github.ref_name }}"
+          }
+          
+          Write-Host "当前覆盖率: $coveragePercent%" -ForegroundColor $(if($coveragePercent -ge 85) { "Green" } elseif($coveragePercent -ge 70) { "Yellow" } else { "Red" })
+          Write-Host "目标覆盖率: 85%" -ForegroundColor Cyan
+          Write-Host "覆盖率状态: $(if($coveragePercent -ge 85) { "✅ 达标" } else { "⚠️ 需要改进" })" -ForegroundColor $(if($coveragePercent -ge 85) { "Green" } else { "Yellow" })
+        } else {
+          Write-Host "❌ 无法获取覆盖率数据" -ForegroundColor Red
+        }
+      shell: powershell
+      
+    - name: Test failure notification
+      if: failure()
+      run: |
+        Write-Host "🚨 测试失败通知" -ForegroundColor Red
+        Write-Host "==================" -ForegroundColor Red
+        Write-Host "构建信息:" -ForegroundColor Yellow
+        Write-Host "  分支: ${{ github.ref_name }}" -ForegroundColor White
+        Write-Host "  提交: ${{ github.sha }}" -ForegroundColor White
+        Write-Host "  操作系统: ${{ matrix.os }}" -ForegroundColor White
+        Write-Host "  Python版本: ${{ matrix.python-version }}" -ForegroundColor White
+        Write-Host "" -ForegroundColor White
+        Write-Host "请检查测试报告以获取详细信息" -ForegroundColor Yellow
+        Write-Host "报告位置: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" -ForegroundColor Cyan
+      shell: powershell
 
   lint:
     name: Code Quality Check
@@ -133,11 +203,52 @@ jobs:
       run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
       continue-on-error: true
 
+  quality-gate:
+    name: Quality Gate Check
+    runs-on: windows-latest
+    needs: [test, lint]
+    if: always()
+    
+    steps:
+    - name: Quality Gate Analysis
+      run: |
+        Write-Host "🔒 代码质量门禁检查" -ForegroundColor Cyan
+        Write-Host "========================" -ForegroundColor Cyan
+        
+        # 检查测试结果
+        $testResult = "${{ needs.test.result }}"
+        $lintResult = "${{ needs.lint.result }}"
+        
+        Write-Host "测试结果: $testResult" -ForegroundColor $(if($testResult -eq "success") { "Green" } else { "Red" })
+        Write-Host "代码质量检查: $lintResult" -ForegroundColor $(if($lintResult -eq "success") { "Green" } else { "Red" })
+        
+        # 质量门禁判断
+        $qualityGatePassed = $testResult -eq "success" -and $lintResult -eq "success"
+        
+        if ($qualityGatePassed) {
+          Write-Host "✅ 质量门禁检查通过，允许构建" -ForegroundColor Green
+          Write-Host "QUALITY_GATE_PASSED=true" >> $env:GITHUB_OUTPUT
+        } else {
+          Write-Host "❌ 质量门禁检查失败，阻止构建" -ForegroundColor Red
+          Write-Host "QUALITY_GATE_PASSED=false" >> $env:GITHUB_OUTPUT
+          if ($testResult -ne "success") {
+            Write-Host "  - 测试未通过" -ForegroundColor Red
+          }
+          if ($lintResult -ne "success") {
+            Write-Host "  - 代码质量检查未通过" -ForegroundColor Red
+          }
+        }
+      shell: powershell
+      id: quality-gate
+      
+    outputs:
+      quality-gate-passed: ${{ steps.quality-gate.outputs.QUALITY_GATE_PASSED }}
+
   build:
     name: Build Executable
     runs-on: windows-latest
-    needs: [test, lint]
-    if: github.event_name == 'push' || github.event_name == 'release'
+    needs: [quality-gate]
+    if: needs.quality-gate.outputs.quality-gate-passed == 'true' && (github.event_name == 'push' || github.event_name == 'release')
     
     steps:
     - name: Checkout code
