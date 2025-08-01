@@ -79,7 +79,8 @@ jobs:
         if (Test-Path "coverage.xml") {
           $coverage = Select-Xml -Path "coverage.xml" -XPath "//coverage/@line-rate" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty Value
           $coveragePercent = [math]::Round([double]$coverage * 100, 1)
-          Write-Host "📈 代码覆盖率: $coveragePercent%" -ForegroundColor $(if($coveragePercent -ge 85) { "Green" } else { "Yellow" })
+          $coverageColor = if($coveragePercent -ge 85) { "Green" } else { "Yellow" }
+          Write-Host "📈 代码覆盖率: $coveragePercent%" -ForegroundColor $coverageColor
         }
       shell: powershell
         
@@ -215,8 +216,11 @@ jobs:
         $testResult = "${{ needs.test.result }}"
         $lintResult = "${{ needs.lint.result }}"
         
-        Write-Host "测试结果: $testResult" -ForegroundColor $(if($testResult -eq "success") { "Green" } else { "Red" })
-        Write-Host "代码质量检查: $lintResult" -ForegroundColor $(if($lintResult -eq "success") { "Green" } else { "Red" })
+        $testColor = if($testResult -eq "success") { "Green" } else { "Red" }
+        $lintColor = if($lintResult -eq "success") { "Green" } else { "Red" }
+        
+        Write-Host "测试结果: $testResult" -ForegroundColor $testColor
+        Write-Host "代码质量检查: $lintResult" -ForegroundColor $lintColor
         
         # 质量门禁判断
         $qualityGatePassed = $testResult -eq "success" -and $lintResult -eq "success"
