@@ -43,7 +43,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "slow: 运行时间较长的测试")
     
     # 输出本机测试环境信息
-    print(f"\n🏠 NetKit 本机测试环境")
+    print(f"\nNetKit 本机测试环境")
     print(f"平台: {platform.system()} {platform.release()}")
     print(f"Python: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
     print(f"测试模式: 本机真实环境测试")
