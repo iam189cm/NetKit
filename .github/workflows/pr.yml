@@ -26,26 +26,26 @@ jobs:
         
     - name: Run basic tests
       run: |
-        Write-Host "🧪 Running basic tests..." -ForegroundColor Cyan
+        Write-Host "[TEST] Running basic tests..." -ForegroundColor Cyan
         python -m pytest tests/ -v --tb=short
       continue-on-error: true
       shell: powershell
       
     - name: Code style check
       run: |
-        Write-Host "🔍 Checking code style..." -ForegroundColor Cyan
+        Write-Host "[LINT] Checking code style..." -ForegroundColor Cyan
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
       continue-on-error: true
       shell: powershell
       
     - name: Build test
       run: |
-        Write-Host "🔨 Testing build process..." -ForegroundColor Cyan
+        Write-Host "[BUILD] Testing build process..." -ForegroundColor Cyan
         python scripts/build.py
         if (Test-Path "dist/NetKit.exe") {
-          Write-Host "✅ Build test passed" -ForegroundColor Green
+          Write-Host "[SUCCESS] Build test passed" -ForegroundColor Green
         } else {
-          Write-Host "❌ Build test failed" -ForegroundColor Red
+          Write-Host "[ERROR] Build test failed" -ForegroundColor Red
           exit 1
         }
       shell: powershell

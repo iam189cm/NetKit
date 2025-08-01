@@ -3,10 +3,10 @@ name: Release Build
 on:
   push:
     tags:
-      - 'v*'  # 当推送版本标签时触发
+      - 'v*'  # Trigger when version tags are pushed
   release:
-    types: [published, created]  # 监听release事件
-  workflow_dispatch:  # 支持手动触发
+    types: [published, created]  # Listen to release events
+  workflow_dispatch:  # Support manual trigger
     inputs:
       tag:
         description: 'Release tag (e.g., v1.0.0)'
@@ -14,7 +14,7 @@ on:
         default: 'v1.0.0'
 
 permissions:
-  contents: write  # 允许创建release和上传文件
+  contents: write  # Allow creating releases and uploading files
 
 jobs:
   build-and-release:
@@ -56,7 +56,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # 获取标签名称
+        # Get tag name
         if ("${{ github.event_name }}" -eq "workflow_dispatch") {
           $tag = "${{ github.event.inputs.tag }}"
         } else {
@@ -66,22 +66,22 @@ jobs:
         $buildTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
         $commitSha = "${{ github.sha }}"
         
-        # 获取文件大小
+        # Get file size
         $fileSize = (Get-Item "dist/NetKit.exe").Length
         $fileSizeMB = [math]::Round($fileSize / 1MB, 1)
         
-        $releaseBody = "## 🔧 NetKit $tag - 网络工程师工具箱`n`n### 📥 下载`n- **NetKit.exe** - Windows 单文件版本 ($fileSizeMB MB)`n- 适用于 Windows 10/11/Server`n`n### 🌐 官方网站`n- 访问 https://netkit.189cm.com/ 获取最新版本和使用教程`n`n### 🚀 快速开始`n1. 下载 NetKit.exe 文件`n2. 右键选择 \`"以管理员身份运行\`"`n3. 开始使用网络管理功能`n`n### 💻 系统要求`n- Windows 10/11 或 Windows Server`n- 管理员权限（推荐，用于网络配置功能）`n`n### ⚡ 核心功能`n- 🔄 IP地址快速切换`n- 📡 Ping网络测试`n- 🧮 子网地址计算`n- 🛤️ 路由追踪分析`n- 📋 静态路由管理`n`n### 🔧 适用人群`n专为网络工程师、系统管理员设计的实用工具`n`n---`n**📅 构建时间**: $buildTime  `n**🔍 版本Hash**: $($commitSha.Substring(0,8))  `n**✅ 已通过**: Windows 2019/2022/Latest 全平台测试"
+        $releaseBody = "## NetKit $tag - Network Engineer Toolkit`n`n### Download`n- **NetKit.exe** - Windows single file version ($fileSizeMB MB)`n- Compatible with Windows 10/11/Server`n`n### Quick Start`n1. Download NetKit.exe file`n2. Right-click and select 'Run as administrator'`n3. Start using network management features`n`n### System Requirements`n- Windows 10/11 or Windows Server`n- Administrator privileges (recommended for network configuration)`n`n### Core Features`n- IP address quick switching`n- Ping network testing`n- Subnet address calculation`n- Route tracing analysis`n- Static route management`n`n### Target Users`n Practical tool designed for network engineers and system administrators`n`n---`n**Build Time**: $buildTime  `n**Version Hash**: $($commitSha.Substring(0,8))  `n**Tested on**: Windows 2019/2022/Latest platforms"
         
-        # 只有在推送标签或手动触发时才创建Release
+        # Only create Release when pushing tags or manual trigger
         if ("${{ github.event_name }}" -eq "push" -or "${{ github.event_name }}" -eq "workflow_dispatch") {
           gh release create $tag dist/NetKit.exe --title "NetKit $tag" --notes $releaseBody
         } else {
-          # 对于release事件，只上传文件到已存在的release
+          # For release events, only upload files to existing release
           gh release upload $tag dist/NetKit.exe --clobber
         }
         
-        # 上传使用说明文档
-        if (Test-Path "docs/使用说明_单文件版本.md") {
-          gh release upload $tag "docs/使用说明_单文件版本.md" --clobber
+        # Upload documentation
+        if (Test-Path "docs/README.md") {
+          gh release upload $tag "docs/README.md" --clobber
         }
       shell: powershell
