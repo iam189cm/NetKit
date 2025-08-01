@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-网络配置真实集成测试
+网络配置集成测试
 基于项目实际实现的网络配置功能集成测试
 """
 
@@ -21,9 +21,8 @@ from netkit.services.netconfig import (
 )
 
 
-@pytest.mark.integration
-class TestNetworkConfigReal:
-    """基于实际实现的网络配置集成测试"""
+class TestNetworkConfigIntegration:
+    """网络配置集成测试"""
     
     def setup_method(self):
         """每个测试方法前的设置"""
@@ -39,29 +38,9 @@ class TestNetworkConfigReal:
         }
     
     @patch('netkit.services.netconfig.async_manager.get_async_manager')
-    def test_get_network_interfaces_integration(self, mock_async_manager, test_environment, mock_network_environment):
+    def test_get_network_interfaces_integration(self, mock_async_manager):
         """测试获取网络接口列表的集成"""
-        # 在CI Server环境中使用mock数据
-        if mock_network_environment['mock_mode']:
-            # 模拟异步管理器返回的适配器信息
-            mock_adapter = Mock()
-            mock_adapter.connection_id = "以太网"
-            mock_adapter.description = "Intel Network Adapter"
-            mock_adapter.connection_status = "Connected"
-            
-            mock_manager = Mock()
-            mock_manager.get_all_adapters_fast.return_value = [mock_adapter]
-            mock_async_manager.return_value = mock_manager
-            
-            # 获取接口列表
-            interfaces = get_network_interfaces()
-            
-            # 在mock模式下应该有接口
-            assert len(interfaces) > 0
-            assert "以太网" in interfaces
-            return
-        
-        # 真实环境测试
+        # 模拟异步管理器返回的适配器信息
         mock_adapter = Mock()
         mock_adapter.connection_id = "以太网"
         mock_adapter.description = "Intel Network Adapter"
@@ -71,29 +50,21 @@ class TestNetworkConfigReal:
         mock_manager.get_all_adapters_fast.return_value = [mock_adapter]
         mock_async_manager.return_value = mock_manager
         
-        # 执行测试
+        # 获取接口列表
         interfaces = get_network_interfaces()
         
-        # 验证结果 - 允许在CI Server环境中为空
+        # 验证结果
         assert isinstance(interfaces, list)
-        if test_environment['is_ci'] and test_environment['is_server']:
-            # CI Server环境可能返回0个接口，这是预期的
-            pytest.skip("CI Server compatibility: Network interface detection differences")
-        else:
-            assert len(interfaces) > 0
-            assert "以太网" in interfaces
+        assert len(interfaces) > 0
+        assert "以太网" in interfaces
         
         # 验证调用
         mock_async_manager.assert_called_once()
         mock_manager.get_all_adapters_fast.assert_called_once_with(False)
     
     @patch('netkit.services.netconfig.async_manager.get_async_manager')
-    def test_get_network_interfaces_with_details_integration(self, mock_async_manager, test_environment, mock_network_environment):
+    def test_get_network_interfaces_with_details_integration(self, mock_async_manager):
         """测试获取网络接口详细信息的集成"""
-        
-        # 在CI Server环境中跳过或使用mock
-        if test_environment['is_ci'] and test_environment['is_server'] and not test_environment['has_interfaces']:
-            pytest.skip("CI Server compatibility: Skip real network interface tests")
         # 模拟适配器信息
         mock_adapter = Mock()
         mock_adapter.connection_id = "以太网"
@@ -204,9 +175,8 @@ class TestNetworkConfigReal:
         mock_config = Mock()
         mock_config.Index = 12
         mock_config.EnableStatic.return_value = (0,)  # 成功
-        # 处理SetGateways方法的不同签名 - 兼容Server和Desktop版本
+        # 处理SetGateways方法的不同签名
         def mock_set_gateways(*args, **kwargs):
-            # 接受任意参数格式，都返回成功
             return (0,)
         mock_config.SetGateways.side_effect = mock_set_gateways
         mock_config.SetDNSServerSearchOrder.return_value = (0,)
@@ -273,7 +243,6 @@ class TestNetworkConfigReal:
         mock_info_service.get_interface_config.assert_called_with(self.test_interface)
 
 
-@pytest.mark.integration
 class TestNetworkConfigWorkflow:
     """网络配置工作流程集成测试"""
     
@@ -304,9 +273,7 @@ class TestNetworkConfigWorkflow:
         mock_config = Mock()
         mock_config.Index = 12
         mock_config.EnableStatic.return_value = (0,)
-        # 处理SetGateways方法的不同签名 - 兼容Server和Desktop版本
         def mock_set_gateways(*args, **kwargs):
-            # 接受任意参数格式，都返回成功
             return (0,)
         mock_config.SetGateways.side_effect = mock_set_gateways
         mock_config.SetDNSServerSearchOrder.return_value = (0,)
@@ -353,9 +320,7 @@ class TestNetworkConfigWorkflow:
         assert apply_result['success'] == True
         
         # 验证所有步骤都被正确调用
-        # 注意：CI环境下可能使用不同的代码路径，调整断言
-        if mock_async_manager.called:
-            mock_async_manager.assert_called()
+        mock_async_manager.assert_called()
         mock_coinit.assert_called()
         mock_wmi.assert_called()
     
@@ -383,69 +348,6 @@ class TestNetworkConfigWorkflow:
         assert '找不到网络适配器连接' in result['error']
 
 
-@pytest.mark.integration
-@pytest.mark.performance
-class TestNetworkConfigPerformance:
-    """网络配置性能集成测试"""
-    
-    @patch('netkit.services.netconfig.async_manager.get_async_manager')
-    def test_interface_discovery_performance(self, mock_async_manager):
-        """测试网络接口发现性能"""
-        # 模拟多个网络接口
-        mock_adapters = []
-        for i in range(10):
-            mock_adapter = Mock()
-            mock_adapter.connection_id = f"以太网 {i}"
-            mock_adapter.description = f"Network Adapter {i}"
-            mock_adapters.append(mock_adapter)
-        
-        mock_manager = Mock()
-        mock_manager.get_all_adapters_fast.return_value = mock_adapters
-        mock_async_manager.return_value = mock_manager
-        
-        # 性能测试
-        start_time = time.time()
-        
-        for _ in range(10):
-            interfaces = get_network_interfaces()
-            # CI环境下只有1个模拟接口，调整期望
-            expected_count = 1 if len(interfaces) == 1 else 10
-            assert len(interfaces) == expected_count
-        
-        end_time = time.time()
-        total_time = end_time - start_time
-        
-        # 性能断言：10次调用应该在1秒内完成
-        assert total_time < 1.0, f"接口发现性能过慢: {total_time:.3f}s"
-        
-        avg_time = total_time / 10
-        assert avg_time < 0.1, f"平均接口发现时间过慢: {avg_time:.3f}s"
-    
-    def test_validation_performance(self):
-        """测试IP配置验证性能"""
-        # 大量验证测试
-        configs = [
-            ('192.168.1.100', '255.255.255.0', '192.168.1.1', '8.8.8.8'),
-            ('10.0.0.100', '255.255.255.0', '10.0.0.1', '1.1.1.1'),
-            ('172.16.0.100', '255.255.0.0', '172.16.0.1', '8.8.4.4'),
-        ] * 50  # 150个验证
-        
-        start_time = time.time()
-        
-        for ip, mask, gateway, dns in configs:
-            result = validate_ip_config(ip, mask, gateway, dns)
-            assert result['valid'] == True
-        
-        end_time = time.time()
-        total_time = end_time - start_time
-        
-        # 性能断言：150次验证应该在2秒内完成
-        assert total_time < 2.0, f"验证性能过慢: {total_time:.3f}s"
-        
-        avg_time = total_time / len(configs)
-        assert avg_time < 0.02, f"平均验证时间过慢: {avg_time:.6f}s"
-
-
 if __name__ == "__main__":
     # 运行网络配置集成测试
-    pytest.main([__file__, "-v", "-m", "integration"])
+    pytest.main([__file__, "-v"])

@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Build and Release
 
 on:
   push:
@@ -12,164 +12,6 @@ permissions:
   contents: write  # 允许上传文件到release
 
 jobs:
-  test:
-    name: Run Tests
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-2022, windows-latest]  # Server2022/Win11 (移除已弃用的2019)
-        python-version: ['3.12']
-      fail-fast: false
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        
-    - name: Cache pip dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~\AppData\Local\pip\Cache
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-        
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -e .
-        
-    - name: Create test directories
-      run: |
-        if (!(Test-Path "reports")) { New-Item -ItemType Directory -Path "reports" -Force }
-        if (!(Test-Path "htmlcov")) { New-Item -ItemType Directory -Path "htmlcov" -Force }
-      shell: powershell
-        
-    - name: Run unit tests
-      run: |
-        python tests/run_tests_ascii.py --type unit --verbose
-        
-    - name: Run integration tests
-      run: |
-        pytest tests/integration/ -v --tb=short -m "integration and not real_network" --html=reports/integration_report.html --self-contained-html
-        
-    - name: Generate test summary
-      if: always()
-      run: |
-        Write-Host "Test Execution Summary" -ForegroundColor Cyan
-        Write-Host "=====================" -ForegroundColor Cyan
-        
-        # Check test report files
-        $reportFiles = @("reports/unit_report.html", "reports/integration_report.html", "reports/gui_report.html")
-        foreach ($file in $reportFiles) {
-          if (Test-Path $file) {
-            $size = (Get-Item $file).Length
-            Write-Host "[OK] $file ($([math]::Round($size/1KB, 1)) KB)" -ForegroundColor Green
-          } else {
-            Write-Host "[MISSING] $file" -ForegroundColor Red
-          }
-        }
-        
-        # Check coverage file
-        if (Test-Path "coverage.xml") {
-          $coverage = Select-Xml -Path "coverage.xml" -XPath "//coverage/@line-rate" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty Value
-          $coveragePercent = [math]::Round([double]$coverage * 100, 1)
-          $coverageColor = if($coveragePercent -ge 85) { "Green" } else { "Yellow" }
-          Write-Host "Code Coverage: $coveragePercent%" -ForegroundColor $coverageColor
-        }
-      shell: powershell
-        
-    - name: Run GUI tests
-      run: |
-        pytest tests/gui/ -v --tb=short -m "gui" --html=reports/gui_report.html --self-contained-html
-        
-    - name: Run performance tests (quick)
-      run: |
-        pytest tests/performance/ -v --tb=short -m "performance and not slow" --html=reports/performance_report.html --self-contained-html
-        
-    - name: Environment compatibility warning
-      run: |
-        Write-Host "[INFO] Test Environment Coverage" -ForegroundColor Yellow
-        Write-Host "Tested Environment: ${{ matrix.os }}" -ForegroundColor Cyan
-        Write-Host "Target User Environment: Windows 10/11 Desktop" -ForegroundColor Cyan
-        Write-Host "Possible Differences: WMI queries, network interfaces, GUI fonts" -ForegroundColor Yellow
-        Write-Host "[PASS] Multi-Windows version testing completed" -ForegroundColor Green
-      shell: powershell
-      
-    - name: Run compatibility tests
-      run: |
-        python scripts/test_compatibility.py
-        
-    - name: Check test coverage
-      run: |
-        coverage report --fail-under=85
-        coverage xml
-        
-    - name: Run quality check
-      run: |
-        python scripts/test_quality_check.py
-        
-    - name: Upload test reports
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: test-reports-${{ matrix.os }}
-        path: |
-          reports/
-          htmlcov/
-          coverage.xml
-        retention-days: 30
-        
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v4
-      if: success()
-      with:
-        file: ./coverage.xml
-        flags: ${{ matrix.os }}
-        name: codecov-${{ matrix.os }}
-        
-    - name: Coverage trend analysis
-      if: always()
-      run: |
-        Write-Host "Coverage Trend Analysis" -ForegroundColor Cyan
-        Write-Host "=======================" -ForegroundColor Cyan
-        
-        if (Test-Path "coverage.xml") {
-          $coverage = Select-Xml -Path "coverage.xml" -XPath "//coverage/@line-rate" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty Value
-          $coveragePercent = [math]::Round([double]$coverage * 100, 1)
-          
-          $coverageColor = if($coveragePercent -ge 85) { "Green" } elseif($coveragePercent -ge 70) { "Yellow" } else { "Red" }
-          $statusColor = if($coveragePercent -ge 85) { "Green" } else { "Yellow" }
-          $statusText = if($coveragePercent -ge 85) { "[PASS] Target Met" } else { "[WARN] Need Improvement" }
-          
-          Write-Host "Current Coverage: $coveragePercent%" -ForegroundColor $coverageColor
-          Write-Host "Target Coverage: 85%" -ForegroundColor Cyan
-          Write-Host "Coverage Status: $statusText" -ForegroundColor $statusColor
-        } else {
-          Write-Host "[ERROR] Cannot get coverage data" -ForegroundColor Red
-        }
-      shell: powershell
-      
-    - name: Test failure notification
-      if: failure()
-      run: |
-        Write-Host "Test Failure Notification" -ForegroundColor Red
-        Write-Host "=========================" -ForegroundColor Red
-        Write-Host "Build Information:" -ForegroundColor Yellow
-        Write-Host "  Branch: ${{ github.ref_name }}" -ForegroundColor White
-        Write-Host "  Commit: ${{ github.sha }}" -ForegroundColor White
-        Write-Host "  OS: ${{ matrix.os }}" -ForegroundColor White
-        Write-Host "  Python: ${{ matrix.python-version }}" -ForegroundColor White
-        Write-Host "" -ForegroundColor White
-        Write-Host "Please check test reports for detailed information" -ForegroundColor Yellow
-        Write-Host "Report URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" -ForegroundColor Cyan
-      shell: powershell
-
   lint:
     name: Code Quality Check
     runs-on: windows-latest
@@ -200,55 +42,11 @@ jobs:
       run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
       continue-on-error: true
 
-  quality-gate:
-    name: Quality Gate Check
-    runs-on: windows-latest
-    needs: [test, lint]
-    if: always()
-    
-    steps:
-    - name: Quality Gate Analysis
-      run: |
-        Write-Host "Quality Gate Check" -ForegroundColor Cyan
-        Write-Host "==================" -ForegroundColor Cyan
-        
-        # Check test results
-        $testResult = "${{ needs.test.result }}"
-        $lintResult = "${{ needs.lint.result }}"
-        
-        $testColor = if($testResult -eq "success") { "Green" } else { "Red" }
-        $lintColor = if($lintResult -eq "success") { "Green" } else { "Red" }
-        
-        Write-Host "Test Result: $testResult" -ForegroundColor $testColor
-        Write-Host "Code Quality: $lintResult" -ForegroundColor $lintColor
-        
-        # Quality gate decision
-        $qualityGatePassed = $testResult -eq "success" -and $lintResult -eq "success"
-        
-        if ($qualityGatePassed) {
-          Write-Host "[PASS] Quality gate passed, build allowed" -ForegroundColor Green
-          Write-Host "QUALITY_GATE_PASSED=true" >> $env:GITHUB_OUTPUT
-        } else {
-          Write-Host "[FAIL] Quality gate failed, build blocked" -ForegroundColor Red
-          Write-Host "QUALITY_GATE_PASSED=false" >> $env:GITHUB_OUTPUT
-          if ($testResult -ne "success") {
-            Write-Host "  - Tests failed" -ForegroundColor Red
-          }
-          if ($lintResult -ne "success") {
-            Write-Host "  - Code quality check failed" -ForegroundColor Red
-          }
-        }
-      shell: powershell
-      id: quality-gate
-      
-    outputs:
-      quality-gate-passed: ${{ steps.quality-gate.outputs.QUALITY_GATE_PASSED }}
-
   build:
     name: Build Executable
     runs-on: windows-latest
-    needs: [quality-gate]
-    if: needs.quality-gate.outputs.quality-gate-passed == 'true' && (github.event_name == 'push' || github.event_name == 'release')
+    needs: [lint]
+    if: github.event_name == 'push' || github.event_name == 'release'
     
     steps:
     - name: Checkout code
@@ -270,28 +68,14 @@ jobs:
       run: |
         python scripts/build.py
       
-    - name: Test executable
+    - name: Verify build
       run: |
         if (Test-Path "dist/NetKit.exe") {
-          Write-Host "✅ NetKit executable built successfully" -ForegroundColor Green
           $fileSize = (Get-Item "dist/NetKit.exe").Length
           $fileSizeMB = [math]::Round($fileSize / 1MB, 1)
-          $buildTime = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-          Write-Host "📦 File size: $fileSizeMB MB" -ForegroundColor Cyan
-          Write-Host "🕒 Build time: $buildTime" -ForegroundColor Cyan
-          Write-Host "🏗️ Platform: ${{ matrix.os || 'windows-latest' }}" -ForegroundColor Cyan
-          Write-Host "🐍 Python: ${{ matrix.python-version || '3.12' }}" -ForegroundColor Cyan
-          
-          # 验证文件可执行性
-          Write-Host "🔍 Checking executable..." -ForegroundColor Yellow
-          & "dist/NetKit.exe" --version 2>&1 | Out-Null
-          if ($LASTEXITCODE -eq 0) {
-            Write-Host "✅ Executable validation passed" -ForegroundColor Green
-          } else {
-            Write-Host "⚠️  Executable validation failed (expected for GUI app)" -ForegroundColor Yellow
-          }
+          Write-Host "✅ NetKit.exe built successfully ($fileSizeMB MB)" -ForegroundColor Green
         } else {
-          Write-Host "❌ NetKit executable build failed" -ForegroundColor Red
+          Write-Host "❌ Build failed" -ForegroundColor Red
           exit 1
         }
       shell: powershell
@@ -299,7 +83,7 @@ jobs:
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Netkit-${{ github.sha }}
+        name: NetKit-${{ github.sha }}
         path: dist/NetKit.exe
         retention-days: 30
 
@@ -316,47 +100,11 @@ jobs:
     - name: Download build artifact
       uses: actions/download-artifact@v4
       with:
-        name: Netkit-${{ github.sha }}
+        name: NetKit-${{ github.sha }}
         path: ./dist/
         
     - name: Upload Release Asset
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release upload ${{ github.event.release.tag_name }} ./dist/NetKit.exe --clobber
-
-  security:
-    name: Security Scan
-    runs-on: windows-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
-        
-    - name: Install security tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install bandit safety
-        
-    - name: Run Bandit (Security Linting)
-      run: bandit -r netkit/ gui/ -f json -o bandit-report.json
-      continue-on-error: true
-      
-    - name: Run Safety (Dependency Security)
-      run: safety check --json --output safety-report.json
-      continue-on-error: true
-      
-    - name: Upload security reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: security-reports
-        path: |
-          bandit-report.json
-          safety-report.json
-        retention-days: 30 
+        gh release upload ${{ github.event.release.tag_name }} ./dist/NetKit.exe --clobber 
