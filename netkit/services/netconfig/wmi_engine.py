@@ -495,7 +495,7 @@ class WMIQueryEngine:
         """为CI环境创建模拟网络适配器"""
         mock_adapter = NetworkAdapterInfo(
             name="Mock CI Ethernet",
-            connection_id="本地连接",
+            connection_id="以太网",
             description="Mock Network Adapter for CI Testing",
             mac_address="00:15:5D:FF:FF:FF",
             status="OK",

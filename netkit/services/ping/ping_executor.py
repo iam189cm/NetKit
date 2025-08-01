@@ -64,45 +64,72 @@ class PingExecutor:
         Returns:
             subprocess.CompletedProcess: 命令执行结果
         """
-        # Windows系统中netsh命令存在编码问题，特别是中文网卡名称会出现乱码
+        try:
+            # Windows平台下隐藏控制台窗口，避免弹出黑色命令行窗口
+            if platform.system() == 'Windows':
+                creationflags = subprocess.CREATE_NO_WINDOW
+            else:
+                creationflags = 0
+            
+            # 使用bytes模式执行命令，避免编码异常
+            result = subprocess.run(
+                cmd, 
+                capture_output=True, 
+                text=False,  # 使用bytes模式
+                timeout=30,  # 防止命令hang住
+                creationflags=creationflags  # 隐藏Windows控制台窗口
+            )
+            
+            # 手动处理编码，使用多种编码尝试机制
+            stdout_text = self._decode_output(result.stdout)
+            stderr_text = self._decode_output(result.stderr)
+            
+            # 返回处理后的结果
+            return subprocess.CompletedProcess(
+                cmd, 
+                result.returncode, 
+                stdout_text, 
+                stderr_text
+            )
+            
+        except subprocess.TimeoutExpired:
+            # 超时情况下返回失败结果
+            return subprocess.CompletedProcess(
+                cmd, 1, '', 'Command timeout'
+            )
+        except Exception as e:
+            return subprocess.CompletedProcess(
+                cmd, 1, '', str(e)
+            )
+    
+    def _decode_output(self, byte_output):
+        """
+        解码命令输出，处理编码问题
+        
+        Args:
+            byte_output (bytes): 字节输出
+            
+        Returns:
+            str: 解码后的文本
+        """
+        if not byte_output:
+            return ''
+        
+        # Windows系统中ping命令存在编码问题，特别是中文网卡名称会出现乱码
         # 解决方案是使用多种编码尝试机制：先尝试UTF-8，失败后尝试GBK，最后使用系统默认编码
-        encodings = ['utf-8', 'gbk', 'cp936', None]
+        encodings = ['utf-8', 'gbk', 'cp936', 'latin1']
         
         for encoding in encodings:
             try:
-                # Windows平台下隐藏控制台窗口，避免弹出黑色命令行窗口
-                if platform.system() == 'Windows':
-                    creationflags = subprocess.CREATE_NO_WINDOW
-                else:
-                    creationflags = 0
-                
-                result = subprocess.run(
-                    cmd, 
-                    capture_output=True, 
-                    text=True, 
-                    encoding=encoding,
-                    timeout=30,  # 防止命令hang住
-                    creationflags=creationflags  # 隐藏Windows控制台窗口
-                )
-                return result
+                return byte_output.decode(encoding)
             except (UnicodeDecodeError, UnicodeError):
                 continue
-            except subprocess.TimeoutExpired:
-                # 超时情况下返回失败结果
-                return subprocess.CompletedProcess(
-                    cmd, 1, '', 'Command timeout'
-                )
-            except Exception as e:
-                if encoding is None:  # 最后一次尝试失败
-                    return subprocess.CompletedProcess(
-                        cmd, 1, '', str(e)
-                    )
-                continue
         
-        # 如果所有编码都失败，返回错误结果
-        return subprocess.CompletedProcess(
-            cmd, 1, '', 'Encoding error: unable to decode output'
-        )
+        # 如果所有编码都失败，使用errors='replace'强制解码
+        try:
+            return byte_output.decode('utf-8', errors='replace')
+        except Exception:
+            return str(byte_output)
     
     def batch_ping(self, hosts, count=5, timeout=3000, max_workers=25, progress_callback=None):
         """
