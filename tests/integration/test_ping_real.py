@@ -29,25 +29,14 @@ class TestPingServiceReal:
         self.ping_executor = PingExecutor()
         self.result_parser = PingResultParser()
     
-    @patch('subprocess.run')
+    @patch('netkit.services.ping.ping_executor.subprocess.run')
     def test_ping_single_integration(self, mock_subprocess):
         """测试单次ping的集成"""
-        # 模拟成功的ping命令输出
+        # 模拟成功的ping命令输出 - 使用bytes格式因为ping_executor使用text=False
         mock_result = Mock()
         mock_result.returncode = 0
-        mock_result.stdout = """
-正在 Ping 8.8.8.8 具有 32 字节的数据:
-来自 8.8.8.8 的回复: 字节=32 时间=15ms TTL=117
-来自 8.8.8.8 的回复: 字节=32 时间=14ms TTL=117
-来自 8.8.8.8 的回复: 字节=32 时间=16ms TTL=117
-来自 8.8.8.8 的回复: 字节=32 时间=15ms TTL=117
-
-8.8.8.8 的 Ping 统计信息:
-    数据包: 已发送 = 4，已接收 = 4，丢失 = 0 (0% 丢失)，
-往返行程的估计时间(以毫秒为单位):
-    最短 = 14ms，最长 = 16ms，平均 = 15ms
-        """
-        mock_result.stderr = ""
+        mock_result.stdout = b"Pinging 8.8.8.8 with 32 bytes of data:\nReply from 8.8.8.8: bytes=32 time=15ms TTL=117\nReply from 8.8.8.8: bytes=32 time=14ms TTL=117\nReply from 8.8.8.8: bytes=32 time=16ms TTL=117\nReply from 8.8.8.8: bytes=32 time=15ms TTL=117\n\nPing statistics for 8.8.8.8:\n    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),\nApproximate round trip times in milli-seconds:\n    Minimum = 14ms, Maximum = 16ms, Average = 15ms"
+        mock_result.stderr = b""
         mock_subprocess.return_value = mock_result
         
         # 执行测试
@@ -69,7 +58,7 @@ class TestPingServiceReal:
         assert '3000' in call_args
         assert '8.8.8.8' in call_args
     
-    @patch('subprocess.run')
+    @patch('netkit.services.ping.ping_executor.subprocess.run')
     def test_ping_with_stats_integration(self, mock_subprocess):
         """测试带统计信息的ping集成"""
         # 模拟ping输出
@@ -88,7 +77,7 @@ class TestPingServiceReal:
 往返行程的估计时间(以毫秒为单位):
     最短 = 11ms，最长 = 14ms，平均 = 12ms
         """
-        mock_result.stderr = ""
+        mock_result.stderr = b""
         mock_subprocess.return_value = mock_result
         
         # 执行测试
@@ -108,7 +97,7 @@ class TestPingServiceReal:
         assert isinstance(stats, dict)
         # 统计信息的具体字段依赖于PingResultParser的实现
     
-    @patch('subprocess.run')
+    @patch('netkit.services.ping.ping_executor.subprocess.run')
     def test_batch_ping_integration(self, mock_subprocess):
         """测试批量ping集成"""
         # 模拟不同主机的ping结果
@@ -117,7 +106,7 @@ class TestPingServiceReal:
             host = cmd[-1]  # 最后一个参数是主机地址
             
             mock_result = Mock()
-            mock_result.stderr = ""
+            mock_result.stderr = b""
             
             if host == '8.8.8.8':
                 mock_result.returncode = 0
@@ -176,14 +165,14 @@ class TestPingServiceReal:
             except Exception as e:
                 pytest.skip(f"IP range parsing feature may not be fully implemented: {e}")
     
-    @patch('subprocess.run')
+    @patch('netkit.services.ping.ping_executor.subprocess.run')
     def test_ping_executor_direct_integration(self, mock_subprocess):
         """测试直接使用PingExecutor的集成"""
         # 模拟ping输出
         mock_result = Mock()
         mock_result.returncode = 0
         mock_result.stdout = "来自 8.8.8.8 的回复: 字节=32 时间=15ms TTL=117"
-        mock_result.stderr = ""
+        mock_result.stderr = b""
         mock_subprocess.return_value = mock_result
         
         # 直接使用PingExecutor
@@ -230,14 +219,14 @@ class TestPingServiceWorkflow:
         """每个测试方法前的设置"""
         self.ping_service = PingService()
     
-    @patch('subprocess.run')
+    @patch('netkit.services.ping.ping_executor.subprocess.run')
     def test_complete_ping_workflow(self, mock_subprocess):
         """测试完整的ping工作流程"""
         # 模拟ping命令输出
         mock_result = Mock()
         mock_result.returncode = 0
         mock_result.stdout = "来自 8.8.8.8 的回复: 字节=32 时间=15ms TTL=117\n平均 = 15ms"
-        mock_result.stderr = ""
+        mock_result.stderr = b""
         mock_subprocess.return_value = mock_result
         
         # 执行完整工作流程
@@ -258,14 +247,14 @@ class TestPingServiceWorkflow:
         assert '8.8.8.8' in batch_results
         assert '1.1.1.1' in batch_results
     
-    @patch('subprocess.run')
+    @patch('netkit.services.ping.ping_executor.subprocess.run')
     def test_error_handling_workflow(self, mock_subprocess):
         """测试错误处理工作流程"""
         # 模拟ping失败的情况
         mock_result = Mock()
         mock_result.returncode = 1
         mock_result.stdout = "请求超时。"
-        mock_result.stderr = ""
+        mock_result.stderr = b""
         mock_subprocess.return_value = mock_result
         
         # 测试单次ping失败处理
@@ -291,14 +280,14 @@ class TestPingServicePerformance:
         """每个测试方法前的设置"""
         self.ping_service = PingService()
     
-    @patch('subprocess.run')
+    @patch('netkit.services.ping.ping_executor.subprocess.run')
     def test_batch_ping_performance(self, mock_subprocess):
         """测试批量ping性能"""
         # 模拟快速响应的ping命令
         mock_result = Mock()
         mock_result.returncode = 0
         mock_result.stdout = "来自 主机 的回复: 字节=32 时间=1ms TTL=64\n平均 = 1ms"
-        mock_result.stderr = ""
+        mock_result.stderr = b""
         mock_subprocess.return_value = mock_result
         
         # 生成测试主机列表
@@ -322,14 +311,14 @@ class TestPingServicePerformance:
             assert host in results
             assert results[host]['result']['success'] == True
     
-    @patch('subprocess.run')
+    @patch('netkit.services.ping.ping_executor.subprocess.run')
     def test_concurrent_ping_performance(self, mock_subprocess):
         """测试并发ping性能"""
         # 模拟ping响应
         mock_result = Mock()
         mock_result.returncode = 0
         mock_result.stdout = "来自 主机 的回复: 字节=32 时间=10ms TTL=64"
-        mock_result.stderr = ""
+        mock_result.stderr = b""
         mock_subprocess.return_value = mock_result
         
         hosts = ['8.8.8.8', '1.1.1.1', '8.8.4.4', '1.0.0.1']
@@ -364,14 +353,14 @@ class TestPingServiceStress:
         """每个测试方法前的设置"""
         self.ping_service = PingService()
     
-    @patch('subprocess.run')
+    @patch('netkit.services.ping.ping_executor.subprocess.run')
     def test_high_volume_ping_stress(self, mock_subprocess):
         """测试大量ping的压力测试"""
         # 模拟ping响应
         mock_result = Mock()
         mock_result.returncode = 0
         mock_result.stdout = "来自 主机 的回复: 字节=32 时间=5ms TTL=64\n平均 = 5ms"
-        mock_result.stderr = ""
+        mock_result.stderr = b""
         mock_subprocess.return_value = mock_result
         
         # 生成大量主机
