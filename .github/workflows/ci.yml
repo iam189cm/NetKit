@@ -9,7 +9,7 @@ on:
     types: [ published ]
 
 permissions:
-  contents: write  # 允许上传文件到release
+  contents: write  # Allow uploading files to release
 
 jobs:
   lint:
@@ -73,9 +73,9 @@ jobs:
         if (Test-Path "dist/NetKit.exe") {
           $fileSize = (Get-Item "dist/NetKit.exe").Length
           $fileSizeMB = [math]::Round($fileSize / 1MB, 1)
-          Write-Host "✅ NetKit.exe built successfully ($fileSizeMB MB)" -ForegroundColor Green
+          Write-Host "[SUCCESS] NetKit.exe built successfully ($fileSizeMB MB)" -ForegroundColor Green
         } else {
-          Write-Host "❌ Build failed" -ForegroundColor Red
+          Write-Host "[ERROR] Build failed" -ForegroundColor Red
           exit 1
         }
       shell: powershell
