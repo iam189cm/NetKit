@@ -56,7 +56,7 @@ jobs:
         
     - name: Run integration tests
       run: |
-        python tests/run_tests_ascii.py --type integration --verbose --ci-safe
+        python tests/run_tests_ascii.py --type integration --verbose
         
     - name: Run GUI tests
       run: |
