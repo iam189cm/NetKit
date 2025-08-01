@@ -61,26 +61,26 @@ jobs:
     - name: Generate test summary
       if: always()
       run: |
-        Write-Host "📊 测试执行总结" -ForegroundColor Cyan
-        Write-Host "==================" -ForegroundColor Cyan
+        Write-Host "Test Execution Summary" -ForegroundColor Cyan
+        Write-Host "=====================" -ForegroundColor Cyan
         
-        # 检查测试报告文件
+        # Check test report files
         $reportFiles = @("reports/unit_report.html", "reports/integration_report.html", "reports/gui_report.html")
         foreach ($file in $reportFiles) {
           if (Test-Path $file) {
             $size = (Get-Item $file).Length
-            Write-Host "✅ $file ($([math]::Round($size/1KB, 1)) KB)" -ForegroundColor Green
+            Write-Host "[OK] $file ($([math]::Round($size/1KB, 1)) KB)" -ForegroundColor Green
           } else {
-            Write-Host "❌ $file (不存在)" -ForegroundColor Red
+            Write-Host "[MISSING] $file" -ForegroundColor Red
           }
         }
         
-        # 检查覆盖率文件
+        # Check coverage file
         if (Test-Path "coverage.xml") {
           $coverage = Select-Xml -Path "coverage.xml" -XPath "//coverage/@line-rate" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty Value
           $coveragePercent = [math]::Round([double]$coverage * 100, 1)
           $coverageColor = if($coveragePercent -ge 85) { "Green" } else { "Yellow" }
-          Write-Host "📈 代码覆盖率: $coveragePercent%" -ForegroundColor $coverageColor
+          Write-Host "Code Coverage: $coveragePercent%" -ForegroundColor $coverageColor
         }
       shell: powershell
         
@@ -94,11 +94,11 @@ jobs:
         
     - name: Environment compatibility warning
       run: |
-        Write-Host "⚠️  测试环境覆盖情况 ⚠️" -ForegroundColor Yellow
-        Write-Host "已测试环境: ${{ matrix.os }}" -ForegroundColor Cyan
-        Write-Host "目标用户环境: Windows 10/11 桌面版" -ForegroundColor Cyan
-        Write-Host "可能的差异: WMI查询结果、网络接口、GUI字体等" -ForegroundColor Yellow
-        Write-Host "✅ 多Windows版本测试通过" -ForegroundColor Green
+        Write-Host "[INFO] Test Environment Coverage" -ForegroundColor Yellow
+        Write-Host "Tested Environment: ${{ matrix.os }}" -ForegroundColor Cyan
+        Write-Host "Target User Environment: Windows 10/11 Desktop" -ForegroundColor Cyan
+        Write-Host "Possible Differences: WMI queries, network interfaces, GUI fonts" -ForegroundColor Yellow
+        Write-Host "[PASS] Multi-Windows version testing completed" -ForegroundColor Green
       shell: powershell
       
     - name: Run compatibility tests
@@ -136,8 +136,8 @@ jobs:
     - name: Coverage trend analysis
       if: always()
       run: |
-        Write-Host "📈 覆盖率趋势分析" -ForegroundColor Cyan
-        Write-Host "==================" -ForegroundColor Cyan
+        Write-Host "Coverage Trend Analysis" -ForegroundColor Cyan
+        Write-Host "=======================" -ForegroundColor Cyan
         
         if (Test-Path "coverage.xml") {
           $coverage = Select-Xml -Path "coverage.xml" -XPath "//coverage/@line-rate" | Select-Object -ExpandProperty Node | Select-Object -ExpandProperty Value
@@ -145,29 +145,29 @@ jobs:
           
           $coverageColor = if($coveragePercent -ge 85) { "Green" } elseif($coveragePercent -ge 70) { "Yellow" } else { "Red" }
           $statusColor = if($coveragePercent -ge 85) { "Green" } else { "Yellow" }
-          $statusText = if($coveragePercent -ge 85) { "✅ 达标" } else { "⚠️ 需要改进" }
+          $statusText = if($coveragePercent -ge 85) { "[PASS] Target Met" } else { "[WARN] Need Improvement" }
           
-          Write-Host "当前覆盖率: $coveragePercent%" -ForegroundColor $coverageColor
-          Write-Host "目标覆盖率: 85%" -ForegroundColor Cyan
-          Write-Host "覆盖率状态: $statusText" -ForegroundColor $statusColor
+          Write-Host "Current Coverage: $coveragePercent%" -ForegroundColor $coverageColor
+          Write-Host "Target Coverage: 85%" -ForegroundColor Cyan
+          Write-Host "Coverage Status: $statusText" -ForegroundColor $statusColor
         } else {
-          Write-Host "❌ 无法获取覆盖率数据" -ForegroundColor Red
+          Write-Host "[ERROR] Cannot get coverage data" -ForegroundColor Red
         }
       shell: powershell
       
     - name: Test failure notification
       if: failure()
       run: |
-        Write-Host "🚨 测试失败通知" -ForegroundColor Red
-        Write-Host "==================" -ForegroundColor Red
-        Write-Host "构建信息:" -ForegroundColor Yellow
-        Write-Host "  分支: ${{ github.ref_name }}" -ForegroundColor White
-        Write-Host "  提交: ${{ github.sha }}" -ForegroundColor White
-        Write-Host "  操作系统: ${{ matrix.os }}" -ForegroundColor White
-        Write-Host "  Python版本: ${{ matrix.python-version }}" -ForegroundColor White
+        Write-Host "Test Failure Notification" -ForegroundColor Red
+        Write-Host "=========================" -ForegroundColor Red
+        Write-Host "Build Information:" -ForegroundColor Yellow
+        Write-Host "  Branch: ${{ github.ref_name }}" -ForegroundColor White
+        Write-Host "  Commit: ${{ github.sha }}" -ForegroundColor White
+        Write-Host "  OS: ${{ matrix.os }}" -ForegroundColor White
+        Write-Host "  Python: ${{ matrix.python-version }}" -ForegroundColor White
         Write-Host "" -ForegroundColor White
-        Write-Host "请检查测试报告以获取详细信息" -ForegroundColor Yellow
-        Write-Host "报告位置: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" -ForegroundColor Cyan
+        Write-Host "Please check test reports for detailed information" -ForegroundColor Yellow
+        Write-Host "Report URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" -ForegroundColor Cyan
       shell: powershell
 
   lint:
@@ -209,33 +209,33 @@ jobs:
     steps:
     - name: Quality Gate Analysis
       run: |
-        Write-Host "🔒 代码质量门禁检查" -ForegroundColor Cyan
-        Write-Host "========================" -ForegroundColor Cyan
+        Write-Host "Quality Gate Check" -ForegroundColor Cyan
+        Write-Host "==================" -ForegroundColor Cyan
         
-        # 检查测试结果
+        # Check test results
         $testResult = "${{ needs.test.result }}"
         $lintResult = "${{ needs.lint.result }}"
         
         $testColor = if($testResult -eq "success") { "Green" } else { "Red" }
         $lintColor = if($lintResult -eq "success") { "Green" } else { "Red" }
         
-        Write-Host "测试结果: $testResult" -ForegroundColor $testColor
-        Write-Host "代码质量检查: $lintResult" -ForegroundColor $lintColor
+        Write-Host "Test Result: $testResult" -ForegroundColor $testColor
+        Write-Host "Code Quality: $lintResult" -ForegroundColor $lintColor
         
-        # 质量门禁判断
+        # Quality gate decision
         $qualityGatePassed = $testResult -eq "success" -and $lintResult -eq "success"
         
         if ($qualityGatePassed) {
-          Write-Host "✅ 质量门禁检查通过，允许构建" -ForegroundColor Green
+          Write-Host "[PASS] Quality gate passed, build allowed" -ForegroundColor Green
           Write-Host "QUALITY_GATE_PASSED=true" >> $env:GITHUB_OUTPUT
         } else {
-          Write-Host "❌ 质量门禁检查失败，阻止构建" -ForegroundColor Red
+          Write-Host "[FAIL] Quality gate failed, build blocked" -ForegroundColor Red
           Write-Host "QUALITY_GATE_PASSED=false" >> $env:GITHUB_OUTPUT
           if ($testResult -ne "success") {
-            Write-Host "  - 测试未通过" -ForegroundColor Red
+            Write-Host "  - Tests failed" -ForegroundColor Red
           }
           if ($lintResult -ne "success") {
-            Write-Host "  - 代码质量检查未通过" -ForegroundColor Red
+            Write-Host "  - Code quality check failed" -ForegroundColor Red
           }
         }
       shell: powershell
