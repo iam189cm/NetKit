@@ -64,7 +64,11 @@ class AsyncNetworkDataManager:
             # CI环境检测 - 如果是CI环境，跳过预加载避免COM冲突
             is_ci = os.getenv('CI', '').lower() == 'true' or os.getenv('GITHUB_ACTIONS', '').lower() == 'true'
             if is_ci:
-                self.logger.warning("检测到CI环境，跳过异步预加载")
+                self.logger.warning("检测到CI环境，跳过异步预加载，使用模拟数据")
+                # 在CI环境下直接设置模拟数据到缓存
+                mock_adapters = self.wmi_engine._create_mock_adapter_for_ci()
+                for adapter in mock_adapters:
+                    self.adapters_cache[adapter.connection_id] = adapter
                 self.preload_completed = True
                 return
             
