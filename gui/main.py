@@ -17,7 +17,7 @@ from datetime import datetime
 class MainWindow:
     def __init__(self, admin_status=None):
         self.app = tb.Window(themename='darkly')
-        self.app.title('NetKit v2.0.0 - 网络工程师工具箱')
+        self.app.title('NetKit v2.0.1 - 网络工程师工具箱')
         
         # 权限状态管理
         if admin_status is None:
@@ -126,7 +126,7 @@ class MainWindow:
         # 版本信息
         version_label = tb.Label(
             sidebar,
-            text="v2.0.0 网络工具箱",  # 更新版本号
+            text="v2.0.1 网络工具箱",  # 更新版本号
             font=ui_helper.get_font(10),  # 稍微增大版本字体
             bootstyle=SECONDARY
         )

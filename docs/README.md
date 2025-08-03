@@ -1,5 +1,5 @@
 
-# NetKit v2.0.0
+# NetKit v2.0.1
 
 [![Release Build](https://github.com/iam189cm/NetKit/actions/workflows/release.yml/badge.svg)](https://github.com/iam189cm/NetKit/actions/workflows/release.yml)
 [![GitHub release](https://img.shields.io/github/release/iam189cm/NetKit.svg)](https://github.com/iam189cm/NetKit/releases)
@@ -33,7 +33,11 @@ NetKit/
 │   │   │   ├── result_parser.py        # 结果解析器
 │   │   │   └── ip_parser.py           # IP范围解析
 │   │   ├── route/            # 静态路由管理服务
-│   │   │   └── route.py      # 路由管理核心服务
+│   │   │   ├── route.py              # 路由管理核心服务
+│   │   │   ├── route_manager.py      # 路由管理器
+│   │   │   ├── route_parser.py       # 路由表解析器
+│   │   │   ├── route_validator.py    # 路由参数验证器
+│   │   │   └── async_route_handler.py # 异步路由操作处理器
 │   │   ├── subnet/           # 子网计算服务（预留）
 │   │   └── tracert/          # 路由跟踪服务（预留）
 │   └── utils/                # 工具模块
@@ -55,7 +59,11 @@ NetKit/
 │   │   │   ├── scan_controller.py      # 扫描控制器
 │   │   │   └── ui_components.py        # UI辅助组件
 │   │   ├── route/            # 路由管理UI组件
-│   │   │   └── route_view.py      # 路由管理界面
+│   │   │   ├── route_view.py             # 路由管理主视图
+│   │   │   ├── route_table_widget.py    # 路由表显示组件
+│   │   │   ├── route_form_widget.py     # 路由操作表单组件
+│   │   │   ├── action_buttons_widget.py # 操作按钮组件
+│   │   │   └── result_display_widget.py # 结果显示组件
 │   │   ├── subnet/           # 子网计算UI组件（预留）
 │   │   └── tracert/          # 路由跟踪UI组件（预留）
 │   └── assets/              # 资源文件
@@ -170,6 +178,39 @@ python -m pytest
 - **运行建议**: 右键选择"以管理员身份运行"获得完整功能
 - **DPI支持**: 自动适配高分屏显示，支持DPI缩放
 
+## 🏧 架构设计
+
+### 模块化架构
+NetKit 采用了现代化的模块化架构设计，将功能按照职责进行清晰拆分：
+
+#### GUI层组件化
+- **主视图协调器**: 负责组件的创建、组装和事件协调
+- **专业化UI组件**: 每个组件专注于单一功能（表格、表单、按钮、结果显示）
+- **低耦合通信**: 组件间通过回调函数进行通信，避免直接依赖
+
+#### 服务层拆分
+- **主服务接口**: 保持API的稳定性和向后兼容性
+- **功能专业化**: 按功能职责拆分为管理器、解析器、验证器等
+- **异步处理**: 独立的异步操作处理器，统一管理线程操作
+
+#### 设计模式应用
+- **MVC模式**: 清晰分离视图、控制器和数据层
+- **观察者模式**: 组件间事件通知机制
+- **工厂模式**: 统一的组件创建和管理
+- **单一职责原则**: 每个类只负责一个明确的功能
+
+### 代码质量保证
+- **单元测试**: 全面的pytest测试覆盖
+- **类型检查**: 使用Type Hints提高代码可读性
+- **文档化**: 完整的docstring和注释
+- **错误处理**: 统一的异常处理和日志记录
+
+### 性能优化
+- **异步操作**: 所有网络操作都采用异步处理，避免UI卡顿
+- **资源管理**: 自动资源清理和内存管理
+- **缓存机制**: 智能缓存策略，提高响应速度
+- **DPI适配**: 自动适配高分屏显示
+
 ## 🔧 主要特性说明
 
 ### 网络配置管理
@@ -185,10 +226,11 @@ python -m pytest
 - 详细的响应时间统计和历史记录
 
 ### 静态路由管理
-- 完整的路由表查看功能
-- 支持路由的添加、删除和修改
-- 自动路由冲突检测和验证
-- 支持各种路由类型（默认、静态、直连等）
+- 完整的路由表查看功能，支持16+条路由显示
+- 支持路由的添加、删除和修改操作
+- 自动路由冲突检测和参数验证
+- 支持各种路由类型（默认、静态、直连、环回、多播等）
+- 模块化架构设计，支持组件化开发和维护
 
 ### 预留功能模块
 - **子网计算器**: 子网地址计算和VLSM支持（开发中）
