@@ -131,6 +131,7 @@ class InfoDisplayWidget(tb.LabelFrame):
                 f"状态: {info.get('status', '未知')}",
                 f"物理地址: {info.get('mac', '未知')}",
                 f"速度: {info.get('speed', '未知')}",
+                f"模式: {info.get('mode', '未知')}",
                 f"IP地址: {info.get('ip', '未配置')}",
                 f"子网掩码: {info.get('mask', '未配置')}",
                 f"默认网关: {info.get('gateway', '未配置')}",
@@ -172,6 +173,7 @@ class InfoDisplayWidget(tb.LabelFrame):
                 f"状态: {info.get('status', '未知')}",
                 f"物理地址: {info.get('mac', '未知')}",
                 f"速度: {info.get('speed', '未知')}",
+                f"模式: {info.get('mode', '未知')}",
                 f"IP地址: {info.get('ip', '未配置')}",
                 f"子网掩码: {info.get('mask', '未配置')}",
                 f"默认网关: {info.get('gateway', '未配置')}",
@@ -215,6 +217,8 @@ class InfoDisplayWidget(tb.LabelFrame):
                         info['mac'] = value
                     elif key == '速度':
                         info['speed'] = value
+                    elif key == '模式':
+                        info['mode'] = value
                     elif key == 'IP地址':
                         info['ip'] = value
                     elif key == '子网掩码':

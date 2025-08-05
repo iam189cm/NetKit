@@ -27,20 +27,20 @@ class RouteTableWidget(tb.LabelFrame):
         columns = ("destination", "netmask", "gateway", "interface", "metric", "type")
         self.route_tree = ttk.Treeview(self, columns=columns, show="headings", height=ui_helper.scale_size(12))
         
-        # 设置列标题和宽度
-        self.route_tree.heading("destination", text="目标网络")
-        self.route_tree.heading("netmask", text="子网掩码")
-        self.route_tree.heading("gateway", text="网关")
-        self.route_tree.heading("interface", text="接口")
-        self.route_tree.heading("metric", text="跃点数")
-        self.route_tree.heading("type", text="路由类型")
+        # 设置列标题和宽度（统一左对齐）
+        self.route_tree.heading("destination", text="目标网络", anchor=W)
+        self.route_tree.heading("netmask", text="子网掩码", anchor=W)
+        self.route_tree.heading("gateway", text="网关", anchor=W)
+        self.route_tree.heading("interface", text="接口", anchor=W)
+        self.route_tree.heading("metric", text="跃点数", anchor=W)
+        self.route_tree.heading("type", text="路由类型", anchor=W)
         
-        self.route_tree.column("destination", width=ui_helper.scale_size(120))
-        self.route_tree.column("netmask", width=ui_helper.scale_size(120))
-        self.route_tree.column("gateway", width=ui_helper.scale_size(120))
-        self.route_tree.column("interface", width=ui_helper.scale_size(120))
-        self.route_tree.column("metric", width=ui_helper.scale_size(80))
-        self.route_tree.column("type", width=ui_helper.scale_size(100))
+        self.route_tree.column("destination", width=ui_helper.scale_size(120), anchor=W)
+        self.route_tree.column("netmask", width=ui_helper.scale_size(120), anchor=W)
+        self.route_tree.column("gateway", width=ui_helper.scale_size(120), anchor=W)
+        self.route_tree.column("interface", width=ui_helper.scale_size(120), anchor=W)
+        self.route_tree.column("metric", width=ui_helper.scale_size(80), anchor=W)
+        self.route_tree.column("type", width=ui_helper.scale_size(100), anchor=W)
         
         # 绑定选择事件
         self.route_tree.bind('<<TreeviewSelect>>', self._on_route_select)

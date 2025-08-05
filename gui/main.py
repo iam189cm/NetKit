@@ -11,6 +11,7 @@ from netkit.utils.ui_helper import ui_helper
 from gui.views.netconfig.netconfig_view import NetConfigView
 from gui.views.ping import VisualPingView
 from gui.views.route.route_view import RouteFrame
+from gui.views.subnet.subnet_view import SubnetView
 from datetime import datetime
 
 
@@ -135,9 +136,9 @@ class MainWindow:
         # 导航按钮
         nav_button_configs = [
             ("网卡配置", self.show_ip_switcher, PRIMARY, "快速切换网络配置", True),  # 需要管理员权限
-            ("Ping测试", self.show_ping, SUCCESS, "网络连通性测试", False),      # 不需要管理员权限
             ("静态路由", self.show_route, DANGER, "管理静态路由", True),         # 需要管理员权限
-            ("关于", self.show_about_page, INFO, "关于NetKit", False),          # 不需要管理员权限
+            ("Ping测试", self.show_ping, SUCCESS, "网络连通性测试", False),      # 不需要管理员权限
+            ("子网计算", self.show_subnet, INFO, "子网掩码计算工具", False),     # 不需要管理员权限
         ]
         
         # 保存按钮配置
@@ -323,6 +324,19 @@ class MainWindow:
         except Exception as e:
             self.set_status(f"加载静态路由管理功能失败: {str(e)}")
     
+    def show_subnet(self):
+        """显示子网计算功能"""
+        self.clear_content_area()
+        self.set_status("正在加载子网计算功能...")
+        
+        try:
+            # 创建子网计算界面
+            self.current_frame = SubnetView(self.content_area)
+            self.current_frame.pack(fill=BOTH, expand=True)
+            self.set_status("子网计算功能已加载")
+        except Exception as e:
+            self.set_status(f"加载子网计算功能失败: {str(e)}")
+    
     def update_permission_ui(self):
         """更新权限状态显示"""
         if self.is_admin:
@@ -411,118 +425,7 @@ class MainWindow:
         
         self.app.after(3000, restore_normal_state)
         
-    def show_about_page(self):
-        """显示关于页面"""
-        import webbrowser
-        
-        self.clear_content_area()
-        
-        # 创建关于页面的主框架
-        about_frame = tb.Frame(self.content_area)
-        about_frame.pack(fill=BOTH, expand=True, padx=ui_helper.get_padding(30), pady=ui_helper.get_padding(30))
-        
-        # 主标题（左对齐）
-        main_title = tb.Label(
-            about_frame,
-            text="NetKit",
-            font=ui_helper.get_font(24, "bold"),
-            bootstyle=PRIMARY
-        )
-        main_title.pack(anchor=W, pady=(0, ui_helper.get_padding(5)))
-        
-        # 副标题（左对齐）
-        sub_title = tb.Label(
-            about_frame,
-            text="网络工程师工具箱",
-            font=ui_helper.get_font(14),
-            bootstyle=SECONDARY
-        )
-        sub_title.pack(anchor=W, pady=(0, ui_helper.get_padding(30)))
-        
-        # 功能标题
-        features_title = tb.Label(
-            about_frame,
-            text="🔧 主要功能",
-            font=ui_helper.get_font(16, "bold"),
-            bootstyle=SUCCESS
-        )
-        features_title.pack(anchor=W, pady=(0, ui_helper.get_padding(10)))
-        
-        # 功能列表
-        features = [
-            "• 网络配置管理",
-            "• Ping连通性测试",
-            "• 静态路由管理"
-        ]
-        
-        for feature in features:
-            feature_label = tb.Label(
-                about_frame,
-                text=feature,
-                font=ui_helper.get_font(11),
-                bootstyle=SECONDARY
-            )
-            feature_label.pack(anchor=W, pady=ui_helper.get_padding(2), padx=(ui_helper.get_padding(20), 0))
-        
-        # 相关链接标题
-        links_title = tb.Label(
-            about_frame,
-            text="🔗 相关链接",
-            font=ui_helper.get_font(16, "bold"),
-            bootstyle=INFO
-        )
-        links_title.pack(anchor=W, pady=(ui_helper.get_padding(30), ui_helper.get_padding(10)))
-        
-        # GitHub链接文本
-        github_label = tb.Label(
-            about_frame,
-            text="GitHub：https://github.com/iam189cm/NetKit",
-            font=ui_helper.get_font(11, "underline"),
-            bootstyle="primary",
-            cursor='hand2'
-        )
-        github_label.pack(anchor=W, pady=ui_helper.get_padding(2), padx=(ui_helper.get_padding(20), 0))
-        
-        # 绑定GitHub链接点击事件
-        def open_github(event):
-            webbrowser.open("https://github.com/iam189cm/NetKit")
-        github_label.bind("<Button-1>", open_github)
-        
-        # 官网链接文本
-        website_label = tb.Label(
-            about_frame,
-            text="主页：https://netkit.189cm.com/",
-            font=ui_helper.get_font(11, "underline"),
-            bootstyle="info",
-            cursor='hand2'
-        )
-        website_label.pack(anchor=W, pady=ui_helper.get_padding(2), padx=(ui_helper.get_padding(20), 0))
-        
-        # 绑定官网链接点击事件
-        def open_website(event):
-            webbrowser.open("https://netkit.189cm.com/")
-        website_label.bind("<Button-1>", open_website)
-        
-        # 版本信息标题
-        version_title = tb.Label(
-            about_frame,
-            text="📊 版本信息",
-            font=ui_helper.get_font(16, "bold"),
-            bootstyle=SECONDARY
-        )
-        version_title.pack(anchor=W, pady=(ui_helper.get_padding(30), ui_helper.get_padding(10)))
-        
-        # 版本号
-        version_label = tb.Label(
-            about_frame,
-            text="版本：v2.0.1",
-            font=ui_helper.get_font(11),
-            bootstyle=SECONDARY
-        )
-        version_label.pack(anchor=W, padx=(ui_helper.get_padding(20), 0))
-        
-        # 保存当前框架引用
-        self.current_frame = about_frame
+
     
     def run(self):
         """运行应用程序"""
