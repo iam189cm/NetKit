@@ -241,13 +241,6 @@ NetKit 采用了现代化的模块化架构设计，将功能按照职责进行�
 - [版本发布说明](docs/RELEASE_NOTES.md)
 - [测试说明](tests/README.md)
 
-## 🤝 贡献
-
-欢迎提交Issue和Pull Request！请确保：
-- 代码符合项目规范
-- 包含必要的测试用例
-- 更新相关文档
-
 ## 📄 许可证
 
 MIT License

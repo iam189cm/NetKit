@@ -1,5 +1,5 @@
 ttkbootstrap>=1.10.1
-psutil>=5.9.8
+# psutil>=5.9.8  # 可选：系统和进程监控（在ARM64架构上可能需要编译工具）
 WMI>=1.5.1
 pywin32>=306
 

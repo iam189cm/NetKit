@@ -11,7 +11,18 @@ echo.
 REM 切换到项目根目录（脚本文件在scripts子目录中）
 cd /d "%~dp0.."
 
-echo 正在启动程序...
+REM 检查关键依赖
+echo 正在检查依赖...
+python -c "import ttkbootstrap" 2>nul
+if %errorlevel% neq 0 (
+    echo 错误：缺少关键依赖 ttkbootstrap
+    echo 请运行 scripts\install_deps.bat 安装依赖
+    echo.
+    pause
+    exit /b 1
+)
+
+echo 依赖检查通过，正在启动程序...
 python scripts/start.py
 
 echo.
