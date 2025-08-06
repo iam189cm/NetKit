@@ -22,7 +22,7 @@ except FileNotFoundError:
 
 setup(
     name="netkit",
-    version="2.0.0",
+    version="2.1.0",
     author="NetKit Team",
     author_email="",
     description="网络工具包 - 提供网络配置、Ping测试、路由管理等功能",

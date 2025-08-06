@@ -4,7 +4,7 @@ NetKit - 网络工具包
 一个用于网络配置、测试和管理的Python工具包
 """
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 __author__ = "NetKit Team"
 __description__ = "网络工具包 - 提供网络配置、Ping测试、路由管理等功能"
 
