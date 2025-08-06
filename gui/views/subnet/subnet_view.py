@@ -47,8 +47,7 @@ class SubnetView(tb.Frame):
         )
         self.subnet_divider.pack(fill=BOTH, expand=True)
         
-        # 默认执行一次计算
-        self.input_form.calculate()
+        # 不再默认执行计算，让用户手动输入
     
     def on_calculate(self, network_info: dict):
         """处理计算事件"""
@@ -59,8 +58,8 @@ class SubnetView(tb.Frame):
         self.result_display.update_results(network_info)
         
         # 更新子网划分组件的当前网络信息
-        network_str = f"{network_info['网络地址']}{network_info['CIDR表示']}"
-        hosts_count = network_info['可用主机数']
+        network_str = network_info['cidr_notation']
+        hosts_count = network_info['host_count']
         self.subnet_divider.update_network_info(network_str, hosts_count)
     
     def on_clear(self):

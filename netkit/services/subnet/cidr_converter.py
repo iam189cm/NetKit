@@ -103,22 +103,61 @@ class CIDRConverter:
         解析CIDR输入，支持多种格式
         
         Args:
-            input_str: 输入字符串，可以是 "/24" 或 "24"
+            input_str: 输入字符串，可以是 "192.168.1.0/24", "/24" 或 "24"
             
         Returns:
-            (子网掩码, CIDR位数)
+            (IP地址, CIDR位数) - 如果输入只是CIDR位数，IP地址为None
         """
+        if not input_str or not input_str.strip():
+            return None, None
+            
         input_str = input_str.strip()
         
-        # 如果是CIDR格式
+        # 检查是否包含完整的CIDR表示法 (IP/CIDR)
+        if '/' in input_str:
+            parts = input_str.split('/')
+            if len(parts) != 2:
+                return None, None
+                
+            ip_part, cidr_part = parts
+            
+            # 如果IP部分为空（如 "/24"）
+            if not ip_part:
+                try:
+                    cidr_bits = int(cidr_part)
+                    if 0 <= cidr_bits <= 32:
+                        return None, cidr_bits
+                except ValueError:
+                    pass
+                return None, None
+            
+            # 验证IP地址格式
+            try:
+                # 简单验证IP格式
+                ip_octets = ip_part.split('.')
+                if len(ip_octets) != 4:
+                    return None, None
+                for octet in ip_octets:
+                    if not (0 <= int(octet) <= 255):
+                        return None, None
+                        
+                # 验证CIDR位数
+                cidr_bits = int(cidr_part)
+                if 0 <= cidr_bits <= 32:
+                    return ip_part, cidr_bits
+            except ValueError:
+                pass
+                
+            return None, None
+        
+        # 如果是纯CIDR位数格式
         if input_str.startswith('/'):
             input_str = input_str[1:]
         
         try:
             cidr_bits = int(input_str)
             if 0 <= cidr_bits <= 32:
-                mask = CIDRConverter.cidr_to_mask(cidr_bits)
-                return mask, cidr_bits
+                return None, cidr_bits
         except ValueError:
             pass
             

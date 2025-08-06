@@ -27,6 +27,12 @@ class SubnetCalculator:
         Returns:
             包含子网信息的字典
         """
+        # 输入验证
+        if not ip_str or not ip_str.strip():
+            raise ValueError("IP地址不能为空")
+        if not mask_or_cidr or not mask_or_cidr.strip():
+            raise ValueError("子网掩码或CIDR不能为空")
+        
         try:
             # 判断是CIDR格式还是子网掩码格式
             if '/' in mask_or_cidr or mask_or_cidr.isdigit() or mask_or_cidr.startswith('/'):
@@ -46,15 +52,15 @@ class SubnetCalculator:
             
             # 计算各种信息
             result = {
-                '网络地址': str(network.network_address),
-                '广播地址': str(network.broadcast_address),
-                '子网掩码': subnet_mask,
-                'CIDR表示': f"/{cidr_bits}",
-                '可用主机范围': self._get_host_range(network),
-                '可用主机数': str(self._get_usable_hosts_count(network)),
-                '网络位/主机位': f"{cidr_bits}位 / {32-cidr_bits}位",
-                'IP地址类型': self._get_ip_type(network),
-                '二进制掩码': self.converter.mask_to_binary(subnet_mask)
+                'network_address': str(network.network_address),
+                'broadcast_address': str(network.broadcast_address),
+                'subnet_mask': subnet_mask,
+                'cidr_notation': str(network),
+                'host_range': self._get_host_range(network),
+                'host_count': str(self._get_usable_hosts_count(network)),
+                'network_host_bits': f"{cidr_bits}/{32-cidr_bits}",
+                'ip_type': self._get_ip_type(network),
+                'binary_mask': self.converter.mask_to_binary(subnet_mask)
             }
             
             return result
@@ -76,6 +82,16 @@ class SubnetCalculator:
         Returns:
             子网列表
         """
+        # 输入验证
+        if not ip_str or not ip_str.strip():
+            raise ValueError("IP地址不能为空")
+        if not mask_or_cidr or not mask_or_cidr.strip():
+            raise ValueError("子网掩码或CIDR不能为空")
+        if divide_by not in ['subnets', 'hosts']:
+            raise ValueError("划分方式必须是 'subnets' 或 'hosts'")
+        if not isinstance(value, int) or value <= 0:
+            raise ValueError("划分数值必须是正整数")
+            
         try:
             # 判断是CIDR格式还是子网掩码格式
             if '/' in mask_or_cidr or mask_or_cidr.isdigit() or mask_or_cidr.startswith('/'):
@@ -102,10 +118,14 @@ class SubnetCalculator:
             result = []
             for i, subnet in enumerate(subnets, 1):
                 result.append({
-                    '序号': str(i),
-                    '子网地址': f"{subnet.network_address}/{subnet.prefixlen}",
-                    '可用主机范围': self._get_host_range(subnet),
-                    '主机数': str(self._get_usable_hosts_count(subnet))
+                    'network_address': str(subnet.network_address),
+                    'broadcast_address': str(subnet.broadcast_address),
+                    'subnet_mask': self.converter.cidr_to_mask(subnet.prefixlen),
+                    'cidr_notation': str(subnet),
+                    'host_range': self._get_host_range(subnet),
+                    'host_count': str(self._get_usable_hosts_count(subnet)),
+                    'network_host_bits': f"{subnet.prefixlen}/{32-subnet.prefixlen}",
+                    'ip_type': self._get_ip_type(subnet)
                 })
             
             return result
@@ -151,6 +171,27 @@ class SubnetCalculator:
     
     def _get_host_range(self, network: ipaddress.IPv4Network) -> str:
         """获取可用主机范围"""
+        # 特殊处理 /31 和 /32
+        if network.prefixlen == 31:
+            # /31 网络的两个地址都可用 (RFC 3021)
+            addresses = list(network)
+            return f"{addresses[0]} - {addresses[1]}"
+        elif network.prefixlen == 32:
+            # /32 网络只有一个地址
+            return str(network.network_address)
+        
+        # 对于大网络（前缀长度小于等于16），避免生成完整的主机列表
+        if network.prefixlen <= 16:
+            # 直接计算第一个和最后一个主机地址
+            if network.num_addresses <= 2:
+                return "无可用主机"
+            first_host = network.network_address + 1
+            last_host = network.broadcast_address - 1
+            if first_host == last_host:
+                return str(first_host)
+            return f"{first_host} - {last_host}"
+        
+        # 对于小网络，使用原来的方法
         hosts = list(network.hosts())
         if not hosts:
             return "无可用主机"
@@ -178,11 +219,11 @@ class SubnetCalculator:
         if ip.is_private:
             # 判断具体的私有地址范围
             if ip in ipaddress.IPv4Network('10.0.0.0/8'):
-                return "私有IP地址 (RFC1918 - A类)"
+                return "私有IP地址 (A类)"
             elif ip in ipaddress.IPv4Network('172.16.0.0/12'):
-                return "私有IP地址 (RFC1918 - B类)"
+                return "私有IP地址 (B类)"
             elif ip in ipaddress.IPv4Network('192.168.0.0/16'):
-                return "私有IP地址 (RFC1918 - C类)"
+                return "私有IP地址 (C类)"
             else:
                 return "私有IP地址"
         

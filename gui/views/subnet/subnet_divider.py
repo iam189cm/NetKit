@@ -135,42 +135,50 @@ class SubnetDivider(tb.LabelFrame):
         # 划分结果标签
         tb.Label(self, text="划分结果：", font=ui_helper.get_font(9, "bold")).pack(anchor=W)
         
-        # 结果表格容器
-        table_container = tb.Frame(self)
-        table_container.pack(fill=BOTH, expand=True, pady=(ui_helper.get_padding(5), 0))
+        # 结果显示容器
+        result_container = tb.Frame(self)
+        result_container.pack(fill=BOTH, expand=True, pady=(ui_helper.get_padding(5), 0))
         
-        # 创建Treeview表格
-        columns = ['序号', '子网地址', '可用主机范围', '主机数']
-        
-        self.result_tree = tb.Treeview(
-            table_container,
-            columns=columns,
-            show='headings',
-            height=8,
-            bootstyle=INFO
+        # 创建Text组件显示结果（表格格式）
+        self.result_text = tb.Text(
+            result_container,
+            height=8,  # 设置固定高度8行
+            wrap=NONE,  # 不自动换行，保持表格格式
+            state=DISABLED,
+            relief=FLAT,
+            borderwidth=ui_helper.scale_size(1),
+            background='#f8f9fa',
+            selectbackground='#0078d4',
+            selectforeground='white',
+            font=('Consolas', 9)  # 使用等宽字体确保对齐
         )
         
-        # 设置列（全部左对齐）
-        self.result_tree.column('#0', width=0, stretch=NO)
-        self.result_tree.column('序号', width=ui_helper.scale_size(50), anchor=W)
-        self.result_tree.column('子网地址', width=ui_helper.scale_size(150), anchor=W)
-        self.result_tree.column('可用主机范围', width=ui_helper.scale_size(200), anchor=W)
-        self.result_tree.column('主机数', width=ui_helper.scale_size(80), anchor=W)
+        # 添加垂直滚动条
+        v_scrollbar = tb.Scrollbar(result_container, orient=VERTICAL, command=self.result_text.yview)
+        self.result_text.configure(yscrollcommand=v_scrollbar.set)
         
-        # 设置表头
-        for col in columns:
-            self.result_tree.heading(col, text=col)
-        
-        # 垂直滚动条
-        v_scrollbar = tb.Scrollbar(table_container, orient=VERTICAL, command=self.result_tree.yview)
-        self.result_tree.configure(yscrollcommand=v_scrollbar.set)
+        # 添加水平滚动条（因为不自动换行）
+        h_scrollbar = tb.Scrollbar(result_container, orient=HORIZONTAL, command=self.result_text.xview)
+        self.result_text.configure(xscrollcommand=h_scrollbar.set)
         
         # 布局
-        self.result_tree.pack(side=LEFT, fill=BOTH, expand=True)
-        v_scrollbar.pack(side=RIGHT, fill=Y)
+        self.result_text.grid(row=0, column=0, sticky='nsew')
+        v_scrollbar.grid(row=0, column=1, sticky='ns')
+        h_scrollbar.grid(row=1, column=0, sticky='ew')
+        
+        # 配置grid权重
+        result_container.grid_rowconfigure(0, weight=1)
+        result_container.grid_columnconfigure(0, weight=1)
+        
+        # 添加右键菜单
+        self.context_menu = tb.Menu(self, tearoff=0)
+        self.context_menu.add_command(label="复制", command=self.copy_selected_text)
+        self.context_menu.add_command(label="全选", command=self.select_all_text)
+        self.context_menu.add_separator()
+        self.context_menu.add_command(label="复制所有结果", command=self.copy_all_results)
         
         # 绑定右键菜单
-        self.result_tree.bind("<Button-3>", self.show_table_context_menu)
+        self.result_text.bind("<Button-3>", self.show_context_menu)
     
     def on_mode_change(self):
         """划分方式改变"""
@@ -249,24 +257,35 @@ class SubnetDivider(tb.LabelFrame):
     
     def display_results(self, results: list):
         """显示划分结果"""
-        # 清空现有数据
-        for item in self.result_tree.get_children():
-            self.result_tree.delete(item)
+        if not results:
+            self._update_text_display("暂无划分结果")
+            return
         
-        # 添加新数据
-        for subnet in results:
-            self.result_tree.insert('', 'end', values=(
-                subnet['序号'],
-                subnet['子网地址'],
-                subnet['可用主机范围'],
-                subnet['主机数']
-            ))
+        # 构建表格格式的文本
+        lines = []
+        
+        # 表头
+        header = f"{'序号':<4} {'子网地址':<18} {'可用主机范围':<32} {'主机数':>6}"
+        lines.append(header)
+        lines.append("-" * len(header))  # 分隔线
+        
+        # 数据行
+        for i, subnet in enumerate(results, 1):
+            # 使用正确的英文字段名
+            network_addr = subnet['network_address']
+            host_range = subnet['host_range']
+            host_count = subnet['host_count']
+            
+            line = f"{i:<4} {network_addr:<18} {host_range:<32} {host_count:>6}"
+            lines.append(line)
+        
+        content = '\n'.join(lines)
+        self._update_text_display(content)
     
     def clear_results(self):
         """清空结果"""
-        # 清空表格
-        for item in self.result_tree.get_children():
-            self.result_tree.delete(item)
+        # 清空文本显示
+        self._update_text_display("")
         
         # 重置网络信息
         self.current_network = None
@@ -275,63 +294,48 @@ class SubnetDivider(tb.LabelFrame):
         self.divide_button.config(state=DISABLED)
         self.clear_error()
     
-    def show_table_context_menu(self, event):
-        """显示表格右键菜单"""
-        # 创建右键菜单
-        context_menu = tk.Menu(self, tearoff=0)
-        
-        # 获取选中的项
-        selection = self.result_tree.selection()
-        
-        if selection:
-            # 复制选中行
-            context_menu.add_command(
-                label="复制",
-                command=lambda: self.copy_selected_rows(selection)
-            )
-        
-        # 全选
-        context_menu.add_command(
-            label="全选",
-            command=self.select_all_rows
-        )
-        
-        # 全部复制
-        context_menu.add_command(
-            label="全部复制",
-            command=self.copy_all_results
-        )
-        
-        # 显示菜单
+    def _update_text_display(self, content):
+        """更新文本显示内容"""
+        self.result_text.config(state=NORMAL)
+        self.result_text.delete("1.0", END)
+        self.result_text.insert("1.0", content)
+        self.result_text.config(state=DISABLED)
+    
+    def show_context_menu(self, event):
+        """显示右键菜单"""
         try:
-            context_menu.tk_popup(event.x_root, event.y_root)
-        finally:
-            context_menu.grab_release()
-    
-    def copy_selected_rows(self, selection):
-        """复制选中的行"""
-        lines = []
-        for item in selection:
-            values = self.result_tree.item(item)['values']
-            line = f"{values[0]}\t{values[1]}\t{values[2]}\t{values[3]}"
-            lines.append(line)
+            # 检查是否有选中的文本
+            if self.result_text.selection_get():
+                self.context_menu.entryconfig("复制", state=NORMAL)
+            else:
+                self.context_menu.entryconfig("复制", state=DISABLED)
+        except:
+            self.context_menu.entryconfig("复制", state=DISABLED)
         
-        if lines:
-            pyperclip.copy('\n'.join(lines))
+        self.context_menu.post(event.x_root, event.y_root)
     
-    def select_all_rows(self):
-        """全选所有行"""
-        all_items = self.result_tree.get_children()
-        self.result_tree.selection_set(all_items)
+    def copy_selected_text(self):
+        """复制选中的文本"""
+        try:
+            selected_text = self.result_text.selection_get()
+            if selected_text:
+                pyperclip.copy(selected_text)
+        except:
+            pass
+    
+    def select_all_text(self):
+        """全选文本"""
+        self.result_text.tag_add(SEL, "1.0", END)
+        self.result_text.mark_set(INSERT, "1.0")
+        self.result_text.see(INSERT)
     
     def copy_all_results(self):
-        """复制所有结果"""
-        lines = ["序号\t子网地址\t可用主机范围\t主机数"]
-        
-        for item in self.result_tree.get_children():
-            values = self.result_tree.item(item)['values']
-            line = f"{values[0]}\t{values[1]}\t{values[2]}\t{values[3]}"
-            lines.append(line)
-        
-        if len(lines) > 1:  # 有数据才复制
-            pyperclip.copy('\n'.join(lines))
+        """复制所有划分结果"""
+        try:
+            # 获取所有文本内容
+            all_text = self.result_text.get("1.0", END).strip()
+            if all_text:
+                pyperclip.copy(all_text)
+        except Exception as e:
+            pass
+    

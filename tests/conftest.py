@@ -35,6 +35,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "netconfig: 网络配置功能测试")
     config.addinivalue_line("markers", "ping: Ping功能测试")
     config.addinivalue_line("markers", "route: 路由功能测试")
+    config.addinivalue_line("markers", "subnet: 子网计算功能测试")
     config.addinivalue_line("markers", "gui: GUI功能测试")
     config.addinivalue_line("markers", "utils: 工具类测试")
     config.addinivalue_line("markers", "integration: 集成测试")

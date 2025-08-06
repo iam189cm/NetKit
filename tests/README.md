@@ -16,6 +16,8 @@ tests/
 │   └── test_ping_service.py          # Ping服务测试
 ├── route/                  # 路由功能测试
 │   └── test_route_service.py         # 路由服务测试
+├── subnet/                 # 子网计算功能测试
+│   └── test_subnet_service.py        # 子网计算服务测试
 ├── gui/                    # GUI功能测试
 │   └── test_main_window.py           # 主窗口测试
 ├── utils/                  # 工具类测试
@@ -49,9 +51,13 @@ scripts/test_netconfig.bat
 # Ping功能测试
 scripts/test_ping.bat
 
+# 子网计算功能测试
+python -m pytest tests/subnet/ -v
+
 # 直接使用pytest
 python -m pytest tests/netconfig/ -v
 python -m pytest tests/ping/ -v
+python -m pytest tests/subnet/ -v
 ```
 
 ## 🎯 测试策略
@@ -97,7 +103,8 @@ test_[模块名]_[测试类型].py
 ```python
 @pytest.mark.netconfig      # 网络配置功能
 @pytest.mark.ping          # Ping功能
-@pytest.mark.route         # 路由功能  
+@pytest.mark.route         # 路由功能
+@pytest.mark.subnet        # 子网计算功能
 @pytest.mark.gui           # GUI功能
 @pytest.mark.utils         # 工具类
 @pytest.mark.integration   # 集成测试
@@ -109,6 +116,7 @@ test_[模块名]_[测试类型].py
 ```python
 import pytest
 from netkit.services.netconfig import get_network_interfaces
+from netkit.services.subnet import SubnetCalculator
 
 @pytest.mark.netconfig
 def test_get_network_interfaces():
@@ -118,6 +126,17 @@ def test_get_network_interfaces():
     assert isinstance(interfaces, list)
     assert len(interfaces) > 0
     print(f"发现 {len(interfaces)} 个网络接口")
+
+@pytest.mark.subnet
+def test_subnet_calculation():
+    """测试子网计算"""
+    calculator = SubnetCalculator()
+    result = calculator.calculate_subnet_info("192.168.1.0", "24")
+    
+    assert result['network_address'] == '192.168.1.0'
+    assert result['broadcast_address'] == '192.168.1.255'
+    assert result['host_count'] == '254'
+    print(f"子网 {result['cidr_notation']} 计算成功")
 ```
 
 ## 🚨 故障排除
