@@ -9,7 +9,7 @@
 
 ## 📥 下载
 
-**最新版本下载**: [https://netkit.189cm.com/](https://netkit.189cm.com/)
+**最新版本下载**: https://netkit.dataechotech.com/
 
 支持Windows 10及以上版本。
 
